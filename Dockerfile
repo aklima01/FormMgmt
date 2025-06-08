@@ -1,4 +1,4 @@
-FROM webdevops/php-nginx:8.4
+FROM webdevops/php-nginx:8.2
 
 WORKDIR /app
 
