@@ -7,7 +7,7 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class HomeController extends AbstractController
 {
-    #[Route(path: '/', name: 'home')]
+    #[Route(path: '/', name: 'app_home')]
     public function index()
     {
         // Render the home page view

@@ -13,7 +13,8 @@
         "symfony/framework-bundle": "7.3.*",
         "symfony/runtime": "7.3.*",
         "symfony/webapp-pack": "*",
-        "symfony/yaml": "7.3.*"
+        "symfony/yaml": "7.3.*",
+        "twig/string-extra": "*"
     },
     "config": {
         "allow-plugins": {
