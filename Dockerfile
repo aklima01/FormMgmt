@@ -8,6 +8,9 @@ ENV WEB_DOCUMENT_ROOT=/app/public
 
 ENV APP_ENV=prod
 
+ARG DATABASE_URL
+ENV DATABASE_URL=${DATABASE_URL}
+
 # Disable opcache for CLI to prevent segfault during composer install
 RUN echo "opcache.enable_cli=0" > /opt/docker/etc/php/php.ini
 
