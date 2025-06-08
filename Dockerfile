@@ -1,4 +1,4 @@
-FROM webdevops/php-nginx-dev:8.2
+FROM webdevops/php-nginx-dev:8.4
 
 WORKDIR /app
 
@@ -6,7 +6,7 @@ COPY ./app /app
 
 ENV WEB_DOCUMENT_ROOT=/app/public
 
-ENV APP_ENV=prod
+ENV APP_ENV=dev
 
 ARG DATABASE_URL
 ENV DATABASE_URL=${DATABASE_URL}
