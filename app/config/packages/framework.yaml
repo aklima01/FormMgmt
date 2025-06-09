@@ -1,23 +1,22 @@
-# see https://symfony.com/doc/current/reference/configuration/framework.html
+# config/packages/framework.yaml
 framework:
-
     secret: '%env(APP_SECRET)%'
 
     # Note that the session will be started ONLY if you read or write from it.
     session: true
 
-    #esi: true
-    #fragments: true
+    # esi: true
+    # fragments: true
 
-    trusted_proxies: '127.0.0.1,REMOTE_ADDR'
-        trusted_headers:
-            - 'x-forwarded-for'
-            - 'x-forwarded-proto'
-            - 'x-forwarded-host'
-            - 'x-forwarded-port'
+    trusted_proxies: ['127.0.0.1', '%env(REMOTE_ADDR)%']
+    trusted_headers:
+        - 'x-forwarded-for'
+        - 'x-forwarded-proto'
+        - 'x-forwarded-host'
+        - 'x-forwarded-port'
 
 when@test:
     framework:
         test: true
         session:
-            storage_factory_id: session.storage.factory.mock_file
+            storage_factory_id: 'session.storage.factory.mock_file'
