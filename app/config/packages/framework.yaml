@@ -16,10 +16,7 @@ framework:
         cookie_samesite: lax
 
         # Trusted proxies configuration
-        trusted_proxies:
-            # Render proxies may vary, so typically trust the REMOTE_ADDR environment variable
-            # You can replace with specific IPs if known
-            - '%env(TRUSTED_PROXIES)%'
+        trusted_proxies: '127.0.0.1,REMOTE_ADDR'
 
         trusted_headers:
             - 'x-forwarded-for'
