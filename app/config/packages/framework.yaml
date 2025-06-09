@@ -1,12 +1,19 @@
-# see https://symfony.com/doc/current/reference/configuration/framework.html
 framework:
     secret: '%env(APP_SECRET)%'
 
-    # Note that the session will be started ONLY if you read or write from it.
-    session: true
+    session:
+        handler_id: null  # Use default PHP session handler
+        cookie_secure: auto  # 'auto' = only secure if HTTPS
+        cookie_samesite: lax
+        cookie_httponly: true
+        cookie_lifetime: 5184000    # Session cookie (deleted when browser closes)
+        gc_probability: 1   # Increase probability of GC to clean up old sessions
+        gc_divisor: 100     # 1/100 = 1% GC chance per request
+        name: PHPSESSID      # Can be customized
 
-    #esi: true
-    #fragments: true
+# Optional if using ESI or fragments
+# esi: true
+# fragments: true
 
 when@test:
     framework:
