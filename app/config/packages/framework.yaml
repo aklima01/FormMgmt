@@ -22,6 +22,3 @@ framework:
     csrf_protection:
         enabled: true
 
-    # Enable routing annotations (if used)
-    annotations:
-        enabled: true
