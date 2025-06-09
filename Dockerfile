@@ -6,7 +6,7 @@ COPY ./app /app
 
 ENV WEB_DOCUMENT_ROOT=/app/public
 
-ENV APP_ENV=prod
+ENV APP_ENV=production
 
 ARG DATABASE_URL
 ENV DATABASE_URL=${DATABASE_URL}
