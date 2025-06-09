@@ -6,11 +6,13 @@ COPY ./app /app
 
 ENV WEB_DOCUMENT_ROOT=/app/public
 
-ENV APP_ENV=dev
-
+ENV APP_ENV=production
 
 ARG DATABASE_URL
 ENV DATABASE_URL=${DATABASE_URL}
+
+ARG APP_SECRET
+ENV APP_SECRET=${APP_SECRET}
 
 # Disable opcache for CLI to prevent segfault during composer install
 RUN echo "opcache.enable_cli=0" > /opt/docker/etc/php/php.ini
