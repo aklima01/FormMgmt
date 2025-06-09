@@ -1,22 +1,27 @@
-# config/packages/framework.yaml
 framework:
     secret: '%env(APP_SECRET)%'
+    http_method_override: true
+    handle_all_throwables: true
 
-    # Note that the session will be started ONLY if you read or write from it.
-    session: true
+    session:
+        enabled: true
+        storage_factory_id: session.storage.factory.native
+        handler_id: null
+        save_path: '%kernel.project_dir%/var/sessions/%kernel.environment%'
+        cookie_secure: auto       # Use 'auto' to make it HTTPS-aware
+        cookie_samesite: lax      # Common default; adjust as needed
 
-    # esi: true
-    # fragments: true
-
-    trusted_proxies: ['127.0.0.1', '%env(REMOTE_ADDR)%']
+    trusted_proxies: '127.0.0.1,REMOTE_ADDR'
     trusted_headers:
         - 'x-forwarded-for'
         - 'x-forwarded-proto'
         - 'x-forwarded-host'
         - 'x-forwarded-port'
 
-when@test:
-    framework:
-        test: true
-        session:
-            storage_factory_id: 'session.storage.factory.mock_file'
+    # Enable CSRF protection for forms (optional but common)
+    csrf_protection:
+        enabled: true
+
+    # Enable routing annotations (if used)
+    annotations:
+        enabled: true
