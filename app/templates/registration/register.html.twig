@@ -4,33 +4,43 @@
 {% block title %}Register{% endblock %}
 
 {% block body %}
-    <div class="container min-vh-100 d-flex justify-content-center align-items-center">
-        <div class="col-md-6">
-            <div class="card shadow-lg p-4 rounded-4">
-                <h2 class="text-center mb-4">Create an Account</h2>
+    <div class="container-fluid min-vh-100 d-flex justify-content-center align-items-center px-3">
+        <div class="col-12 col-md-8 col-lg-6 col-xl-4 mx-auto">
+            <div class="border rounded-3 p-4 shadow-sm bg-white">
+                <h3 class="text-center mb-4">
+                    <i class="bi bi-person-badge-fill me-2"></i>
+                    User Registration
+                </h3>
 
                 {{ form_start(registrationForm) }}
 
                 <div class="mb-3">
-                    {{ form_label(registrationForm.name, null, {'label_attr': {'class': 'form-label'}}) }}
-                    {{ form_widget(registrationForm.name, {'attr': {'class': 'form-control'}}) }}
+                    {{ form_label(registrationForm.name, null, {'label_attr': {'class': 'form-label fw-semibold'}}) }}
+                    {{ form_widget(registrationForm.name, {'attr': {'class': 'form-control', 'placeholder': 'Full name'}}) }}
                     {{ form_errors(registrationForm.name) }}
                 </div>
 
                 <div class="mb-3">
-                    {{ form_label(registrationForm.email, null, {'label_attr': {'class': 'form-label'}}) }}
-                    {{ form_widget(registrationForm.email, {'attr': {'class': 'form-control'}}) }}
+                    {{ form_label(registrationForm.email, null, {'label_attr': {'class': 'form-label fw-semibold'}}) }}
+                    {{ form_widget(registrationForm.email, {'attr': {'class': 'form-control', 'placeholder': 'Email'}}) }}
                     {{ form_errors(registrationForm.email) }}
                 </div>
 
                 <div class="mb-3">
-                    {{ form_label(registrationForm.Password, null, {'label_attr': {'class': 'form-label'}}) }}
-                    {{ form_widget(registrationForm.Password, {'attr': {'class': 'form-control'}}) }}
+                    {{ form_label(registrationForm.Password, null, {'label_attr': {'class': 'form-label fw-semibold'}}) }}
+                    {{ form_widget(registrationForm.Password, {'attr': {'class': 'form-control', 'placeholder': 'Password'}}) }}
                     {{ form_errors(registrationForm.Password) }}
                 </div>
 
-                <div class="d-grid">
-                    <button type="submit" class="btn btn-primary">Register</button>
+                <div class="d-grid mb-2">
+                    <button type="submit" class="btn btn-primary text-white fw-bold">Signup</button>
+                </div>
+
+                <div class="text-center">
+                    <small class="text-muted">
+                        Already registered?
+                        <a href="{{ path('app_login') }}" class="text-decoration-none">Login</a>
+                    </small>
                 </div>
 
                 {{ form_end(registrationForm) }}
