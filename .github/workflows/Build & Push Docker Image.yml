@@ -33,6 +33,7 @@ jobs:
           tags: ${{ secrets.DOCKER_USERNAME }}/formmgmt:latest
           build-args: |
             DATABASE_URL=${{ secrets.DATABASE_URL }}
+            APP_SECRET=${{ secrets.APP_SECRET }}
 
       - name: Logout from DockerHub
         run: docker logout
