@@ -1,0 +1,40 @@
+{# templates/registration/register.html.twig #}
+{% extends 'base.html.twig' %}
+
+{% block title %}Register{% endblock %}
+
+{% block body %}
+    <div class="container min-vh-100 d-flex justify-content-center align-items-center">
+        <div class="col-md-6">
+            <div class="card shadow-lg p-4 rounded-4">
+                <h2 class="text-center mb-4">Create an Account</h2>
+
+                {{ form_start(registrationForm) }}
+
+                <div class="mb-3">
+                    {{ form_label(registrationForm.name, null, {'label_attr': {'class': 'form-label'}}) }}
+                    {{ form_widget(registrationForm.name, {'attr': {'class': 'form-control'}}) }}
+                    {{ form_errors(registrationForm.name) }}
+                </div>
+
+                <div class="mb-3">
+                    {{ form_label(registrationForm.email, null, {'label_attr': {'class': 'form-label'}}) }}
+                    {{ form_widget(registrationForm.email, {'attr': {'class': 'form-control'}}) }}
+                    {{ form_errors(registrationForm.email) }}
+                </div>
+
+                <div class="mb-3">
+                    {{ form_label(registrationForm.Password, null, {'label_attr': {'class': 'form-label'}}) }}
+                    {{ form_widget(registrationForm.Password, {'attr': {'class': 'form-control'}}) }}
+                    {{ form_errors(registrationForm.Password) }}
+                </div>
+
+                <div class="d-grid">
+                    <button type="submit" class="btn btn-primary">Register</button>
+                </div>
+
+                {{ form_end(registrationForm) }}
+            </div>
+        </div>
+    </div>
+{% endblock %}
