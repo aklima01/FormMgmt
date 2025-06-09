@@ -2,14 +2,9 @@ framework:
     secret: '%env(APP_SECRET)%'
 
     session:
-        handler_id: null  # Use default PHP session handler
-        cookie_secure: auto  # 'auto' = only secure if HTTPS
+        handler_id: null
+        cookie_secure: auto   # Or "true" if using HTTPS
         cookie_samesite: lax
-        cookie_httponly: true
-        cookie_lifetime: 5184000    # Session cookie (deleted when browser closes)
-        gc_probability: 1   # Increase probability of GC to clean up old sessions
-        gc_divisor: 100     # 1/100 = 1% GC chance per request
-        name: PHPSESSID      # Can be customized
 
 # Optional if using ESI or fragments
 # esi: true
