@@ -2,13 +2,30 @@ framework:
     secret: '%env(APP_SECRET)%'
 
     session:
+        enabled: true
+        # Use the default PHP session handler (usually fine for production)
         handler_id: null
-        cookie_secure: auto   # Or "true" if using HTTPS
+
+        # This path is optional if PHP session.save_path is correctly configured
+        # save_path: '%kernel.project_dir%/var/sessions/%kernel.environment%'
+
+        # Secure cookie for HTTPS (Render uses HTTPS by default)
+        cookie_secure: auto
+
+        # Lax is a good balance for CSRF protection while allowing normal usage
         cookie_samesite: lax
 
-# Optional if using ESI or fragments
-# esi: true
-# fragments: true
+        # Trusted proxies configuration
+        trusted_proxies:
+            # Render proxies may vary, so typically trust the REMOTE_ADDR environment variable
+            # You can replace with specific IPs if known
+            - '%env(TRUSTED_PROXIES)%'
+
+        trusted_headers:
+            - 'x-forwarded-for'
+            - 'x-forwarded-proto'
+            - 'x-forwarded-host'
+            - 'x-forwarded-port'
 
 when@test:
     framework:
