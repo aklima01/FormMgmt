@@ -1,31 +1,18 @@
+# config/packages/test/framework.yaml
 framework:
-    secret: '%env(APP_SECRET)%'
+    test: true
 
     session:
         enabled: true
-        # Use the default PHP session handler (usually fine for production)
+        storage_factory_id: session.storage.factory.mock_file
         handler_id: null
-
-        # This path is optional if PHP session.save_path is correctly configured
-        # save_path: '%kernel.project_dir%/var/sessions/%kernel.environment%'
-
-        # Secure cookie for HTTPS (Render uses HTTPS by default)
+        save_path: '%kernel.project_dir%/var/sessions/%kernel.environment%'
         cookie_secure: auto
-
-        # Lax is a good balance for CSRF protection while allowing normal usage
         cookie_samesite: lax
 
-        # Trusted proxies configuration
-        trusted_proxies: '127.0.0.1,REMOTE_ADDR'
-
-        trusted_headers:
-            - 'x-forwarded-for'
-            - 'x-forwarded-proto'
-            - 'x-forwarded-host'
-            - 'x-forwarded-port'
-
-when@test:
-    framework:
-        test: true
-        session:
-            storage_factory_id: session.storage.factory.mock_file
+    trusted_proxies: '127.0.0.1,REMOTE_ADDR'
+    trusted_headers:
+        - 'x-forwarded-for'
+        - 'x-forwarded-proto'
+        - 'x-forwarded-host'
+        - 'x-forwarded-port'
