@@ -20,3 +20,6 @@ services:
     # please note that last definitions always *replace* previous ones
 
     App\Service\User\UserRegistrationServiceInterface: '@App\Service\User\UserRegistrationService'
+    pp\Repository\UserRepositoryInterface: '@App\Repository\UserRepository'
+
+
