@@ -11,10 +11,10 @@ class UserRepository  extends ServiceEntityRepository implements UserRepositoryI
 {
     private readonly EntityManagerInterface $entityManager;
 
-    public function __construct(ManagerRegistry $registry)
+    public function __construct(ManagerRegistry $registry,EntityManagerInterface $entityManager)
     {
         parent::__construct($registry, User::class);
-        $this->entityManager = $this->getEntityManager();
+        $this->entityManager = $entityManager;
     }
 
     public function save(User $user, bool $flush = true): void
