@@ -2,6 +2,7 @@
 
 namespace App\Service\User;
 
+use App\Common\DataTablesAjaxRequest;
 use App\Entity\User;
 use App\Repository\User\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -15,6 +16,9 @@ use Symfony\Component\HttpFoundation\Session\SessionInterface;
 class UserManagementService implements UserManagementServiceInterface
 {
     private SessionInterface $session;
+    private UserRepository $userRepository;
+    private EntityManagerInterface $em;
+    private RouterInterface $router;
 
     public function __construct(
         UserRepository $userRepository,
@@ -30,13 +34,11 @@ class UserManagementService implements UserManagementServiceInterface
 
     public function handleAjaxUsersRequest(Request $request): JsonResponse
     {
-        $params = $request->query->all();
+        $dtRequest = new DataTablesAjaxRequest($request);
 
-        $start = (int)($params['start'] ?? 0);
-        $length = (int)($params['length'] ?? 10);
-        $search = $params['search']['value'] ?? '';
-        $orderColumnIndex = $params['order'][0]['column'] ?? 1;
-        $orderDir = $params['order'][0]['dir'] ?? 'asc';
+        $start = $dtRequest->getStart();
+        $length = $dtRequest->getLength();
+        $search = $dtRequest->getSearchText();
 
         $columnsMap = [
             1 => 'u.name',
@@ -46,7 +48,18 @@ class UserManagementService implements UserManagementServiceInterface
             5 => 'u.createdAt',
         ];
 
-        $orderColumn = $columnsMap[$orderColumnIndex] ?? 'u.name';
+        $orderBy = $dtRequest->getSortText($columnsMap);
+        // If no order defined, fallback to default ordering
+        if (empty($orderBy)) {
+            $orderBy = 'u.name asc';
+        }
+
+        // Extract order column and direction from orderBy string, for QueryBuilder orderBy method
+        // orderBy could be multiple columns separated by comma
+        // We'll only use the first order clause here for simplicity
+        $orderParts = explode(' ', explode(',', $orderBy)[0]);
+        $orderColumn = $orderParts[0];
+        $orderDir = strtolower($orderParts[1] ?? 'asc');
 
         $qb = $this->em->createQueryBuilder()
             ->select('u')
@@ -82,7 +95,7 @@ class UserManagementService implements UserManagementServiceInterface
         }, $users);
 
         return new JsonResponse([
-            'draw' => (int)($params['draw'] ?? 0),
+            'draw' => $dtRequest->getRequestData()['draw'] ?? 0,
             'recordsTotal' => $totalUsers,
             'recordsFiltered' => $filteredCount,
             'data' => $data,
