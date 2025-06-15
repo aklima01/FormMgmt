@@ -1,42 +1,35 @@
 <?php
 
-namespace App\Controller;
+namespace App\Service\User;
 
 use App\Entity\User;
 use App\Repository\User\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RedirectResponse;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\Routing\RouterInterface;
+use Symfony\Component\HttpFoundation\Session\SessionInterface;
 
-#[Route('/admin/users', name: 'admin_users_')]
-class AdminUserController extends AbstractController
+class UserManagementService implements UserManagementServiceInterface
 {
-    private UserRepository $userRepository;
-    private EntityManagerInterface $em;
+    private SessionInterface $session;
 
-    public function __construct(UserRepository $userRepository, EntityManagerInterface $em)
-    {
+    public function __construct(
+        UserRepository $userRepository,
+        EntityManagerInterface $em,
+        RouterInterface $router,
+        RequestStack $requestStack
+    ) {
         $this->userRepository = $userRepository;
         $this->em = $em;
+        $this->router = $router;
+        $this->session = $requestStack->getSession();
     }
 
-    #[Route('/', name: 'list', methods: ['GET'])]
-    public function list(): Response
+    public function handleAjaxUsersRequest(Request $request): JsonResponse
     {
-        $this->denyAccessUnlessGranted('ROLE_ADMIN');
-
-        return $this->render('admin/users/list.html.twig');
-    }
-
-    #[Route('/ajax', name: 'ajax', methods: ['GET', 'POST'])]
-    public function ajaxUsers(Request $request): JsonResponse
-    {
-        $this->denyAccessUnlessGranted('ROLE_ADMIN');
-
         $params = $request->query->all();
 
         $start = (int)($params['start'] ?? 0);
@@ -69,9 +62,8 @@ class AdminUserController extends AbstractController
             ->getQuery()
             ->getSingleScalarResult();
 
-        $qb->orderBy($orderColumn, $orderDir);
-
-        $qb->setFirstResult($start)
+        $qb->orderBy($orderColumn, $orderDir)
+            ->setFirstResult($start)
             ->setMaxResults($length);
 
         $users = $qb->getQuery()->getResult();
@@ -97,19 +89,16 @@ class AdminUserController extends AbstractController
         ]);
     }
 
-    #[Route('/bulk-action', name: 'bulk_action', methods: ['POST'])]
-    public function bulkAction(Request $request): RedirectResponse
+    public function handleBulkActionRequest(Request $request): RedirectResponse
     {
-        $this->denyAccessUnlessGranted('ROLE_ADMIN');
-
         $userIdsCsv = $request->request->get('user_ids', '');
         $userIds = array_filter(array_map('trim', explode(',', $userIdsCsv)));
 
         $action = $request->request->get('action');
 
         if (empty($userIds) || !$action) {
-            $this->addFlash('warning', 'No users selected or action not specified.');
-            return $this->redirectToRoute('admin_users_list');
+            $this->session->getFlashBag()->add('success', 'Bulk action performed successfully.');
+            return new RedirectResponse($this->router->generate('admin_users_list'));
         }
 
         $users = $this->userRepository->findBy(['id' => $userIds]);
@@ -152,7 +141,7 @@ class AdminUserController extends AbstractController
 
         $this->em->flush();
 
-        $this->addFlash('success', 'Bulk action performed successfully.');
-        return $this->redirectToRoute('admin_users_list');
+        $this->session->getFlashBag()->add('success', 'Bulk action performed successfully.');
+        return new RedirectResponse($this->router->generate('admin_users_list'));
     }
 }

@@ -21,5 +21,6 @@ services:
 
     App\Service\User\UserRegistrationServiceInterface: '@App\Service\User\UserRegistrationService'
     App\Repository\UserRepositoryInterface: '@App\Repository\UserRepository'
+    App\Service\User\UserManagementServiceInterface: '@App\Service\User\UserManagementService'
 
 
