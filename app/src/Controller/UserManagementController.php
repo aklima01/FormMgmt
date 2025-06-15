@@ -10,11 +10,11 @@ use Symfony\Component\Routing\Annotation\Route;
 #[Route('/admin/users', name: 'admin_users_')]
 class UserManagementController extends AbstractController
 {
-    private UserManagementServiceInterface $userAdminService;
+    private UserManagementServiceInterface $userManagementService;
 
-    public function __construct(UserManagementServiceInterface $userAdminService)
+    public function __construct(UserManagementServiceInterface $userManagementService)
     {
-        $this->userAdminService = $userAdminService;
+        $this->userManagementService = $userManagementService;
     }
 
     #[Route('/', name: 'list', methods: ['GET'])]
@@ -26,12 +26,12 @@ class UserManagementController extends AbstractController
     #[Route('/ajax', name: 'ajax', methods: ['GET', 'POST'])]
     public function ajaxUsers(Request $request)
     {
-        return $this->userAdminService->handleAjaxUsersRequest($request);
+        return $this->userManagementService->handleAjaxUsersRequest($request);
     }
 
     #[Route('/bulk-action', name: 'bulk_action', methods: ['POST'])]
     public function bulkAction(Request $request)
     {
-        return $this->userAdminService->handleBulkActionRequest($request);
+        return $this->userManagementService->handleBulkActionRequest($request);
     }
 }
