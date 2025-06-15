@@ -2,9 +2,9 @@
 
 namespace App\Service\User;
 
-use App\Common\DataTablesAjaxRequest;
 use App\Entity\User;
 use App\Repository\User\UserRepository;
+use App\Service\Common\DataTablesAjaxRequestService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -34,7 +34,7 @@ class UserManagementService implements UserManagementServiceInterface
 
     public function handleAjaxUsersRequest(Request $request): JsonResponse
     {
-        $dtRequest = new DataTablesAjaxRequest($request);
+        $dtRequest = new DataTablesAjaxRequestService($request);
 
         $start = $dtRequest->getStart();
         $length = $dtRequest->getLength();

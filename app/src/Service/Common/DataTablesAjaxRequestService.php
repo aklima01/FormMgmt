@@ -1,10 +1,11 @@
 <?php
 
-namespace App\Common;
+namespace App\Service\Common;
+
 
 use Symfony\Component\HttpFoundation\Request;
 
-class DataTablesAjaxRequest
+class DataTablesAjaxRequestService
 {
     private Request $request;
 

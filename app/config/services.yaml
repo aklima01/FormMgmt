@@ -19,6 +19,11 @@ services:
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
 
+    App\Service\Security\LoginSuccessHandler:
+        arguments:
+            $router: '@router'
+            $authChecker: '@security.authorization_checker'
+
     App\Service\User\UserRegistrationServiceInterface: '@App\Service\User\UserRegistrationService'
     App\Repository\UserRepositoryInterface: '@App\Repository\UserRepository'
     App\Service\User\UserManagementServiceInterface: '@App\Service\User\UserManagementService'
