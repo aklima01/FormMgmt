@@ -7,5 +7,6 @@ use App\Entity\User;
 interface UserRepositoryInterface
 {
     public function save(User $user, bool $flush = true): void;
+    public function findAll(): array;
 
 }
