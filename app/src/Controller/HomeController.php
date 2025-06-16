@@ -13,4 +13,10 @@ class HomeController extends AbstractController
         return $this->render('home/index.html.twig');
     }
 
+    #[Route(path: '/access-denied', name: 'access-denied')]
+    public function accessDenied()
+    {
+        return $this->redirectToRoute('app_logout');
+    }
+
 }

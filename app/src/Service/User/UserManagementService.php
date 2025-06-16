@@ -12,6 +12,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
 class UserManagementService implements UserManagementServiceInterface
 {
@@ -20,16 +21,35 @@ class UserManagementService implements UserManagementServiceInterface
     private EntityManagerInterface $em;
     private RouterInterface $router;
 
+    private TokenStorageInterface $tokenStorage;
+
     public function __construct(
         UserRepository $userRepository,
         EntityManagerInterface $em,
         RouterInterface $router,
-        RequestStack $requestStack
+        RequestStack $requestStack,
+        TokenStorageInterface $tokenStorage
     ) {
         $this->userRepository = $userRepository;
         $this->em = $em;
         $this->router = $router;
         $this->session = $requestStack->getSession();
+        $this->tokenStorage = $tokenStorage;
+    }
+
+    public function getCurrentUserId()
+    {
+        $token = $this->tokenStorage->getToken();
+        if ($token && $token->getUser() instanceof User) {
+            return $token->getUser()->getId();
+        }
+        return null;
+
+    }
+
+    public function findUserById(int $id): ?User
+    {
+        return $this->userRepository->find($id);
     }
 
     public function handleAjaxUsersRequest(Request $request): JsonResponse
@@ -147,7 +167,9 @@ class UserManagementService implements UserManagementServiceInterface
                     break;
 
                 case 'delete':
-                    $this->em->remove($user);
+                    // Instead of removing, just mark as deleted
+                    $user->setStatus('deleted');
+                    $this->em->persist($user);
                     break;
             }
         }

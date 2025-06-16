@@ -30,6 +30,8 @@ security:
                 enable_csrf: true
                 success_handler: App\Service\Security\LoginSuccessHandler
 
+            access_denied_url: /access-denied
+
 
             logout:
                 path: app_logout
@@ -44,4 +46,4 @@ security:
 
     access_control:
         - { path: ^/admin, roles: ROLE_ADMIN }
-        - { path: ^/users, roles: [ROLE_USER, ROLE_ADMIN] }
+        - { path: ^/dashboard, roles: [ROLE_USER, ROLE_ADMIN] }

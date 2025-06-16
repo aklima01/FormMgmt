@@ -13,9 +13,7 @@
     </div>
     <div class="offcanvas-body">
         <div class="list-group">
-            <a href="{{ path('admin_dashboard') }}" class="list-group-item list-group-item-action{% if app.request.attributes.get('_route') == 'admin_dashboard' %} active{% endif %}">
-                <i class="bi bi-speedometer2"></i> Dashboard
-            </a>
+
             <a href="{{ path('admin_users_list') }}" class="list-group-item list-group-item-action{% if app.request.attributes.get('_route') == 'admin_users_list' %} active{% endif %}">
                 <i class="bi bi-people"></i> Users
             </a>
@@ -32,9 +30,7 @@
 {# Desktop sidebar - visible only on large screens #}
 <div class="col-lg-2 d-none d-lg-block">
     <div class="list-group">
-        <a href="{{ path('admin_dashboard') }}" class="list-group-item list-group-item-action{% if app.request.attributes.get('_route') == 'admin_dashboard' %} active{% endif %}">
-            <i class="bi bi-speedometer2"></i> Dashboard
-        </a>
+
         <a href="{{ path('admin_users_list') }}" class="list-group-item list-group-item-action{% if app.request.attributes.get('_route') == 'admin_users_list' %} active{% endif %}">
             <i class="bi bi-people"></i> Users
         </a>
