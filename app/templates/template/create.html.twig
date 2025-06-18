@@ -1,3 +1,5 @@
+{#Template Creation Page create.html.twig#}
+
 {% extends 'base.html.twig' %}
 
 {% block title %}User Dashboard{% endblock %}
@@ -56,6 +58,38 @@
                                 </div>
 
 
+                                <!-- Access Control -->
+                                <div class="mb-3">
+                                    <label class="form-label">Access</label><br>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="access" id="access_public" value="public" checked>
+                                        <label class="form-check-label" for="access_public">Public</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="access" id="access_private" value="private">
+                                        <label class="form-check-label" for="access_private">Private (select users)</label>
+                                    </div>
+                                </div>
+
+                                <!-- User Selection Area -->
+                                <div id="user-select-area" class="mb-3" style="display: none;">
+                                    <label for="user-search" class="form-label">Select Users</label>
+                                    <input type="text" class="form-control" id="user-search" placeholder="Start typing a name or email..." autocomplete="off">
+
+                                    <div class="d-flex justify-content-end mt-2">
+                                        <label for="sort-select" class="form-label me-2">Sort by:</label>
+                                        <select id="sort-select" class="form-select w-auto">
+                                            <option value="name" selected>Name</option>
+                                            <option value="email">Email</option>
+                                        </select>
+                                    </div>
+
+                                    <div id="selected-users" class="mt-2"></div>
+                                    <input type="hidden" name="user_ids" id="user-ids">
+                                </div>
+
+
+
                                 <!-- Submit Button -->
                                 <div class="text-center">
                                     <button type="submit" class="btn btn-primary">Create Template</button>
@@ -90,6 +124,23 @@
             cursor: pointer;
         }
     </style>
+
+    <style>
+        .user-pill {
+            display: inline-block;
+            background-color: #0d6efd;
+            color: #fff;
+            padding: 5px 10px;
+            border-radius: 20px;
+            margin: 3px;
+        }
+        .user-pill .remove-user {
+            margin-left: 8px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+    </style>
+
 
     {# EasyMDE CSS & JS CDN #}
         <link rel="stylesheet" href="https://unpkg.com/easymde/dist/easymde.min.css">
@@ -229,6 +280,88 @@
         });
 
     </script>
+
+    <script>
+        $(function () {
+            const userSearch = $('#user-search');
+            const selectedUsersDiv = $('#selected-users');
+            const userIdsInput = $('#user-ids');
+            const sortSelect = $('#sort-select');
+
+            let selectedUsers = [];
+            let currentSort = 'name';
+
+            function renderUsers() {
+                selectedUsers.sort((a, b) => {
+                    return a[currentSort].toLowerCase().localeCompare(b[currentSort].toLowerCase());
+                });
+
+                selectedUsersDiv.empty();
+                selectedUsers.forEach(user => {
+                    const pill = $('<span class="user-pill"></span>').text(`${user.name} (${user.email})`);
+                    const removeBtn = $('<span class="remove-user">&times;</span>');
+                    removeBtn.on('click', () => {
+                        selectedUsers = selectedUsers.filter(u => u.id !== user.id);
+                        updateHiddenInput();
+                        renderUsers();
+                    });
+                    pill.append(removeBtn);
+                    selectedUsersDiv.append(pill);
+                });
+
+                updateHiddenInput();
+            }
+
+            function updateHiddenInput() {
+                userIdsInput.val(selectedUsers.map(u => u.id).join(','));
+            }
+
+            userSearch.autocomplete({
+                source: function (request, response) {
+                    $.ajax({
+                        url: '{{ path("template_user_search") }}',
+                        data: {
+                            term: request.term,
+                            sort: sortSelect.val()
+                        },
+                        success: function (data) {
+                            response(data.map(user => ({
+                                label: `${user.name} (${user.email})`,
+                                value: user.label,
+                                userData: user
+                            })));
+                        }
+                    });
+                },
+                select: function (event, ui) {
+                    const user = ui.item.userData;
+                    if (!selectedUsers.some(u => u.id === user.id)) {
+                        selectedUsers.push(user);
+                        renderUsers();
+                    }
+                    userSearch.val('');
+                    return false;
+                },
+                minLength: 1
+            });
+
+            sortSelect.on('change', function () {
+                currentSort = $(this).val();
+                renderUsers();
+            });
+
+            $('input[name="access"]').on('change', function () {
+                if ($(this).val() === 'private') {
+                    $('#user-select-area').show();
+                } else {
+                    $('#user-select-area').hide();
+                    selectedUsers = [];
+                    renderUsers();
+                }
+            });
+        });
+    </script>
+
 
 
 

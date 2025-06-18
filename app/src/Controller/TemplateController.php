@@ -4,8 +4,10 @@ namespace App\Controller;
 
 use App\Entity\Tag;
 use App\Entity\Template;
+use App\Entity\User;
 use App\Repository\TemplateRepository;
 use App\Repository\TopicRepository;
+use App\Repository\User\UserRepository;
 use Aws\S3\S3Client;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -22,7 +24,8 @@ class TemplateController extends AbstractController
 
     public function __construct(
         EntityManagerInterface $entityManager,
-        private readonly ParameterBagInterface $params
+        private readonly ParameterBagInterface $params,
+        private readonly UserRepository $userRepo,
     )
     {
         $this->entityManager = $entityManager;
@@ -46,27 +49,36 @@ class TemplateController extends AbstractController
             $tagsInput = $request->request->get('tags');
             $file = $request->files->get('image');
 
-            $uuid = uniqid();
-            $originalName = $file->getClientOriginalName();
-            $ext = pathinfo($originalName, PATHINFO_EXTENSION) ?: 'jpg';
-            $filename = $uuid . '.' . $ext;
-            $bucket = $this->params->get('r2_bucket');
-            $key = "uploads/{$filename}";
+            $template = new Template();
 
-            try {
-                $s3->putObject([
-                    'Bucket' => $bucket,
-                    'Key' => $key,
-                    'Body' => fopen($file->getPathname(), 'rb'),
-                    'ACL' => 'public-read',
-                    'ContentType' => $file->getMimeType(),
-                ]);
-            } catch (\Exception $e) {
-                $this->addFlash('error', 'Upload failed: ' . $e->getMessage());
-                //return $this->redirectToRoute('image_create');
+            if($file){
+                $uuid = uniqid();
+                $originalName = $file->getClientOriginalName();
+                $ext = pathinfo($originalName, PATHINFO_EXTENSION) ?: 'jpg';
+                $filename = $uuid . '.' . $ext;
+                $bucket = $this->params->get('r2_bucket');
+                $key = "uploads/{$filename}";
+
+                try {
+                    $s3->putObject([
+                        'Bucket' => $bucket,
+                        'Key' => $key,
+                        'Body' => fopen($file->getPathname(), 'rb'),
+                        'ACL' => 'public-read',
+                        'ContentType' => $file->getMimeType(),
+                    ]);
+                } catch (\Exception $e) {
+                    $this->addFlash('error', 'Upload failed: ' . $e->getMessage());
+                    //return $this->redirectToRoute('image_create');
+                }
+
+                $template->setImageUrl($this->params->get('r2_public_url') . '/' . $key);
+
             }
 
-            $template = new Template();
+
+
+
             $template->setTitle($title);
             $template->setDescription($description);
             $template->setTopic($topic);
@@ -85,7 +97,17 @@ class TemplateController extends AbstractController
                 $template->addTag($tag);
             }
 
-            $template->setImageUrl($this->params->get('r2_public_url') . '/' . $key);
+
+
+            $template->setAccess($request->request->get('access'));
+            if ($template->getAccess() === 'private') {
+                $userIds = explode(',', $request->request->get('user_ids'));
+                $users = $this->userRepo->findBy(['id' => $userIds]);
+
+                foreach ($users as $user) {
+                    $template->addUser($user);
+                }
+            }
 
             $this->entityManager->persist($template);
             $this->entityManager->flush();
@@ -121,6 +143,32 @@ class TemplateController extends AbstractController
 
         $results = array_map(fn($tag) => ['id' => $tag['id'], 'text' => $tag['name']], $tags);
         return new JsonResponse($results);
+    }
+
+    #[Route('/user-search', name: 'user_search', methods: ['GET'])]
+    public function userSearch(Request $request, UserRepository $userRepo): JsonResponse
+    {
+        $term = $request->query->get('term', '');
+        $sort = $request->query->get('sort', 'name');
+
+        $qb = $userRepo->createQueryBuilder('u')
+            ->where('LOWER(u.name) LIKE :term OR LOWER(u.email) LIKE :term')
+            ->setParameter('term', '%' . strtolower($term) . '%');
+
+        $allowedSorts = ['name', 'email'];
+        if (in_array($sort, $allowedSorts, true)) {
+            $qb->orderBy('u.' . $sort, 'ASC');
+        }
+
+        $users = $qb->getQuery()->getResult();
+
+        $data = array_map(fn(User $u) => [
+            'id' => $u->getId(),
+            'name' => $u->getName(),
+            'email' => $u->getEmail(),
+        ], $users);
+
+        return new JsonResponse($data);
     }
 
 

@@ -31,6 +31,35 @@ class Template
     #[ORM\Column(type: 'text', nullable: true)]
     private ?string $imageUrl = null;
 
+    #[ORM\ManyToMany(targetEntity: User::class)]
+    #[ORM\JoinTable(name: 'template_user_access')]
+    private Collection $users;
+
+    #[ORM\Column(type: 'text', nullable: true)]
+    private ?string $access = null;
+
+    public function getUsers(): Collection
+    {
+        return $this->users;
+    }
+
+    public function setUsers(Collection $users): void
+    {
+        $this->users = $users;
+    }
+
+    public function getAccess(): string
+    {
+        return $this->access;
+    }
+
+    public function setAccess(string $access): void
+    {
+        $this->access = $access;
+    }
+
+
+
     public function getImageUrl(): ?string
     {
         return $this->imageUrl;
@@ -44,6 +73,7 @@ class Template
     public function __construct()
     {
         $this->tags = new ArrayCollection();
+        $this->users = new ArrayCollection();
     }
 
     public function getTags(): Collection
@@ -103,6 +133,23 @@ class Template
     public function setId(int $id): static
     {
         $this->id = $id;
+
+        return $this;
+    }
+
+
+    public function addUser(User $user): self
+    {
+        if (!$this->users->contains($user)) {
+            $this->users->add($user);
+        }
+
+        return $this;
+    }
+
+    public function removeUser(User $user): self
+    {
+        $this->users->removeElement($user);
 
         return $this;
     }
