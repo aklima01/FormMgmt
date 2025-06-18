@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\Question;
 use App\Entity\Tag;
 use App\Entity\Template;
 use App\Entity\User;
@@ -110,6 +111,26 @@ class TemplateController extends AbstractController
             }
 
             $this->entityManager->persist($template);
+
+            $titles = $request->request->all('question_title');
+            $descriptions = $request->request->all('question_description');
+            $types = $request->request->all('question_type');
+            $showInTable = $request->request->all('question_show_in_table');
+
+
+            foreach ($titles as $i => $title) {
+                $question = new Question();
+                $question->setTemplate($template);
+                $question->setTitle($title);
+                $question->setDescription($descriptions[$i] ?? '');
+                $question->setType($types[$i] ?? 'Single_line_text');
+                $question->setShowInTable(array_key_exists($i, $showInTable));
+                $question->setPosition($i + 1);
+
+                $this->entityManager->persist($question);
+            }
+
+
             $this->entityManager->flush();
             return $this->redirectToRoute('template_list');
         }

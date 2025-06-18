@@ -10,6 +10,13 @@ use Doctrine\Common\Collections\Collection;
 #[ORM\Entity(repositoryClass: TemplateRepository::class)]
 class Template
 {
+    public function __construct()
+    {
+        $this->tags = new ArrayCollection();
+        $this->users = new ArrayCollection();
+        $this->questions = new ArrayCollection();
+    }
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -37,6 +44,20 @@ class Template
 
     #[ORM\Column(type: 'text', nullable: true)]
     private ?string $access = null;
+
+    #[ORM\OneToMany(mappedBy: 'template', targetEntity: Question::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
+    #[ORM\OrderBy(['position' => 'ASC'])]
+    private Collection $questions;
+
+    public function getQuestions(): Collection
+    {
+        return $this->questions;
+    }
+
+    public function setQuestions(Collection $questions): void
+    {
+        $this->questions = $questions;
+    }
 
     public function getUsers(): Collection
     {
@@ -70,11 +91,7 @@ class Template
         $this->imageUrl = $imageUrl;
     }
 
-    public function __construct()
-    {
-        $this->tags = new ArrayCollection();
-        $this->users = new ArrayCollection();
-    }
+
 
     public function getTags(): Collection
     {

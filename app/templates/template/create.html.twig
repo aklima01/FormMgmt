@@ -88,6 +88,10 @@
                                     <input type="hidden" name="user_ids" id="user-ids">
                                 </div>
 
+                                <h6>Questions (Drag & Drop)</h6>
+                                <div id="question-list" class="mb-3"></div>
+                                <button type="button" id="add-question" class="btn btn-secondary btn-sm">+ Add Question</button>
+
 
 
                                 <!-- Submit Button -->
@@ -359,6 +363,51 @@
                     renderUsers();
                 }
             });
+        });
+    </script>
+
+
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    <script>
+        const questionList = document.getElementById('question-list');
+        Sortable.create(questionList, {
+            animation: 150,
+            ghostClass: 'sortable-ghost'
+        });
+
+        document.getElementById('add-question').addEventListener('click', () => {
+            addQuestionRow('', '', 'Single_line_text', false);
+        });
+
+        function addQuestionRow(title, description, type, showInTable) {
+            const div = document.createElement('div');
+            div.className = 'border rounded p-2 mb-2 bg-light';
+
+            div.innerHTML = `
+            <input type="text" name="question_title[]" class="form-control mb-1" placeholder="Title" value="${title}" required>
+            <textarea name="question_description[]" class="form-control mb-1" placeholder="Description">${description}</textarea>
+            <select name="question_type[]" class="form-select mb-1">
+                <option value="Single_line_text" ${type === 'Single_line_text' ? 'selected' : ''}>Single line text</option>
+                <option value="Text" ${type === 'Text' ? 'selected' : ''}>Text</option>
+                <option value="Number" ${type === 'Number' ? 'selected' : ''}>Number</option>
+                <option value="Checkbox" ${type === 'Checkbox' ? 'selected' : ''}>Checkbox</option>
+            </select>
+            <div class="form-check mb-1">
+                <input type="checkbox" name="question_show_in_table[]" class="form-check-input" ${showInTable ? 'checked' : ''}>
+                <label class="form-check-label">Show in Table</label>
+            </div>
+
+            <button type="button" class="btn btn-danger btn-sm remove-btn">
+                <i class="bi bi-trash"></i> Remove
+            </button> `;
+
+            questionList.appendChild(div);
+        }
+
+        questionList.addEventListener('click', function (e) {
+            if (e.target.classList.contains('remove-btn')) {
+                e.target.closest('.border').remove();
+            }
         });
     </script>
 
