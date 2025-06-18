@@ -85,7 +85,7 @@ class TemplateController extends AbstractController
                 $template->addTag($tag);
             }
 
-            $template->setImageUrl($_ENV['R2_PUBLIC_URL'] . '/' . $key);
+            $template->setImageUrl($this->params->get('R2_PUBLIC_URL') . '/' . $key);
 
             $this->entityManager->persist($template);
             $this->entityManager->flush();
