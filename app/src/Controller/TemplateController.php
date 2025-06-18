@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Question;
 use App\Entity\Tag;
 use App\Entity\Template;
+use App\Entity\Topic;
 use App\Entity\User;
 use App\Repository\TemplateRepository;
 use App\Repository\TopicRepository;
@@ -46,7 +47,7 @@ class TemplateController extends AbstractController
         if ($request->isMethod('POST')) {
             $title = $request->request->get('title');
             $description = $request->request->get('description');
-            $topic = $request->request->get('topic');
+            $topic_id = $request->request->get('topic_id');
             $tagsInput = $request->request->get('tags');
             $file = $request->files->get('image');
 
@@ -82,7 +83,12 @@ class TemplateController extends AbstractController
 
             $template->setTitle($title);
             $template->setDescription($description);
-            $template->setTopic($topic);
+
+            if($topic_id) {
+                $topic = $this->entityManager->getRepository(Topic::class)->find($topic_id);
+                $template->setTopic($topic);
+            }
+
 
             $tagNames = array_filter(array_map('trim', explode(',', $tagsInput)));
 

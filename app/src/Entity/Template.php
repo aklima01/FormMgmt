@@ -28,8 +28,7 @@ class Template
     #[ORM\Column(type: 'text', nullable: true)]
     private ?string $description = null;
 
-    #[ORM\Column(type: 'text', nullable: true)]
-    private ?string $topic  = null;
+
 
     #[ORM\ManyToMany(targetEntity: Tag::class, cascade: ["persist"])]
     #[ORM\JoinTable(name: "template_tag")]
@@ -48,6 +47,24 @@ class Template
     #[ORM\OneToMany(mappedBy: 'template', targetEntity: Question::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
     #[ORM\OrderBy(['position' => 'ASC'])]
     private Collection $questions;
+
+
+    #[ORM\ManyToOne(targetEntity: Topic::class)]
+    #[ORM\JoinColumn(name: 'topic_id', referencedColumnName: 'id', nullable: true, onDelete: 'SET NULL')]
+    private ?Topic $topic = null;
+
+    // Getter
+    public function getTopic(): ?Topic
+    {
+        return $this->topic;
+    }
+
+    // Setter
+    public function setTopic(?Topic $topic): self
+    {
+        $this->topic = $topic;
+        return $this;
+    }
 
     public function getQuestions(): Collection
     {
@@ -110,15 +127,7 @@ class Template
         $this->tags->removeElement($tag);
     }
 
-    public function getTopic(): ?string
-    {
-        return $this->topic;
-    }
 
-    public function setTopic(?string $topic): void
-    {
-        $this->topic = $topic;
-    }
 
     public function getDescription(): ?string
     {

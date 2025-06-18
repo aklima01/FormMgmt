@@ -34,7 +34,7 @@
                                 <!-- Topic Dropdown -->
                                 <div class="mb-3">
                                     <label for="topic" class="form-label">Select Topic</label>
-                                    <select id="topic" name="topic" class="form-select" required>
+                                    <select id="topic" name="topic_id" class="form-select" >
                                         <option value="">Loading topics...</option>
                                     </select>
                                 </div>
@@ -181,7 +181,7 @@
                     topicSelect.innerHTML = '<option value="">-- Select Topic --</option>';
                     data.forEach(topic => {
                         const option = document.createElement("option");
-                        option.value = topic.name;
+                        option.value = topic.id;
                         option.textContent = topic.name;
                         topicSelect.appendChild(option);
                     });
