@@ -99,9 +99,15 @@
     </div>
 </nav>
 
+<br>
 
 <!-- Main Content -->
-<div class="container pt-3 mt-5">
+{#<div class="container pt-3 mt-5">#}
+{#    {% block body %}{% endblock %}#}
+{#</div>#}
+
+{#<div class="container pt-5 mt-5" style="border: 1px solid black;">#}
+<div class="container pt-5 mt-1">
     {% block body %}{% endblock %}
 </div>
 
