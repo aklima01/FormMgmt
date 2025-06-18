@@ -9,6 +9,7 @@ use App\Repository\TopicRepository;
 use Aws\S3\S3Client;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -19,7 +20,10 @@ class TemplateController extends AbstractController
 {
     private $entityManager;
 
-    public function __construct(EntityManagerInterface $entityManager)
+    public function __construct(
+        EntityManagerInterface $entityManager,
+        private readonly ParameterBagInterface $params
+    )
     {
         $this->entityManager = $entityManager;
     }
@@ -46,7 +50,7 @@ class TemplateController extends AbstractController
             $originalName = $file->getClientOriginalName();
             $ext = pathinfo($originalName, PATHINFO_EXTENSION) ?: 'jpg';
             $filename = $uuid . '.' . $ext;
-            $bucket = $_ENV['R2_BUCKET'];
+            $bucket = $this->params->get('r2_bucket');
             $key = "uploads/{$filename}";
 
             try {
@@ -59,7 +63,7 @@ class TemplateController extends AbstractController
                 ]);
             } catch (\Exception $e) {
                 $this->addFlash('error', 'Upload failed: ' . $e->getMessage());
-                return $this->redirectToRoute('image_create');
+                //return $this->redirectToRoute('image_create');
             }
 
             $template = new Template();
