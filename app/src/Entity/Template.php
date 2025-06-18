@@ -10,6 +10,11 @@ use Doctrine\Common\Collections\Collection;
 #[ORM\Entity(repositoryClass: TemplateRepository::class)]
 class Template
 {
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column]
+    private ?int $id = null;
+
     public function __construct()
     {
         $this->tags = new ArrayCollection();
@@ -17,16 +22,28 @@ class Template
         $this->questions = new ArrayCollection();
     }
 
-    #[ORM\Id]
-    #[ORM\GeneratedValue]
-    #[ORM\Column]
-    private ?int $id = null;
 
     #[ORM\Column(length: 255)]
     private ?string $title = null;
 
     #[ORM\Column(type: 'text', nullable: true)]
     private ?string $description = null;
+
+    #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'templates')]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
+    private ?User $user = null;
+
+    // Getter and setter
+    public function getUser(): ?User
+    {
+        return $this->user;
+    }
+
+    public function setUser(?User $user): self
+    {
+        $this->user = $user;
+        return $this;
+    }
 
 
 

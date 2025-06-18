@@ -136,6 +136,16 @@ class TemplateController extends AbstractController
                 $this->entityManager->persist($question);
             }
 
+            $currentUser = $this->getUser();
+            $user = $this->userRepo->find($currentUser->getId());
+
+            if (!$user) {
+                throw $this->createAccessDeniedException('User must be logged in.');
+            }
+
+            $template->setUser($user);
+
+
 
             $this->entityManager->flush();
             return $this->redirectToRoute('template_list');
