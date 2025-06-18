@@ -13,7 +13,7 @@
                     <div class="row justify-content-center">
                         <div class="col-md-6">
                             <h1 class="text-center mb-4">Create Template</h1>
-                            <form action="/template/create" method="post">
+                            <form action="{{ path('template_create') }}" method="post">
                                 <!-- CSRF Token -->
                                 <input type="hidden" name="_csrf_token" value="{{ csrf_token('form') }}">
 
@@ -29,6 +29,15 @@
                                     <textarea id="description" name="description"></textarea>
                                 </div>
 
+                                <!-- Topic Dropdown -->
+                                <div class="mb-3">
+                                    <label for="topic" class="form-label">Select Topic</label>
+                                    <select id="topic" name="topic" class="form-select" required>
+                                        <option value="">Loading topics...</option>
+                                    </select>
+                                </div>
+
+
                                 <!-- Submit Button -->
                                 <div class="text-center">
                                     <button type="submit" class="btn btn-primary">Create Template</button>
@@ -43,18 +52,43 @@
     </div> <!-- close container-fluid -->
 
     {# EasyMDE CSS & JS CDN #}
-    <link rel="stylesheet" href="https://unpkg.com/easymde/dist/easymde.min.css">
-    <script src="https://unpkg.com/easymde/dist/easymde.min.js"></script>
+        <link rel="stylesheet" href="https://unpkg.com/easymde/dist/easymde.min.css">
+        <script src="https://unpkg.com/easymde/dist/easymde.min.js"></script>
 
-    {# EasyMDE Initialization #}
+        {# EasyMDE Initialization #}
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                new EasyMDE({
+                    element: document.getElementById("description"),
+                    spellChecker: false,
+                    placeholder: "Enter the description in markdown...",
+                    status: false
+                });
+            });
+        </script>
+
     <script>
         document.addEventListener("DOMContentLoaded", function () {
-            new EasyMDE({
-                element: document.getElementById("description"),
-                spellChecker: false,
-                placeholder: "Enter the description in markdown...",
-                status: false
-            });
+            // Load Topics via AJAX
+            fetch("{{ path('template_ajax_topics') }}")
+                .then(response => response.json())
+                .then(data => {
+                    const topicSelect = document.getElementById("topic");
+                    topicSelect.innerHTML = '<option value="">-- Select Topic --</option>';
+                    data.forEach(topic => {
+                        const option = document.createElement("option");
+                        option.value = topic.name;
+                        option.textContent = topic.name;
+                        topicSelect.appendChild(option);
+                    });
+                })
+                .catch(() => {
+                    const topicSelect = document.getElementById("topic");
+                    topicSelect.innerHTML = '<option value="">Failed to load topics</option>';
+                });
         });
     </script>
+
+
+
 {% endblock %}

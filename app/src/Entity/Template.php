@@ -19,6 +19,19 @@ class Template
     #[ORM\Column(type: 'text', nullable: true)]
     private ?string $description = null;
 
+    #[ORM\Column(type: 'text', nullable: true)]
+    private ?string $topic  = null;
+
+    public function getTopic(): ?string
+    {
+        return $this->topic;
+    }
+
+    public function setTopic(?string $topic): void
+    {
+        $this->topic = $topic;
+    }
+
     public function getDescription(): ?string
     {
         return $this->description;
