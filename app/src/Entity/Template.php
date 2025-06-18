@@ -28,6 +28,19 @@ class Template
     #[ORM\JoinTable(name: "template_tag")]
     private Collection $tags;
 
+    #[ORM\Column(type: 'text', nullable: true)]
+    private ?string $imageUrl = null;
+
+    public function getImageUrl(): ?string
+    {
+        return $this->imageUrl;
+    }
+
+    public function setImageUrl(?string $imageUrl): void
+    {
+        $this->imageUrl = $imageUrl;
+    }
+
     public function __construct()
     {
         $this->tags = new ArrayCollection();

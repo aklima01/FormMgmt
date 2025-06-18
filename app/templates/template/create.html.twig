@@ -13,7 +13,7 @@
                     <div class="row justify-content-center">
                         <div class="col-md-6">
                             <h1 class="text-center mb-4">Create Template</h1>
-                            <form action="{{ path('template_create') }}" method="post">
+                            <form action="{{ path('template_create') }}" method="post" enctype="multipart/form-data">
                                 <!-- CSRF Token -->
                                 <input type="hidden" name="_csrf_token" value="{{ csrf_token('form') }}">
 
@@ -43,6 +43,16 @@
                                     <input type="text" id="tag-input" class="form-control" placeholder="Start typing to search tags...">
                                     <div class="tag-list" id="tag-list"></div>
                                     <input type="hidden" name="tags" id="tags-hidden">
+                                </div>
+
+                                <!-- Image Upload -->
+                                <div class="mb-3">
+                                    <label class="form-label">Upload Image</label>
+                                    <div id="dropzone" class="dropzone border rounded bg-light p-3 text-center">
+{#                                        <p>Drag an image here or click to select</p>#}
+                                    </div>
+                                    <input type="file" name="image" id="image-input" hidden  accept="image/*" />
+                                    <small class="text-muted">Optional image attachment for this template.</small>
                                 </div>
 
 
@@ -85,9 +95,13 @@
         <link rel="stylesheet" href="https://unpkg.com/easymde/dist/easymde.min.css">
         <script src="https://unpkg.com/easymde/dist/easymde.min.js"></script>
 
+    <link href="https://unpkg.com/dropzone@5/dist/min/dropzone.min.css" rel="stylesheet" />
+
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.3/min/dropzone.min.js"></script>
 
 
     {# EasyMDE Initialization #}
@@ -186,6 +200,34 @@
                 }
             });
         });
+    </script>
+
+    <script>
+        // Dropzone config
+        Dropzone.autoDiscover = false;
+        const dropzone = new Dropzone("#dropzone", {
+            url: "#", // Form handles submission
+            autoProcessQueue: false,
+            maxFiles: 1,
+            clickable: true,
+            acceptedFiles: "image/*",
+            addRemoveLinks: true,
+            init: function () {
+                this.on("addedfile", file => {
+                    const dt = new DataTransfer();
+                    dt.items.add(file);
+                    document.querySelector("#image-input").files = dt.files;
+
+                    if (this.files.length > 1) {
+                        this.removeFile(this.files[0]);
+                    }
+                });
+                this.on("removedfile", () => {
+                    document.querySelector("#image-input").value = "";
+                });
+            }
+        });
+
     </script>
 
 

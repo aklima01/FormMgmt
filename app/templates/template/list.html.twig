@@ -1,0 +1,80 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Template List{% endblock %}
+
+{% block body %}
+    <div class="container-fluid mt-4">
+        <div class="row">
+            {% include 'user/_sidebaruser.html.twig' %}
+            <div class="col-lg-10">
+                <h1 class="mb-4">Templates</h1>
+
+                {% for label, messages in app.flashes %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ label }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                {% endfor %}
+
+                {% if templates is not empty %}
+                    <div class="table-responsive">
+                        <table id="templateTable" class="table table-bordered table-striped align-middle">
+                            <thead class="table-light">
+                            <tr>
+                                <th>Image</th>
+                                <th>Title</th>
+                                <th>Topic</th>
+                                <th>Description</th>
+                                <th>Tags</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for template in templates %}
+                                <tr>
+                                    <td style="width: 100px;">
+                                        {% if template.imageUrl %}
+                                            <img src="{{ asset(template.imageUrl) }}" class="img-fluid" alt="{{ template.title }}">
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ template.title }}</td>
+                                    <td>{{ template.topic }}</td>
+
+                                    <td>{{ template.description|markdown_to_html }}</td>
+
+                                    <td>
+                                        {% for tag in template.tags %}
+                                            <span class="badge bg-primary">{{ tag.name }}</span>
+                                        {% endfor %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="alert alert-info mt-4">
+                        No templates found. <a href="{{ path('template_create') }}">Create one</a>.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    {# DataTables CSS & JS #}
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            $('#templateTable').DataTable({
+                pageLength: 10,
+                order: [[1, 'asc']],
+                responsive: true
+            });
+        });
+    </script>
+{% endblock %}

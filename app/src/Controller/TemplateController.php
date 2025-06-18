@@ -4,7 +4,9 @@ namespace App\Controller;
 
 use App\Entity\Tag;
 use App\Entity\Template;
+use App\Repository\TemplateRepository;
 use App\Repository\TopicRepository;
+use Aws\S3\S3Client;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -22,14 +24,43 @@ class TemplateController extends AbstractController
         $this->entityManager = $entityManager;
     }
 
+    #[Route('/', name: 'list', methods: ['GET'])]
+    public function list(TemplateRepository $templateRepository): Response
+    {
+        return $this->render('template/list.html.twig', [
+            'templates' => $templateRepository->findAll(),
+        ]);
+    }
+
     #[Route('/create', name: 'create', methods: ['GET', 'POST'])]
-    public function create(Request $request): Response
+    public function create(Request $request, S3Client $s3): Response
     {
         if ($request->isMethod('POST')) {
             $title = $request->request->get('title');
             $description = $request->request->get('description');
             $topic = $request->request->get('topic');
             $tagsInput = $request->request->get('tags');
+            $file = $request->files->get('image');
+
+            $uuid = uniqid();
+            $originalName = $file->getClientOriginalName();
+            $ext = pathinfo($originalName, PATHINFO_EXTENSION) ?: 'jpg';
+            $filename = $uuid . '.' . $ext;
+            $bucket = $_ENV['R2_BUCKET'];
+            $key = "uploads/{$filename}";
+
+            try {
+                $s3->putObject([
+                    'Bucket' => $bucket,
+                    'Key' => $key,
+                    'Body' => fopen($file->getPathname(), 'rb'),
+                    'ACL' => 'public-read',
+                    'ContentType' => $file->getMimeType(),
+                ]);
+            } catch (\Exception $e) {
+                $this->addFlash('error', 'Upload failed: ' . $e->getMessage());
+                return $this->redirectToRoute('image_create');
+            }
 
             $template = new Template();
             $template->setTitle($title);
@@ -50,13 +81,12 @@ class TemplateController extends AbstractController
                 $template->addTag($tag);
             }
 
+            $template->setImageUrl($_ENV['R2_PUBLIC_URL'] . '/' . $key);
 
             $this->entityManager->persist($template);
             $this->entityManager->flush();
-
-            //return $this->redirectToRoute('template_list');
+            return $this->redirectToRoute('template_list');
         }
-
         return $this->render('template/create.html.twig');
     }
 

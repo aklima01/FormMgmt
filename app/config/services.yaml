@@ -4,6 +4,7 @@
 # Put parameters here that don't need to change on each machine where the app is deployed
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
+    r2_base_url: '%env(R2_ENDPOINT)%/%env(R2_BUCKET)%'
 
 services:
     # default configuration for services in *this* file
@@ -23,6 +24,18 @@ services:
         arguments:
             $router: '@router'
             $authChecker: '@security.authorization_checker'
+
+    Aws\S3\S3Client:
+        factory: [ 'Aws\S3\S3Client', 'factory' ]
+        arguments:
+            -   version: 'latest'
+                region: '%env(R2_REGION)%'
+                endpoint: 'https://%env(R2_ACCOUNT_ID)%.r2.cloudflarestorage.com'
+                use_path_style_endpoint: true
+                signature_version: 'v4'
+                credentials:
+                    key: '%env(R2_ACCESS_KEY)%'
+                    secret: '%env(R2_SECRET_KEY)%'
 
     App\Service\User\UserRegistrationServiceInterface: '@App\Service\User\UserRegistrationService'
     App\Repository\UserRepositoryInterface: '@App\Repository\UserRepository'
