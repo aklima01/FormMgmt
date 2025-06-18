@@ -4,6 +4,8 @@ namespace App\Entity;
 
 use App\Repository\TemplateRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 
 #[ORM\Entity(repositoryClass: TemplateRepository::class)]
 class Template
@@ -21,6 +23,32 @@ class Template
 
     #[ORM\Column(type: 'text', nullable: true)]
     private ?string $topic  = null;
+
+    #[ORM\ManyToMany(targetEntity: Tag::class, cascade: ["persist"])]
+    #[ORM\JoinTable(name: "template_tag")]
+    private Collection $tags;
+
+    public function __construct()
+    {
+        $this->tags = new ArrayCollection();
+    }
+
+    public function getTags(): Collection
+    {
+        return $this->tags;
+    }
+
+    public function addTag(Tag $tag): void
+    {
+        if (!$this->tags->contains($tag)) {
+            $this->tags->add($tag);
+        }
+    }
+
+    public function removeTag(Tag $tag): void
+    {
+        $this->tags->removeElement($tag);
+    }
 
     public function getTopic(): ?string
     {

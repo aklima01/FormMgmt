@@ -37,6 +37,14 @@
                                     </select>
                                 </div>
 
+                                <!-- Tags -->
+                                <div class="mb-3">
+                                    <label for="tag-input" class="form-label">Tags</label>
+                                    <input type="text" id="tag-input" class="form-control" placeholder="Start typing to search tags...">
+                                    <div class="tag-list" id="tag-list"></div>
+                                    <input type="hidden" name="tags" id="tags-hidden">
+                                </div>
+
 
                                 <!-- Submit Button -->
                                 <div class="text-center">
@@ -51,11 +59,38 @@
         </div> <!-- close row -->
     </div> <!-- close container-fluid -->
 
+
+{#    <-- CSS & JS for EasyMDE (Markdown Editor) -->#}
+
+    <style>
+        .tag-list {
+            margin-top: 10px;
+        }
+        .tag-item {
+            display: inline-block;
+            background-color: #0d6efd;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 20px;
+            margin: 3px;
+        }
+        .tag-item .remove-tag {
+            margin-left: 8px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+    </style>
+
     {# EasyMDE CSS & JS CDN #}
         <link rel="stylesheet" href="https://unpkg.com/easymde/dist/easymde.min.css">
         <script src="https://unpkg.com/easymde/dist/easymde.min.js"></script>
 
-        {# EasyMDE Initialization #}
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+
+
+    {# EasyMDE Initialization #}
         <script>
             document.addEventListener("DOMContentLoaded", function () {
                 new EasyMDE({
@@ -88,6 +123,71 @@
                 });
         });
     </script>
+
+    <script>
+        $(document).ready(function () {
+            const $tagInput = $('#tag-input');
+            const $tagList = $('#tag-list');
+            const $tagsHidden = $('#tags-hidden');
+
+            let selectedTags = [];
+
+            function renderTags() {
+                $tagList.empty();
+                selectedTags.forEach(function (tag) {
+                    const $tagElem = $('<span class="tag-item"></span>').text(tag);
+                    const $removeBtn = $('<span class="remove-tag">&times;</span>');
+                    $removeBtn.on('click', function () {
+                        selectedTags = selectedTags.filter(t => t !== tag);
+                        renderTags();
+                    });
+                    $tagElem.append($removeBtn);
+                    $tagList.append($tagElem);
+                });
+                $tagsHidden.val(selectedTags.join(','));
+            }
+
+            $tagInput.autocomplete({
+                source: function (request, response) {
+                    $.ajax({
+                        url: "{{ path('template_tag_search') }}", // Make sure this path is valid in your routes
+                        dataType: 'json',
+                        data: {
+                            term: request.term
+                        },
+                        success: function (data) {
+                            response(data.map(item => item.text));
+                        },
+                        error: function () {
+                            console.error('Autocomplete AJAX failed');
+                        }
+                    });
+                },
+                select: function (event, ui) {
+                    if (!selectedTags.includes(ui.item.value)) {
+                        selectedTags.push(ui.item.value);
+                        renderTags();
+                    }
+                    $tagInput.val('');
+                    return false;
+                },
+                minLength: 1
+            });
+
+            $tagInput.on('keydown', function (e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    const val = $tagInput.val().trim();
+                    if (val && !selectedTags.includes(val)) {
+                        selectedTags.push(val);
+                        renderTags();
+                        $tagInput.val('');
+                    }
+                }
+            });
+        });
+    </script>
+
 
 
 

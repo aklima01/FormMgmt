@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\Tag;
 use App\Entity\Template;
 use App\Repository\TopicRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -28,11 +29,27 @@ class TemplateController extends AbstractController
             $title = $request->request->get('title');
             $description = $request->request->get('description');
             $topic = $request->request->get('topic');
+            $tagsInput = $request->request->get('tags');
 
             $template = new Template();
             $template->setTitle($title);
             $template->setDescription($description);
             $template->setTopic($topic);
+
+            $tagNames = array_filter(array_map('trim', explode(',', $tagsInput)));
+
+            foreach ($tagNames as $tagName) {
+                $tag = $this->entityManager->getRepository(Tag::class)->findOneBy(['name' => $tagName]);
+
+                if (!$tag) {
+                    $tag = new Tag();
+                    $tag->setName($tagName);
+                    $this->entityManager->persist($tag);
+                }
+
+                $template->addTag($tag);
+            }
+
 
             $this->entityManager->persist($template);
             $this->entityManager->flush();
@@ -54,6 +71,22 @@ class TemplateController extends AbstractController
         ], $topics);
 
         return new JsonResponse($data);
+    }
+
+    #[Route('/tag/search', name: 'tag_search')]
+    public function tagSearch(Request $request, EntityManagerInterface $em): JsonResponse
+    {
+        $term = strtolower($request->query->get('term', ''));
+        $tags = $em->getRepository(Tag::class)
+            ->createQueryBuilder('t')
+            ->where('LOWER(t.name) LIKE :term')
+            ->setParameter('term', $term . '%')
+            ->setMaxResults(10)
+            ->getQuery()
+            ->getArrayResult();
+
+        $results = array_map(fn($tag) => ['id' => $tag['id'], 'text' => $tag['name']], $tags);
+        return new JsonResponse($results);
     }
 
 
