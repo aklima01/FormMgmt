@@ -6,6 +6,7 @@
 parameters:
     r2_base_url: '%env(R2_ENDPOINT)%/%env(R2_BUCKET)%'
     r2_bucket: '%env(R2_BUCKET)%'
+    r2_public_url: '%env(R2_PUBLIC_URL)%'
 
 services:
     # default configuration for services in *this* file
