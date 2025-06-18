@@ -24,16 +24,16 @@ class TemplateController extends AbstractController
     {
         if ($request->isMethod('POST')) {
             $title = $request->request->get('title');
+            $description = $request->request->get('description');
 
-            if ($title) {
-                $template = new Template();
-                $template->setTitle($title);
+            $template = new Template();
+            $template->setTitle($title);
+            $template->setDescription($description);
 
-                $this->entityManager->persist($template);
-                $this->entityManager->flush();
+            $this->entityManager->persist($template);
+            $this->entityManager->flush();
 
-                //return $this->redirectToRoute('template_list');
-            }
+            //return $this->redirectToRoute('template_list');
         }
 
         return $this->render('template/create.html.twig');

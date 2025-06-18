@@ -16,6 +16,19 @@ class Template
     #[ORM\Column(length: 255)]
     private ?string $title = null;
 
+    #[ORM\Column(type: 'text', nullable: true)]
+    private ?string $description = null;
+
+    public function getDescription(): ?string
+    {
+        return $this->description;
+    }
+
+    public function setDescription(?string $description): void
+    {
+        $this->description = $description;
+    }
+
 
 
     public function getTitle(): ?string

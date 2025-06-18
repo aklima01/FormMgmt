@@ -9,31 +9,52 @@
             <div class="col-lg-10">
                 <!-- Main Content -->
 
-                <h1 class="text-center mb-4">Create Template</h1>
-                <form action="/template/create" method="post">
-                    <!-- CSRF Token -->
-                    <input type="hidden" name="_csrf_token" value="{{ csrf_token('form') }}">
+                <div class="container mt-5">
+                    <div class="row justify-content-center">
+                        <div class="col-md-6">
+                            <h1 class="text-center mb-4">Create Template</h1>
+                            <form action="/template/create" method="post">
+                                <!-- CSRF Token -->
+                                <input type="hidden" name="_csrf_token" value="{{ csrf_token('form') }}">
 
-                    <!-- Title Input -->
-                    <div class="mb-3">
-                        <label for="title" class="form-label">Template Title</label>
-                        <input type="text" class="form-control" id="title" name="title" placeholder="Enter the title of the template" required>
+                                <!-- Title Input -->
+                                <div class="mb-3">
+                                    <label for="title" class="form-label">Template Title</label>
+                                    <input type="text" class="form-control" id="title" name="title" placeholder="Enter the title of the template" required>
+                                </div>
+
+                                <!-- Description Input -->
+                                <div class="mb-3">
+                                    <label for="description" class="form-label">Template Description</label>
+                                    <textarea id="description" name="description"></textarea>
+                                </div>
+
+                                <!-- Submit Button -->
+                                <div class="text-center">
+                                    <button type="submit" class="btn btn-primary">Create Template</button>
+                                </div>
+                            </form>
+                        </div>
                     </div>
-
-                    <!-- Submit Button -->
-                    <div class="text-center">
-                        <button type="submit" class="btn btn-primary">Create Template</button>
-                    </div>
-                </form>
-
-
-
-
+                </div>
 
             </div> <!-- close col-lg-10 -->
         </div> <!-- close row -->
     </div> <!-- close container-fluid -->
 
+    {# EasyMDE CSS & JS CDN #}
+    <link rel="stylesheet" href="https://unpkg.com/easymde/dist/easymde.min.css">
+    <script src="https://unpkg.com/easymde/dist/easymde.min.js"></script>
 
-
+    {# EasyMDE Initialization #}
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            new EasyMDE({
+                element: document.getElementById("description"),
+                spellChecker: false,
+                placeholder: "Enter the description in markdown...",
+                status: false
+            });
+        });
+    </script>
 {% endblock %}
