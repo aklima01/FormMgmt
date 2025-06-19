@@ -245,35 +245,53 @@ class TemplateController extends AbstractController
             }
 
             // Handle Tags
-            $tagsIds = $request->request->get('tags', '');
-            $tagNames = array_filter(array_map('trim', explode(',', $tagsIds)));
-           // $logger->info('$tagNames', ['$tagNames' => $tagNames]);
-            $template->clearTags(); // Clear existing tags
+//            $tagsIds = $request->request->get('tags', '');
+//            $tagNames = array_filter(array_map('trim', explode(',', $tagsIds)));
+//           // $logger->info('$tagNames', ['$tagNames' => $tagNames]);
+//            $template->clearTags(); // Clear existing tags
+//
+//            foreach ($tagNames as $tagName) {
+//                $tag = $this->entityManager->getRepository(Tag::class)->findOneBy(['name' => $tagName]);
+//                if (!$tag) {
+//                    $tag = new Tag();
+//                    $tag->setName($tagName);
+//                    $this->entityManager->persist($tag);
+//                }
+//                $template->addTag($tag);
+//            }
 
-            foreach ($tagNames as $tagName) {
-                $tag = $this->entityManager->getRepository(Tag::class)->findOneBy(['name' => $tagName]);
-                if (!$tag) {
-                    $tag = new Tag();
-                    $tag->setName($tagName);
-                    $this->entityManager->persist($tag);
-                }
-                $template->addTag($tag);
+            $tagsInput = $request->request->get('tags', '');
+            $tagNames = array_filter(array_map('trim', explode(',', $tagsInput)));
+
+// Get current tags from the template
+            $currentTags = $template->getTags();
+
+// Convert to associative array for easier comparison
+            $currentTagNames = [];
+            foreach ($currentTags as $tag) {
+                $currentTagNames[$tag->getName()] = $tag;
             }
 
-            // Handle Access and Users
-//            $template->setAccess($request->request->get('access'));
-//            $template->clearUsers(); // Clear existing users
-//
-//            if ($template->getAccess() === 'private') {
-//                $userIdsRaw = $request->request->get('user_ids', '');
-//                $userIds = array_filter(array_map('trim', explode(',', $userIdsRaw)));
-//                if (!empty($userIds)) {
-//                    $users = $this->userRepo->findBy(['id' => $userIds]);
-//                    foreach ($users as $user) {
-//                        $template->addUser($user);
-//                    }
-//                }
-//            }
+// Remove tags not in the request
+            foreach ($currentTags as $tag) {
+                if (!in_array($tag->getName(), $tagNames, true)) {
+                    $template->removeTag($tag);
+                }
+            }
+
+// Add or reuse tags
+            foreach ($tagNames as $tagName) {
+                if (!isset($currentTagNames[$tagName])) {
+                    $tag = $this->entityManager->getRepository(Tag::class)->findOneBy(['name' => $tagName]);
+                    if (!$tag) {
+                        $tag = new Tag();
+                        $tag->setName($tagName);
+                        $this->entityManager->persist($tag);
+                    }
+                    $template->addTag($tag);
+                }
+            }
+
 
             // Handle Access and Users
             $template->setAccess($request->request->get('access'));
