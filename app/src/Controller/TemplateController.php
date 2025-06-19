@@ -21,9 +21,11 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 
 #[Route('/template', name: 'template_')]
+#[IsGranted('ACTIVE_USER')]
 class TemplateController extends AbstractController
 {
     private $entityManager;

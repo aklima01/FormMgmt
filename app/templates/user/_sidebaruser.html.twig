@@ -36,21 +36,10 @@
 <div class="col-lg-2 d-none d-lg-block">
     <div class="list-group">
 
-        <a href="{{ path('user_dashboard') }}"
-           class="list-group-item list-group-item-action{% if app.request.get('_route') == 'user_dashboard' %} active{% endif %}">
-            <i class="bi bi-house-door"></i> Home
-        </a>
-
         <a href="{{ path('template_list') }}"
            class="list-group-item list-group-item-action{% if app.request.get('_route') == 'template_list' %} active{% endif %}">
             <i class="bi bi-person"></i>Templates
         </a>
-
-{#        <a href="{{ path('template_create') }}"#}
-{#           class="list-group-item list-group-item-action{% if app.request.get('_route') == 'template_create' %} active{% endif %}">#}
-{#            <i class="bi bi-person"></i> Create Template#}
-{#        </a>#}
-
 
         <a href="/messages" class="list-group-item list-group-item-action">
             <i class="bi bi-chat-left-text"></i> Filled Forms

@@ -23,7 +23,7 @@ class LoginSuccessHandler implements AuthenticationSuccessHandlerInterface
         }
 
         if ($this->authChecker->isGranted('ROLE_USER')) {
-            return new RedirectResponse($this->router->generate('user_dashboard'));
+            return new RedirectResponse($this->router->generate('template_list'));
         }
 
         return new RedirectResponse($this->router->generate('app_home'));
