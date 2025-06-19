@@ -261,19 +261,54 @@ class TemplateController extends AbstractController
             }
 
             // Handle Access and Users
+//            $template->setAccess($request->request->get('access'));
+//            $template->clearUsers(); // Clear existing users
+//
+//            if ($template->getAccess() === 'private') {
+//                $userIdsRaw = $request->request->get('user_ids', '');
+//                $userIds = array_filter(array_map('trim', explode(',', $userIdsRaw)));
+//                if (!empty($userIds)) {
+//                    $users = $this->userRepo->findBy(['id' => $userIds]);
+//                    foreach ($users as $user) {
+//                        $template->addUser($user);
+//                    }
+//                }
+//            }
+
+            // Handle Access and Users
             $template->setAccess($request->request->get('access'));
-            $template->clearUsers(); // Clear existing users
 
             if ($template->getAccess() === 'private') {
                 $userIdsRaw = $request->request->get('user_ids', '');
                 $userIds = array_filter(array_map('trim', explode(',', $userIdsRaw)));
-                if (!empty($userIds)) {
-                    $users = $this->userRepo->findBy(['id' => $userIds]);
-                    foreach ($users as $user) {
+
+                // Convert IDs to integers for safe comparison
+                $newUserIds = array_map('intval', $userIds);
+
+                // Get current users and their IDs
+                $currentUsers = $template->getUsers(); // Doctrine Collection or array
+                $currentUserIds = array_map(fn($u) => $u->getId(), $currentUsers->toArray());
+
+                // Find users to add and remove
+                $idsToAdd = array_diff($newUserIds, $currentUserIds);
+                $idsToRemove = array_diff($currentUserIds, $newUserIds);
+
+                // Add new users
+                if (!empty($idsToAdd)) {
+                    $usersToAdd = $this->userRepo->findBy(['id' => $idsToAdd]);
+                    foreach ($usersToAdd as $user) {
                         $template->addUser($user);
                     }
                 }
+
+                // Remove users no longer in the list
+                foreach ($currentUsers as $user) {
+                    if (in_array($user->getId(), $idsToRemove)) {
+                        $template->removeUser($user);
+                    }
+                }
             }
+
 
             // Handle Image Upload
             $file = $request->files->get('image');
