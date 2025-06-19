@@ -7,6 +7,7 @@ use App\Entity\Tag;
 use App\Entity\Template;
 use App\Entity\Topic;
 use App\Entity\User;
+use App\Repository\QuestionRepository;
 use App\Repository\TemplateRepository;
 use App\Repository\TopicRepository;
 use App\Repository\User\UserRepository;
@@ -20,6 +21,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Twig\Extra\Markdown\MarkdownInterface as markdown;
 
 #[Route('/template', name: 'template_')]
 class TemplateController extends AbstractController
@@ -103,10 +105,15 @@ class TemplateController extends AbstractController
                 'id' => $t->getId(),
                 'title' => $t->getTitle(),
                 'image' => $t->getImageUrl() ? sprintf('<img src="%s" class="img-fluid" width="50" height="50"/>', $t->getImageUrl()) : '<em>No image</em>',
+
                 'description' => $t->getDescription() ?: '<em>No description</em>',
+
+
+
                 'author' => $t->getAuthor()?->getName() ?? '',
                 'actions' => [
                     'editUrl' => $this->generateUrl('template_edit', ['id' => $t->getId()]),
+                    'fillUrl' => $this->generateUrl('template_fill', ['id' => $t->getId()]),
                     'id' => $t->getId(),
                     'csrfToken' => $this->container->get('security.csrf.token_manager')->getToken('delete' . $t->getId())->getValue(),
                 ],
@@ -228,7 +235,7 @@ class TemplateController extends AbstractController
     }
 
     #[Route('/{id}/edit', name: 'edit', methods: ['GET', 'POST'])]
-    public function edit(int $id,Request $request, Template $template, S3Client $s3,LoggerInterface $logger): Response
+    public function edit(int $id,Request $request, Template $template, S3Client $s3,LoggerInterface $logger,QuestionRepository $questionRepository): Response
     {
         if ($request->isMethod('POST')) {
             $template = $this->templateRepository->find($id);
@@ -348,17 +355,17 @@ class TemplateController extends AbstractController
 
 
             //Questions
+            // Get submitted data
             $questionIds = $request->request->all('question_id');
             $titles = $request->request->all('question_title');
             $descriptions = $request->request->all('question_description');
             $types = $request->request->all('question_type');
             $showInTable = $request->request->all('question_show_in_table');
 
-
-            // Preload all existing questions for the template and index by ID
+// Preload all existing questions for the template
             $existingQuestions = [];
-            foreach ($template->getQuestions() as $question) {
-                $existingQuestions[$question->getId()] = $question;
+            foreach ($questionRepository->findBy(['template' => $template], ['position' => 'ASC']) as $existingQuestion) {
+                $existingQuestions[$existingQuestion->getId()] = $existingQuestion;
             }
 
             $usedQuestionIds = [];
@@ -367,8 +374,10 @@ class TemplateController extends AbstractController
                 $questionId = $questionIds[$i] ?? null;
 
                 if ($questionId && isset($existingQuestions[$questionId])) {
+                    // Update existing
                     $question = $existingQuestions[$questionId];
                 } else {
+                    // Create new
                     $question = new Question();
                     $question->setTemplate($template);
                 }
@@ -376,7 +385,10 @@ class TemplateController extends AbstractController
                 $question->setTitle($title);
                 $question->setDescription($descriptions[$i] ?? '');
                 $question->setType($types[$i] ?? 'Single_line_text');
-                $question->setShowInTable(array_key_exists($i, $showInTable));
+
+
+                $question->setShowInTable(!empty($showInTable[$i]));
+
                 $question->setPosition($i + 1);
 
                 $this->entityManager->persist($question);
@@ -386,12 +398,13 @@ class TemplateController extends AbstractController
                 }
             }
 
-            //Remove questions that were not submitted (deleted by user)
+// Remove deleted questions
             foreach ($existingQuestions as $id => $existingQuestion) {
                 if (!in_array($id, $usedQuestionIds)) {
                     $this->entityManager->remove($existingQuestion);
                 }
             }
+
 
             $this->entityManager->flush();
             $this->addFlash('success', 'Template updated successfully.');
@@ -523,6 +536,20 @@ class TemplateController extends AbstractController
         $em->flush();
 
         return $this->redirectToRoute('template_list');
+    }
+
+    #[Route('/template/{id}/fill', name: 'fill', methods: ['GET', 'POST'])]
+    public function fill(int $id, TemplateRepository $templateRepository,QuestionRepository $questionRepository): Response
+    {
+        $template = $this->templateRepository->find($id);
+
+        $template_questions = $questionRepository->findBy(['template' => $template], ['position' => 'ASC']);
+
+        return $this->render('template/fill.html.twig', [
+            'template' => $templateRepository->find($id),
+            'template_questions' => $template_questions,
+
+        ]);
     }
 
 

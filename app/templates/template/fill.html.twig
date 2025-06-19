@@ -1,0 +1,72 @@
+{#Fill up a template form fill.html.twig#}
+{% extends 'base.html.twig' %}
+
+{% block title %}Fill up template form{% endblock %}
+
+{% block body %}
+
+{#{{ dump( template ) }}#}
+{#    {{ dump( template_questions ) }}#}
+
+
+    <div class="container-fluid">
+        <div class="row mt-4">
+            {% include 'user/_sidebaruser.html.twig' %}
+            <!-- Main Content -->
+            <div class="col-lg-10">
+
+                <!-- Template Info -->
+                <h2 class="mb-1">{{ template.title }}</h2>
+                <p class="text-muted">Topic: <strong>{{ template.topic.name }}</strong></p>
+                <p>{{ template.description|markdown_to_html|raw }}</p>
+                <img src="{{ template.imageUrl }}" alt="Illustration" class="img-fluid rounded mb-4" width="512" height="512">
+
+                <form action="" method="post">
+
+                    <!-- Hidden: template ID and user -->
+                    <input type="hidden" name="template_id"  value="{{ template.id }}">
+
+                    {% if template_questions is not empty %}
+                        {% set visible_questions = template_questions|filter(question => question.showInTable) %}
+                        {% if visible_questions|length > 0 %}
+                            {% for question in visible_questions %}
+                                <div class="mb-3">
+                                    <label class="form-label">
+                                        <strong>{{ loop.index }}. {{ question.title }}</strong>
+                                    </label>
+                                    <small class="d-block text-muted">{{ question.description }}</small>
+
+                                    {% if question.type == 'Single_line_text' %}
+                                        <input type="text" class="form-control mt-1" name="question_{{ question.id }}">
+                                    {% elseif question.type == 'Number' %}
+                                        <input type="number" min="0" class="form-control mt-1" name="question_{{ question.id }}">
+                                    {% elseif question.type == 'Text' %}
+                                        <textarea class="form-control mt-1" rows="4" name="question_{{ question.id }}"></textarea>
+                                    {% elseif question.type == 'Checkbox' %}
+                                        <div class="form-check mt-1">
+                                            <input class="form-check-input" type="checkbox" name="question_{{ question.id }}" id="question_{{ question.id }}">
+                                            <label class="form-check-label" for="question_{{ question.id }}">{{ question.title }}</label>
+                                        </div>
+                                    {% else %}
+                                        <input type="text" class="form-control mt-1" name="question_{{ question.id }}">
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endif %}
+
+                        <!-- Submit -->
+                    <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">Submit Form</button>
+                            <a href="/template/123" class="btn btn-outline-secondary">Cancel</a>
+                    </div>
+
+                </form>
+
+
+                <!-- Main Content end -->
+            </div>
+        </div>
+    </div>
+<!-- Body end -->
+{% endblock %}
