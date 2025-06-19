@@ -245,41 +245,26 @@ class TemplateController extends AbstractController
             }
 
             // Handle Tags
-//            $tagsIds = $request->request->get('tags', '');
-//            $tagNames = array_filter(array_map('trim', explode(',', $tagsIds)));
-//           // $logger->info('$tagNames', ['$tagNames' => $tagNames]);
-//            $template->clearTags(); // Clear existing tags
-//
-//            foreach ($tagNames as $tagName) {
-//                $tag = $this->entityManager->getRepository(Tag::class)->findOneBy(['name' => $tagName]);
-//                if (!$tag) {
-//                    $tag = new Tag();
-//                    $tag->setName($tagName);
-//                    $this->entityManager->persist($tag);
-//                }
-//                $template->addTag($tag);
-//            }
-
             $tagsInput = $request->request->get('tags', '');
             $tagNames = array_filter(array_map('trim', explode(',', $tagsInput)));
 
-// Get current tags from the template
+            // Get current tags from the template
             $currentTags = $template->getTags();
 
-// Convert to associative array for easier comparison
+            // Convert to associative array for easier comparison
             $currentTagNames = [];
             foreach ($currentTags as $tag) {
                 $currentTagNames[$tag->getName()] = $tag;
             }
 
-// Remove tags not in the request
+            // Remove tags not in the request
             foreach ($currentTags as $tag) {
                 if (!in_array($tag->getName(), $tagNames, true)) {
                     $template->removeTag($tag);
                 }
             }
 
-// Add or reuse tags
+            // Add or reuse tags
             foreach ($tagNames as $tagName) {
                 if (!isset($currentTagNames[$tagName])) {
                     $tag = $this->entityManager->getRepository(Tag::class)->findOneBy(['name' => $tagName]);
@@ -293,37 +278,47 @@ class TemplateController extends AbstractController
             }
 
 
-            // Handle Access and Users
-            $template->setAccess($request->request->get('access'));
+            // Handle Tags
+            $tagsInput = $request->request->get('tags', '');
+            $tagNames = array_filter(array_map('trim', explode(',', $tagsInput)));
 
-            if ($template->getAccess() === 'private') {
-                $userIdsRaw = $request->request->get('user_ids', '');
-                $userIds = array_filter(array_map('trim', explode(',', $userIdsRaw)));
+            // Get current tags and their names
+            $currentTags = $template->getTags(); // Doctrine Collection or array
+            $currentTagNames = array_map(fn($tag) => $tag->getName(), $currentTags->toArray());
 
-                // Convert IDs to integers for safe comparison
-                $newUserIds = array_map('intval', $userIds);
+            // Determine which tags to add and remove
+            $namesToAdd = array_diff($tagNames, $currentTagNames);
+            $namesToRemove = array_diff($currentTagNames, $tagNames);
 
-                // Get current users and their IDs
-                $currentUsers = $template->getUsers(); // Doctrine Collection or array
-                $currentUserIds = array_map(fn($u) => $u->getId(), $currentUsers->toArray());
+            // Fetch all tags to add (existing only)
+            $existingTags = [];
+            if (!empty($namesToAdd)) {
+                $existingTags = $this->entityManager->getRepository(Tag::class)
+                    ->findBy(['name' => $namesToAdd]);
+            }
 
-                // Find users to add and remove
-                $idsToAdd = array_diff($newUserIds, $currentUserIds);
-                $idsToRemove = array_diff($currentUserIds, $newUserIds);
+            // Index fetched tags by name
+            $existingTagsByName = [];
+            foreach ($existingTags as $tag) {
+                $existingTagsByName[$tag->getName()] = $tag;
+            }
 
-                // Add new users
-                if (!empty($idsToAdd)) {
-                    $usersToAdd = $this->userRepo->findBy(['id' => $idsToAdd]);
-                    foreach ($usersToAdd as $user) {
-                        $template->addUser($user);
-                    }
+            // Add new or existing tags
+            foreach ($namesToAdd as $tagName) {
+                if (isset($existingTagsByName[$tagName])) {
+                    $tag = $existingTagsByName[$tagName];
+                } else {
+                    $tag = new Tag();
+                    $tag->setName($tagName);
+                    $this->entityManager->persist($tag);
                 }
+                $template->addTag($tag);
+            }
 
-                // Remove users no longer in the list
-                foreach ($currentUsers as $user) {
-                    if (in_array($user->getId(), $idsToRemove)) {
-                        $template->removeUser($user);
-                    }
+            // Remove tags no longer in the list
+            foreach ($currentTags as $tag) {
+                if (in_array($tag->getName(), $namesToRemove, true)) {
+                    $template->removeTag($tag);
                 }
             }
 
