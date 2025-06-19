@@ -188,6 +188,8 @@
         }
     </style>
 
+
+
     {# EasyMDE CSS & JS CDN #}
     <link rel="stylesheet" href="https://unpkg.com/easymde/dist/easymde.min.css">
     <script src="https://unpkg.com/easymde/dist/easymde.min.js"></script>
@@ -462,15 +464,17 @@
 
         // Add Question Button
         document.getElementById('add-question').addEventListener('click', () => {
-            addQuestionRow('', '', 'Single_line_text', false);
+            addQuestionRow( '','', '', 'Single_line_text', true);
         });
 
         // Function to Add a Question Row
-        function addQuestionRow(title, description, type, showInTable) {
+        function addQuestionRow( id ,title, description, type, showInTable) {
+
             const div = document.createElement('div');
             div.className = 'border rounded p-2 mb-2 bg-light';
 
             div.innerHTML = `
+    <input type="hidden" name="question_id[]" value="${id}">
     <input type="text" name="question_title[]" class="form-control mb-1" placeholder="Title" value="${title}" required>
     <textarea name="question_description[]" class="form-control mb-1" placeholder="Description">${description}</textarea>
     <select name="question_type[]" class="form-select mb-1">
@@ -501,7 +505,7 @@
         // Load Questions from Server
         const templateQuestions = {{ template_questions_json|raw }};
         templateQuestions.forEach(q => {
-            addQuestionRow(q.title, q.description, q.type, q.showInTable);
+            addQuestionRow( q.id , q.title, q.description, q.type, q.showInTable);
         });
     </script>
 

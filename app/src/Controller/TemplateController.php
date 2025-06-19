@@ -68,10 +68,18 @@ class TemplateController extends AbstractController
         $orderColumn = $orderParts[0];
         $orderDir = strtolower($orderParts[1] ?? 'asc');
 
+//        $qb = $em->createQueryBuilder()
+//            ->select('t', 'author')
+//            ->from(Template::class, 't')
+//            ->leftJoin('t.author', 'author');
+
+        $currentUserId = $this->getUser()?->getId();
         $qb = $em->createQueryBuilder()
             ->select('t', 'author')
             ->from(Template::class, 't')
-            ->leftJoin('t.author', 'author');
+            ->leftJoin('t.author', 'author')
+            ->where('author.id = :currentUserId')
+            ->setParameter('currentUserId', $currentUserId);
 
         if ($search) {
             $qb->andWhere('t.title LIKE :search OR t.description LIKE :search OR author.name LIKE :search')
@@ -97,16 +105,11 @@ class TemplateController extends AbstractController
                 'image' => $t->getImageUrl() ? sprintf('<img src="%s" class="img-fluid" width="50" height="50"/>', $t->getImageUrl()) : '<em>No image</em>',
                 'description' => $t->getDescription() ?: '<em>No description</em>',
                 'author' => $t->getAuthor()?->getName() ?? '',
-                'actions' => sprintf(
-                    '<a href="%s" class="btn btn-sm btn-primary">Edit</a>
-                 <form action="%s" method="post" style="display:inline;">
-                     <input type="hidden" name="_token" value="%s">
-                     <button type="submit" class="btn btn-sm btn-danger">Delete</button>
-                 </form>',
-                    $this->generateUrl('template_edit', ['id' => $t->getId()]),
-                    $this->generateUrl('template_delete', ['id' => $t->getId()]),
-                    $this->container->get('security.csrf.token_manager')->getToken('delete' . $t->getId())
-                ),
+                'actions' => [
+                    'editUrl' => $this->generateUrl('template_edit', ['id' => $t->getId()]),
+                    'id' => $t->getId(),
+                    'csrfToken' => $this->container->get('security.csrf.token_manager')->getToken('delete' . $t->getId())->getValue(),
+                ],
             ];
         }, $templates);
 
@@ -295,16 +298,33 @@ class TemplateController extends AbstractController
                 }
             }
 
-            $template->clearQuestions();
+
             //Questions
+            $questionIds = $request->request->all('question_id');
             $titles = $request->request->all('question_title');
             $descriptions = $request->request->all('question_description');
             $types = $request->request->all('question_type');
             $showInTable = $request->request->all('question_show_in_table');
 
+
+            // Preload all existing questions for the template and index by ID
+            $existingQuestions = [];
+            foreach ($template->getQuestions() as $question) {
+                $existingQuestions[$question->getId()] = $question;
+            }
+
+            $usedQuestionIds = [];
+
             foreach ($titles as $i => $title) {
-                $question = new Question();
-                $question->setTemplate($template);
+                $questionId = $questionIds[$i] ?? null;
+
+                if ($questionId && isset($existingQuestions[$questionId])) {
+                    $question = $existingQuestions[$questionId];
+                } else {
+                    $question = new Question();
+                    $question->setTemplate($template);
+                }
+
                 $question->setTitle($title);
                 $question->setDescription($descriptions[$i] ?? '');
                 $question->setType($types[$i] ?? 'Single_line_text');
@@ -312,10 +332,18 @@ class TemplateController extends AbstractController
                 $question->setPosition($i + 1);
 
                 $this->entityManager->persist($question);
+
+                if ($questionId) {
+                    $usedQuestionIds[] = $questionId;
+                }
             }
 
-            //$template->setUsers($user);
-
+            //Remove questions that were not submitted (deleted by user)
+            foreach ($existingQuestions as $id => $existingQuestion) {
+                if (!in_array($id, $usedQuestionIds)) {
+                    $this->entityManager->remove($existingQuestion);
+                }
+            }
 
             $this->entityManager->flush();
             $this->addFlash('success', 'Template updated successfully.');
