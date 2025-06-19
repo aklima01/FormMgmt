@@ -3,10 +3,24 @@
 {% block title %}Template List{% endblock %}
 
 {% block body %}
+
+{#   {% if( templates is not empty ) %}#}
+{#        {{ dump( templates[0] ) }}#}
+{#    {% else %}#}
+{#        {{ dump( 'No templates found' ) }}#}
+{#    {% endif %}#}
+
     <div class="container-fluid mt-4">
         <div class="row">
             {% include 'user/_sidebaruser.html.twig' %}
             <div class="col-lg-10">
+
+                <div class="mb-3 d-flex justify-content-end">
+                    <a href="{{ path('template_create') }}" class="btn btn-success">
+                        <i class="bi bi-plus-lg"></i> Create Template
+                    </a>
+                </div>
+
                 <h1 class="mb-4">Templates</h1>
 
                 {% for label, messages in app.flashes %}
@@ -18,46 +32,25 @@
                     {% endfor %}
                 {% endfor %}
 
-                {% if templates is not empty %}
+
                     <div class="table-responsive">
                         <table id="templateTable" class="table table-bordered table-striped align-middle">
                             <thead class="table-light">
                             <tr>
-                                <th>Image</th>
+                                <th>ID</th>
                                 <th>Title</th>
-                                <th>Topic</th>
+                                <th>Image</th>
                                 <th>Description</th>
-                                <th>Tags</th>
+                                <th>Author</th>
+                                <th>Actions</th>
                             </tr>
                             </thead>
-                            <tbody>
-                            {% for template in templates %}
-                                <tr>
-                                    <td style="width: 30px; height:30px">
-                                        {% if template.imageUrl %}
-                                            <img src="{{ asset(template.imageUrl) }}" class="img-fluid" alt="{{ template.title }}">
-                                        {% endif %}
-                                    </td>
-                                    <td>{{ template.title }}</td>
-                                    <td>{{ template.topic }}</td>
-
-                                    <td>{{ template.description|markdown_to_html }}</td>
-
-                                    <td>
-                                        {% for tag in template.tags %}
-                                            <span class="badge bg-primary">{{ tag.name }}</span>
-                                        {% endfor %}
-                                    </td>
-                                </tr>
-                            {% endfor %}
-                            </tbody>
+                            <tbody></tbody>
                         </table>
+
+
                     </div>
-                {% else %}
-                    <div class="alert alert-info mt-4">
-                        No templates found. <a href="{{ path('template_create') }}">Create one</a>.
-                    </div>
-                {% endif %}
+                
             </div>
         </div>
     </div>
@@ -71,10 +64,19 @@
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             $('#templateTable').DataTable({
-                pageLength: 10,
-                order: [[1, 'asc']],
-                responsive: true
+                processing: true,
+                serverSide: true,
+                ajax: "{{ path('template_ajax') }}",
+                columns: [
+                    { data: 'id' },
+                    { data: 'title' },
+                    { data: 'image', orderable: false, searchable: false },
+                    { data: 'description' },
+                    { data: 'author' },
+                    { data: 'actions', orderable: false, searchable: false }
+                ]
             });
         });
     </script>
+
 {% endblock %}

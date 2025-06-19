@@ -1,10 +1,19 @@
 {#Template Creation Page create.html.twig#}
 
+
+
 {% extends 'base.html.twig' %}
 
 {% block title %}User Dashboard{% endblock %}
 
 {% block body %}
+
+{#    {{ dump(template) }}#}
+
+{#    {{ dump( template_questions_json ) }}#}
+
+{#    {{ dump(selectedTagsJson) }}#}
+
     <div class="container-fluid">
         <div class="row mt-4">
             {% include 'user/_sidebaruser.html.twig' %}
@@ -14,46 +23,84 @@
                 <div class="container mt-5">
                     <div class="row justify-content-center">
                         <div class="col-md-6">
-                            <h1 class="text-center mb-4">Create Template</h1>
-                            <form action="{{ path('template_create') }}" method="post" enctype="multipart/form-data">
-                                <!-- CSRF Token -->
+                            <h1 class="text-center mb-4">Edit Template</h1>
+
+                            <form action="{{ path('template_edit', {id: template.id}) }}" method="post" enctype="multipart/form-data">
+
+
+                            <!-- CSRF Token -->
                                 <input type="hidden" name="_csrf_token" value="{{ csrf_token('form') }}">
+
+                                <input type="hidden" name="template_id" value="{{ template.id }}">
 
                                 <!-- Title Input -->
                                 <div class="mb-3">
                                     <label for="title" class="form-label">Template Title</label>
-                                    <input type="text" class="form-control" id="title" name="title" placeholder="Enter the title of the template" required>
+                                    <input type="text" class="form-control" id="title" name="title" placeholder="Enter the title of the template" value="{{ template.title }}" required>
+
                                 </div>
 
                                 <!-- Description Input -->
                                 <div class="mb-3">
                                     <label for="description" class="form-label">Template Description</label>
-                                    <textarea id="description" name="description"></textarea>
+                                    <textarea id="description" name="description">{{ template.description }}</textarea>
                                 </div>
 
-                                <!-- Topic Dropdown -->
+
+{#                                <!-- Topic dropdown -->#}
+{#                                <div class="mb-3">#}
+{#                                    <label for="topic" class="form-label">Select Topic</label>#}
+{#                                    <select id="topic" name="topic_id" class="form-select">#}
+{#                                        {% for topic in topics %}#}
+{#                                            <option value="{{ topic.id }}"#}
+{#                                                    {% if topic.id == template.topic.id %}selected{% endif %}>#}
+{#                                                {{ topic.name }}#}
+{#                                            </option>#}
+{#                                        {% endfor %}#}
+{#                                    </select>#}
+{#                                </div>#}
+
+                                <!-- Topic dropdown -->
+                                <!-- Topic dropdown -->
                                 <div class="mb-3">
                                     <label for="topic" class="form-label">Select Topic</label>
-                                    <select id="topic" name="topic_id" class="form-select" >
-                                        <option value="">Loading topics...</option>
+                                    <select id="topic" name="topic_id" class="form-select">
+                                        {% for topic in topics %}
+                                            <option value="{{ topic.id }}"
+                                                {% if template.topic is defined and template.topic is not null and topic.id == template.topic.id %}
+                                            selected
+                                                {% endif %}>
+                                                {{ topic.name }}
+                                            </option>
+                                        {% endfor %}
                                     </select>
                                 </div>
 
-                                <!-- Tags -->
+                                <!-- Tags Input -->
                                 <div class="mb-3">
                                     <label for="tag-input" class="form-label">Tags</label>
                                     <input type="text" id="tag-input" class="form-control" placeholder="Start typing to search tags...">
-                                    <div class="tag-list" id="tag-list"></div>
+                                    <div class="tag-list mt-2" id="tag-list"></div>
                                     <input type="hidden" name="tags" id="tags-hidden">
                                 </div>
+
+                                {# Pass selected tags JSON to JS #}
+                                <script>
+                                    const selectedTagsFromTwig = {{ selectedTagsJson|raw }};
+                                </script>
 
                                 <!-- Image Upload -->
                                 <div class="mb-3">
                                     <label class="form-label">Upload Image</label>
-                                    <div id="dropzone" class="dropzone border rounded bg-light p-3 text-center">
-{#                                        <p>Drag an image here or click to select</p>#}
+                                    <div id="dropzone" class="dropzone border rounded bg-light p-3 text-center" style="cursor:pointer;">
+                                        {% if template.imageUrl %}
+                                            <img id="image-preview" src="{{ template.imageUrl }}" alt="Uploaded Image" style="max-width: 100%; max-height: 200px; object-fit: contain;"/>
+                                            <div><button type="button" id="remove-image" class="btn btn-sm btn-danger mt-2">Remove Image</button></div>
+                                        {% else %}
+                                            <p>Drag an image here or click to select</p>
+                                        {% endif %}
                                     </div>
-                                    <input type="file" name="image" id="image-input" hidden  accept="image/*" />
+                                    <input type="file" name="image" id="image-input" hidden accept="image/*" />
                                     <small class="text-muted">Optional image attachment for this template.</small>
                                 </div>
 
@@ -93,7 +140,7 @@
 
                                 <!-- Submit Button -->
                                 <div class="text-center">
-                                    <button type="submit" class="btn btn-primary">Create Template</button>
+                                    <button type="submit" class="btn btn-primary">Update Template</button>
                                 </div>
                             </form>
                         </div>
@@ -104,7 +151,7 @@
         </div> <!-- close row -->
     </div> <!-- close container-fluid -->
 
-{#    <-- CSS & JS for EasyMDE (Markdown Editor) -->#}
+    {#    <-- CSS & JS for EasyMDE (Markdown Editor) -->#}
 
     <style>
         .tag-list {
@@ -155,38 +202,17 @@
 
 
     {# EasyMDE Initialization #}
-        <script>
-            document.addEventListener("DOMContentLoaded", function () {
-                new EasyMDE({
-                    element: document.getElementById("description"),
-                    spellChecker: false,
-                    placeholder: "Enter the description in markdown...",
-                    status: false
-                });
-            });
-        </script>
-
     <script>
         document.addEventListener("DOMContentLoaded", function () {
-            // Load Topics via AJAX
-            fetch("{{ path('template_ajax_topics') }}")
-                .then(response => response.json())
-                .then(data => {
-                    const topicSelect = document.getElementById("topic");
-                    topicSelect.innerHTML = '<option value="">-- Select Topic --</option>';
-                    data.forEach(topic => {
-                        const option = document.createElement("option");
-                        option.value = topic.id;
-                        option.textContent = topic.name;
-                        topicSelect.appendChild(option);
-                    });
-                })
-                .catch(() => {
-                    const topicSelect = document.getElementById("topic");
-                    topicSelect.innerHTML = '<option value="">Failed to load topics</option>';
-                });
+            new EasyMDE({
+                element: document.getElementById("description"),
+                spellChecker: false,
+                placeholder: "Enter the description in markdown...",
+                status: false
+            });
         });
     </script>
+
 
     <script>
         $(document).ready(function () {
@@ -196,31 +222,45 @@
 
             let selectedTags = [];
 
+            // Initialize preloaded tags
+            if (typeof selectedTagsFromTwig !== 'undefined') {
+                selectedTags = selectedTagsFromTwig;
+                renderTags();
+            }
+
             function renderTags() {
                 $tagList.empty();
                 selectedTags.forEach(function (tag) {
-                    const $tagElem = $('<span class="tag-item"></span>').text(tag);
-                    const $removeBtn = $('<span class="remove-tag">&times;</span>');
+                    const $tagElem = $('<span class="badge bg-primary me-1 mb-1 tag-item"></span>').text(tag.name);
+                    const $removeBtn = $('<span class="remove-tag ms-1" style="cursor:pointer;">&times;</span>');
+
                     $removeBtn.on('click', function () {
-                        selectedTags = selectedTags.filter(t => t !== tag);
+                        selectedTags = selectedTags.filter(t => t.name !== tag.name);
                         renderTags();
                     });
+
                     $tagElem.append($removeBtn);
                     $tagList.append($tagElem);
                 });
-                $tagsHidden.val(selectedTags.join(','));
+
+                // Store all tag names (existing and new) as a comma-separated string
+                const allTagNames = selectedTags.map(t => t.name);
+                $tagsHidden.val(allTagNames.join(','));
             }
 
             $tagInput.autocomplete({
                 source: function (request, response) {
                     $.ajax({
-                        url: "{{ path('template_tag_search') }}", // Make sure this path is valid in your routes
+                        url: "{{ path('template_tag_search') }}", // Your autocomplete route name here
                         dataType: 'json',
-                        data: {
-                            term: request.term
-                        },
+                        data: { term: request.term },
                         success: function (data) {
-                            response(data.map(item => item.text));
+                            // data = [{id: x, text: 'name'}, ...]
+                            response(data.map(item => ({
+                                label: item.text,
+                                value: item.text,
+                                id: item.id
+                            })));
                         },
                         error: function () {
                             console.error('Autocomplete AJAX failed');
@@ -228,8 +268,8 @@
                     });
                 },
                 select: function (event, ui) {
-                    if (!selectedTags.includes(ui.item.value)) {
-                        selectedTags.push(ui.item.value);
+                    if (!selectedTags.find(t => t.id === ui.item.id)) {
+                        selectedTags.push({ id: ui.item.id, name: ui.item.value });
                         renderTags();
                     }
                     $tagInput.val('');
@@ -242,9 +282,11 @@
                 if (e.key === 'Enter') {
                     e.preventDefault();
                     const val = $tagInput.val().trim();
-                    if (val && !selectedTags.includes(val)) {
-                        selectedTags.push(val);
-                        renderTags();
+                    if (val) {
+                        if (!selectedTags.find(t => t.name.toLowerCase() === val.toLowerCase())) {
+                            selectedTags.push({ id: 0, name: val }); // new tag, id=0
+                            renderTags();
+                        }
                         $tagInput.val('');
                     }
                 }
@@ -252,33 +294,72 @@
         });
     </script>
 
-    <script>
-        // Dropzone config
-        Dropzone.autoDiscover = false;
-        const dropzone = new Dropzone("#dropzone", {
-            url: "#", // Form handles submission
-            autoProcessQueue: false,
-            maxFiles: 1,
-            clickable: true,
-            acceptedFiles: "image/*",
-            addRemoveLinks: true,
-            init: function () {
-                this.on("addedfile", file => {
-                    const dt = new DataTransfer();
-                    dt.items.add(file);
-                    document.querySelector("#image-input").files = dt.files;
 
-                    if (this.files.length > 1) {
-                        this.removeFile(this.files[0]);
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const dropzone = document.getElementById('dropzone');
+            const fileInput = document.getElementById('image-input');
+
+            dropzone.addEventListener('click', function () {
+                fileInput.click();
+            });
+
+            fileInput.addEventListener('change', function (event) {
+                const file = event.target.files[0];
+                if (!file) return;
+
+
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    let preview = document.getElementById('image-preview');
+                    if (!preview) {
+                        preview = document.createElement('img');
+                        preview.id = 'image-preview';
+                        preview.style.maxWidth = '100%';
+                        preview.style.maxHeight = '200px';
+                        preview.style.objectFit = 'contain';
+                        dropzone.innerHTML = '';
+                        dropzone.appendChild(preview);
                     }
-                });
-                this.on("removedfile", () => {
-                    document.querySelector("#image-input").value = "";
+                    preview.src = e.target.result;
+
+
+
+                    // Add remove button if not exists
+                    if (!document.getElementById('remove-image')) {
+                        const removeBtn = document.createElement('button');
+                        removeBtn.type = 'button';
+                        removeBtn.id = 'remove-image';
+                        removeBtn.className = 'btn btn-sm btn-danger mt-2';
+                        removeBtn.textContent = 'Remove Image';
+                        removeBtn.addEventListener('click', function (e) {
+                            e.stopPropagation();
+                            fileInput.value = '';
+                            preview.remove();
+                            removeBtn.remove();
+                            dropzone.innerHTML = '<p>Drag an image here or click to select</p>';
+                        });
+                        dropzone.appendChild(document.createElement('div')).appendChild(removeBtn);
+                    }
+                };
+                reader.readAsDataURL(file);
+            });
+
+            // Remove button event for existing image
+            const removeExistingBtn = document.getElementById('remove-image');
+            if (removeExistingBtn) {
+                removeExistingBtn.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    fileInput.value = '';
+                    const preview = document.getElementById('image-preview');
+                    if (preview) preview.remove();
+                    removeExistingBtn.remove();
+                    dropzone.innerHTML = '<p>Drag an image here or click to select</p>';
                 });
             }
         });
-
     </script>
+
 
     <script>
         $(function () {
@@ -287,7 +368,7 @@
             const userIdsInput = $('#user-ids');
             const sortSelect = $('#sort-select');
 
-            let selectedUsers = [];
+            let selectedUsers = {{ selectedUsersJson|raw }};
             let currentSort = 'name';
 
             function renderUsers() {
@@ -297,8 +378,8 @@
 
                 selectedUsersDiv.empty();
                 selectedUsers.forEach(user => {
-                    const pill = $('<span class="user-pill"></span>').text(`${user.name} (${user.email})`);
-                    const removeBtn = $('<span class="remove-user">&times;</span>');
+                    const pill = $('<span class="user-pill badge bg-primary me-1 mb-1 p-2 rounded-pill"></span>').text(`${user.name} (${user.email})`);
+                    const removeBtn = $('<span class="ms-2 text-white" style="cursor:pointer;">&times;</span>');
                     removeBtn.on('click', () => {
                         selectedUsers = selectedUsers.filter(u => u.id !== user.id);
                         updateHiddenInput();
@@ -352,14 +433,23 @@
             $('input[name="access"]').on('change', function () {
                 if ($(this).val() === 'private') {
                     $('#user-select-area').show();
+                    renderUsers(); // redraw pills
                 } else {
                     $('#user-select-area').hide();
                     selectedUsers = [];
                     renderUsers();
                 }
             });
+
+            // Initial show if template is private
+            {% if template.access == 'private' %}
+            $('#access_private').prop('checked', true);
+            $('#user-select-area').show();
+            renderUsers();
+            {% endif %}
         });
     </script>
+
 
 
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
@@ -370,41 +460,49 @@
             ghostClass: 'sortable-ghost'
         });
 
+        // Add Question Button
         document.getElementById('add-question').addEventListener('click', () => {
             addQuestionRow('', '', 'Single_line_text', false);
         });
 
+        // Function to Add a Question Row
         function addQuestionRow(title, description, type, showInTable) {
             const div = document.createElement('div');
             div.className = 'border rounded p-2 mb-2 bg-light';
 
             div.innerHTML = `
-            <input type="text" name="question_title[]" class="form-control mb-1" placeholder="Title" value="${title}" required>
-            <textarea name="question_description[]" class="form-control mb-1" placeholder="Description">${description}</textarea>
-            <select name="question_type[]" class="form-select mb-1">
-                <option value="Single_line_text" ${type === 'Single_line_text' ? 'selected' : ''}>Single line text</option>
-                <option value="Text" ${type === 'Text' ? 'selected' : ''}>Text</option>
-                <option value="Number" ${type === 'Number' ? 'selected' : ''}>Number</option>
-                <option value="Checkbox" ${type === 'Checkbox' ? 'selected' : ''}>Checkbox</option>
-            </select>
-            <div class="form-check mb-1">
-                <input type="checkbox" name="question_show_in_table[]" class="form-check-input" checked ${showInTable ? 'checked' : '' }>
-                <label class="form-check-label">Show in Table</label>
-            </div>
-
-            <button type="button" class="btn btn-danger btn-sm remove-btn">
-                <i class="bi bi-trash"></i> Remove
-            </button> `;
+    <input type="text" name="question_title[]" class="form-control mb-1" placeholder="Title" value="${title}" required>
+    <textarea name="question_description[]" class="form-control mb-1" placeholder="Description">${description}</textarea>
+    <select name="question_type[]" class="form-select mb-1">
+        <option value="Single_line_text" ${type === 'Single_line_text' ? 'selected' : ''}>Single line text</option>
+        <option value="Text" ${type === 'Text' ? 'selected' : ''}>Text</option>
+        <option value="Number" ${type === 'Number' ? 'selected' : ''}>Number</option>
+        <option value="Checkbox" ${type === 'Checkbox' ? 'selected' : ''}>Checkbox</option>
+    </select>
+    <div class="form-check mb-1">
+        <input type="checkbox" name="question_show_in_table[]" class="form-check-input" ${showInTable ? 'checked' : ''}>
+        <label class="form-check-label">Show in Table</label>
+    </div>
+    <button type="button" class="btn btn-danger btn-sm remove-btn d-flex justify-content-center align-items-center" style="width: 38px; height: 38px;">
+        <i class="bi bi-trash"></i>
+    </button>
+`;
 
             questionList.appendChild(div);
         }
 
+        // Remove Button Handler
         questionList.addEventListener('click', function (e) {
-            if (e.target.classList.contains('remove-btn')) {
+            if (e.target.closest('.remove-btn')) {
                 e.target.closest('.border').remove();
             }
         });
-    </script>
 
+        // Load Questions from Server
+        const templateQuestions = {{ template_questions_json|raw }};
+        templateQuestions.forEach(q => {
+            addQuestionRow(q.title, q.description, q.type, q.showInTable);
+        });
+    </script>
 
 {% endblock %}

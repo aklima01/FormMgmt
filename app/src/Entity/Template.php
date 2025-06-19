@@ -31,19 +31,20 @@ class Template
 
     #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'templates')]
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
-    private ?User $user = null;
+    private ?User $author = null;
+
+    public function getAuthor(): ?User
+    {
+        return $this->author;
+    }
+
+    public function setAuthor(?User $author): void
+    {
+        $this->author = $author;
+    }
 
     // Getter and setter
-    public function getUser(): ?User
-    {
-        return $this->user;
-    }
 
-    public function setUser(?User $user): self
-    {
-        $this->user = $user;
-        return $this;
-    }
 
 
 
@@ -196,4 +197,29 @@ class Template
 
         return $this;
     }
+
+    // In Template.php (Entity)
+
+    public function clearTags(): void
+    {
+        foreach ($this->tags as $tag) {
+            $this->removeTag($tag);
+        }
+    }
+
+    public function clearUsers(): void
+    {
+        foreach ($this->users as $user) {
+            $this->removeUser($user);
+        }
+    }
+
+    public function clearQuestions(): void
+    {
+        foreach ($this->questions as $question) {
+            $this->questions->removeElement($question);
+        }
+    }
+
+
 }
