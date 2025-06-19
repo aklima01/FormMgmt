@@ -21,7 +21,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
-use Twig\Extra\Markdown\MarkdownInterface as markdown;
+
 
 #[Route('/template', name: 'template_')]
 class TemplateController extends AbstractController
@@ -142,6 +142,7 @@ class TemplateController extends AbstractController
             $template = new Template();
 
             if($file){
+
                 $uuid = uniqid();
                 $originalName = $file->getClientOriginalName();
                 $ext = pathinfo($originalName, PATHINFO_EXTENSION) ?: 'jpg';
@@ -159,7 +160,6 @@ class TemplateController extends AbstractController
                     ]);
                 } catch (\Exception $e) {
                     $this->addFlash('error', 'Upload failed: ' . $e->getMessage());
-                    //return $this->redirectToRoute('image_create');
                 }
 
                 $template->setImageUrl($this->params->get('r2_public_url') . '/' . $key);
@@ -537,6 +537,8 @@ class TemplateController extends AbstractController
 
         return $this->redirectToRoute('template_list');
     }
+
+
 
     #[Route('/template/{id}/fill', name: 'fill', methods: ['GET', 'POST'])]
     public function fill(int $id,Request $request, TemplateRepository $templateRepository,QuestionRepository $questionRepository): Response
