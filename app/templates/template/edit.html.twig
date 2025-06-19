@@ -1,18 +1,53 @@
 {#Template Creation Page create.html.twig#}
-
-
-
 {% extends 'base.html.twig' %}
 
-{% block title %}User Dashboard{% endblock %}
+{% block stylesheets %}
+    {{ parent() }}
+
+    <link rel="stylesheet" href="https://unpkg.com/easymde/dist/easymde.min.css">
+    <link href="https://unpkg.com/dropzone@5/dist/min/dropzone.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+
+    <style>
+        .tag-list {
+            margin-top: 10px;
+        }
+        .tag-item {
+            display: inline-block;
+            background-color: #0d6efd;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 20px;
+            margin: 3px;
+        }
+        .tag-item .remove-tag {
+            margin-left: 8px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+    </style>
+
+    <style>
+        .user-pill {
+            display: inline-block;
+            background-color: #0d6efd;
+            color: #fff;
+            padding: 5px 10px;
+            border-radius: 20px;
+            margin: 3px;
+        }
+        .user-pill .remove-user {
+            margin-left: 8px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+    </style>
+
+{% endblock %}
+
+{% block title %}Edit Template{% endblock %}
 
 {% block body %}
-
-{#    {{ dump(template) }}#}
-
-{#    {{ dump( template_questions_json ) }}#}
-
-{#    {{ dump(selectedTagsJson) }}#}
 
     <div class="container-fluid">
         <div class="row mt-4">
@@ -46,21 +81,6 @@
                                     <textarea id="description" name="description">{{ template.description }}</textarea>
                                 </div>
 
-
-{#                                <!-- Topic dropdown -->#}
-{#                                <div class="mb-3">#}
-{#                                    <label for="topic" class="form-label">Select Topic</label>#}
-{#                                    <select id="topic" name="topic_id" class="form-select">#}
-{#                                        {% for topic in topics %}#}
-{#                                            <option value="{{ topic.id }}"#}
-{#                                                    {% if topic.id == template.topic.id %}selected{% endif %}>#}
-{#                                                {{ topic.name }}#}
-{#                                            </option>#}
-{#                                        {% endfor %}#}
-{#                                    </select>#}
-{#                                </div>#}
-
-                                <!-- Topic dropdown -->
                                 <!-- Topic dropdown -->
                                 <div class="mb-3">
                                     <label for="topic" class="form-label">Select Topic</label>
@@ -151,56 +171,19 @@
         </div> <!-- close row -->
     </div> <!-- close container-fluid -->
 
-    {#    <-- CSS & JS for EasyMDE (Markdown Editor) -->#}
-
-    <style>
-        .tag-list {
-            margin-top: 10px;
-        }
-        .tag-item {
-            display: inline-block;
-            background-color: #0d6efd;
-            color: white;
-            padding: 5px 10px;
-            border-radius: 20px;
-            margin: 3px;
-        }
-        .tag-item .remove-tag {
-            margin-left: 8px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-    </style>
-
-    <style>
-        .user-pill {
-            display: inline-block;
-            background-color: #0d6efd;
-            color: #fff;
-            padding: 5px 10px;
-            border-radius: 20px;
-            margin: 3px;
-        }
-        .user-pill .remove-user {
-            margin-left: 8px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-    </style>
 
 
 
-    {# EasyMDE CSS & JS CDN #}
-    <link rel="stylesheet" href="https://unpkg.com/easymde/dist/easymde.min.css">
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+
     <script src="https://unpkg.com/easymde/dist/easymde.min.js"></script>
-
-    <link href="https://unpkg.com/dropzone@5/dist/min/dropzone.min.css" rel="stylesheet" />
-
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
-    <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
-
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.3/min/dropzone.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 
 
     {# EasyMDE Initialization #}
@@ -214,7 +197,6 @@
             });
         });
     </script>
-
 
     <script>
         $(document).ready(function () {
@@ -253,7 +235,7 @@
             $tagInput.autocomplete({
                 source: function (request, response) {
                     $.ajax({
-                        url: "{{ path('template_tag_search') }}", // Your autocomplete route name here
+                        url: "{{ path('template_tag_search') }}",
                         dataType: 'json',
                         data: { term: request.term },
                         success: function (data) {
@@ -324,8 +306,6 @@
                         dropzone.appendChild(preview);
                     }
                     preview.src = e.target.result;
-
-
 
                     // Add remove button if not exists
                     if (!document.getElementById('remove-image')) {
@@ -451,10 +431,6 @@
             {% endif %}
         });
     </script>
-
-
-
-    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 
     <script>
         const questionList = document.getElementById('question-list');

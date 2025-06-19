@@ -2,7 +2,51 @@
 
 {% extends 'base.html.twig' %}
 
-{% block title %}User Dashboard{% endblock %}
+{% block stylesheets %}
+    {{ parent() }}
+
+    <link rel="stylesheet" href="https://unpkg.com/easymde/dist/easymde.min.css">
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+    <link href="https://unpkg.com/dropzone@5/dist/min/dropzone.min.css" rel="stylesheet" />
+
+    <style>
+        .tag-list {
+            margin-top: 10px;
+        }
+        .tag-item {
+            display: inline-block;
+            background-color: #0d6efd;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 20px;
+            margin: 3px;
+        }
+        .tag-item .remove-tag {
+            margin-left: 8px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+    </style>
+
+    <style>
+        .user-pill {
+            display: inline-block;
+            background-color: #0d6efd;
+            color: #fff;
+            padding: 5px 10px;
+            border-radius: 20px;
+            margin: 3px;
+        }
+        .user-pill .remove-user {
+            margin-left: 8px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+    </style>
+
+{% endblock %}
+
+{% block title %}Create Template{% endblock %}
 
 {% block body %}
     <div class="container-fluid">
@@ -51,7 +95,6 @@
                                 <div class="mb-3">
                                     <label class="form-label">Upload Image</label>
                                     <div id="dropzone" class="dropzone border rounded bg-light p-3 text-center">
-{#                                        <p>Drag an image here or click to select</p>#}
                                     </div>
                                     <input type="file" name="image" id="image-input" hidden  accept="image/*" />
                                     <small class="text-muted">Optional image attachment for this template.</small>
@@ -104,68 +147,30 @@
         </div> <!-- close row -->
     </div> <!-- close container-fluid -->
 
-{#    <-- CSS & JS for EasyMDE (Markdown Editor) -->#}
+{% endblock %}
 
-    <style>
-        .tag-list {
-            margin-top: 10px;
-        }
-        .tag-item {
-            display: inline-block;
-            background-color: #0d6efd;
-            color: white;
-            padding: 5px 10px;
-            border-radius: 20px;
-            margin: 3px;
-        }
-        .tag-item .remove-tag {
-            margin-left: 8px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-    </style>
+{% block javascripts %}
+    {{ parent() }}
 
-    <style>
-        .user-pill {
-            display: inline-block;
-            background-color: #0d6efd;
-            color: #fff;
-            padding: 5px 10px;
-            border-radius: 20px;
-            margin: 3px;
-        }
-        .user-pill .remove-user {
-            margin-left: 8px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-    </style>
-
-    {# EasyMDE CSS & JS CDN #}
-    <link rel="stylesheet" href="https://unpkg.com/easymde/dist/easymde.min.css">
     <script src="https://unpkg.com/easymde/dist/easymde.min.js"></script>
-
-    <link href="https://unpkg.com/dropzone@5/dist/min/dropzone.min.css" rel="stylesheet" />
-
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
-    <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
-
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.3/min/dropzone.min.js"></script>
-
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 
     {# EasyMDE Initialization #}
-        <script>
-            document.addEventListener("DOMContentLoaded", function () {
-                new EasyMDE({
-                    element: document.getElementById("description"),
-                    spellChecker: false,
-                    placeholder: "Enter the description in markdown...",
-                    status: false
-                });
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            new EasyMDE({
+                element: document.getElementById("description"),
+                spellChecker: false,
+                placeholder: "Enter the description in markdown...",
+                status: false
             });
-        </script>
+        });
+    </script>
 
+    {# Load topics from DB  #}
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             // Load Topics via AJAX
@@ -188,6 +193,7 @@
         });
     </script>
 
+    {# Handle Tags #}
     <script>
         $(document).ready(function () {
             const $tagInput = $('#tag-input');
@@ -214,7 +220,7 @@
             $tagInput.autocomplete({
                 source: function (request, response) {
                     $.ajax({
-                        url: "{{ path('template_tag_search') }}", // Make sure this path is valid in your routes
+                        url: "{{ path('template_tag_search') }}",
                         dataType: 'json',
                         data: {
                             term: request.term
@@ -252,11 +258,11 @@
         });
     </script>
 
+    {#  Dropzone config #}
     <script>
-        // Dropzone config
         Dropzone.autoDiscover = false;
         const dropzone = new Dropzone("#dropzone", {
-            url: "#", // Form handles submission
+            url: "#",
             autoProcessQueue: false,
             maxFiles: 1,
             clickable: true,
@@ -277,9 +283,9 @@
                 });
             }
         });
-
     </script>
 
+    {#  User auto complete #}
     <script>
         $(function () {
             const userSearch = $('#user-search');
@@ -361,8 +367,7 @@
         });
     </script>
 
-
-    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    {#Sortable.min.js#}
     <script>
         const questionList = document.getElementById('question-list');
         Sortable.create(questionList, {
@@ -405,6 +410,5 @@
             }
         });
     </script>
-
 
 {% endblock %}

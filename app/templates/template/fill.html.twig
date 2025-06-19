@@ -5,10 +5,6 @@
 
 {% block body %}
 
-{{ dump( request ) }}
-{#    {{ dump( template_questions ) }}#}
-
-
     <div class="container-fluid">
         <div class="row mt-4">
             {% include 'user/_sidebaruser.html.twig' %}
@@ -17,13 +13,21 @@
 
                 <!-- Template Info -->
                 <h2 class="mb-1">{{ template.title }}</h2>
-                <p class="text-muted">Topic: <strong>{{ template.topic.name }}</strong></p>
+{#                <p class="text-muted">Topic: <strong>{{ template.topic.name }}</strong></p>#}
+                <p class="text-muted">
+                    Topic:
+                    {% if template.topic is not null and template.topic.name is defined %}
+                        <strong>{{ template.topic.name }}</strong>
+                    {% else %}
+                        <em>No topic available</em>
+                    {% endif %}
+                </p>
+                
                 <p>{{ template.description|markdown_to_html|raw }}</p>
                 <img src="{{ template.imageUrl }}" alt="Illustration" class="img-fluid rounded mb-4" width="512" height="512">
 
                 <form action="{{ path('template_fill', {id: template.id}) }}" method="post">
 
-                    <!-- Hidden: template ID and user -->
                     <input type="hidden" name="template_id"  value="{{ template.id }}">
 
                     {% if template_questions is not empty %}
@@ -58,8 +62,8 @@
 
                         <!-- Submit -->
                     <div class="d-flex gap-2">
-                            <button type="submit" class="btn btn-primary">Submit Form</button>
-                            <a href="/template/123" class="btn btn-outline-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary">Submit Form</button>
+                        <a href="/template/123" class="btn btn-outline-secondary">Cancel</a>
                     </div>
 
                 </form>

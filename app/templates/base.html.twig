@@ -6,11 +6,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     {% block stylesheets %}
-        <!-- Bootstrap CSS & Icons -->
         <link rel="stylesheet" href="{{ asset('bootstrap/css/bootstrap.min.css') }}">
         <link rel="stylesheet" href="{{ asset('bootstrap/bootstrap-icons/bootstrap-icons.css') }}">
-        <link rel="stylesheet" href="{{ asset('css/app.css') }}">
+        <link rel="stylesheet" href="{{ asset('DataTables/datatables.min.css') }}">
+
     {% endblock %}
+
+    <script src="{{ asset('jquery/jquery-3.7.1.min.js') }}"></script>
+    <script src="{{ asset('bootstrap/js/bootstrap.bundle.min.js') }}"> </script>
+    <script src="{{ asset('DataTables/datatables.min.js') }}"></script>
+
 
 </head>
 <body>
@@ -98,7 +103,6 @@
 <br>
 
 <!-- Main Content -->
-
 {#<div class="container pt-5 mt-5" style="border: 1px solid black;">#}
 <div class="container pt-5 mt-1">
     {% block body %}{% endblock %}
@@ -111,7 +115,8 @@
 
 
 {% block javascripts %}
-    <script src="{{ asset('bootstrap/js/bootstrap.bundle.min.js') }}"> </script>
+
+
 {% endblock %}
 
 

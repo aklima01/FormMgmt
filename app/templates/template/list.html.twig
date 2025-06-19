@@ -1,14 +1,13 @@
 {% extends 'base.html.twig' %}
 
+{% block stylesheets %}
+    {{ parent() }}
+
+{% endblock %}
+
 {% block title %}Template List{% endblock %}
 
 {% block body %}
-
-{#   {% if( templates is not empty ) %}#}
-{#        {{ dump( templates[0] ) }}#}
-{#    {% else %}#}
-{#        {{ dump( 'No templates found' ) }}#}
-{#    {% endif %}#}
 
     <div class="container-fluid mt-4">
         <div class="row">
@@ -21,7 +20,7 @@
                     </a>
                 </div>
 
-                <h1 class="mb-4">Templates</h1>
+                <h1 class="mb-4">Template Management</h1>
 
                 {% for label, messages in app.flashes %}
                     {% for message in messages %}
@@ -58,15 +57,12 @@
         </div>
     </div>
 
-    {# DataTables CSS & JS #}
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+{% endblock %}
 
-    <!-- Include marked.js via CDN -->
+{% block javascripts %}
+    {{ parent() }}
+
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-
 
     <script>
         document.addEventListener("DOMContentLoaded", function () {
@@ -104,7 +100,7 @@
                         <li><a class="dropdown-item" href="${data.editUrl}">Edit</a></li>
                         <li><a class="dropdown-item" href="${data.fillUrl}">Fill</a></li>
                         <li>
-                            <a href="#" class="dropdown-item text-danger" data-id="${data.id}" data-token="${data.csrfToken}" onclick="submitDelete(event, this)">Delete</a>
+                            <a href="/template/${data.id}/delete" class="dropdown-item text-danger" data-id="${data.id}" data-token="${data.csrfToken}" onclick="submitDelete(event, this)">Delete</a>
                         </li>
                     </ul>
                 </div>`;
@@ -138,6 +134,4 @@
             form.submit();
         }
     </script>
-
-
 {% endblock %}
