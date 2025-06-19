@@ -539,7 +539,7 @@ class TemplateController extends AbstractController
     }
 
     #[Route('/template/{id}/fill', name: 'fill', methods: ['GET', 'POST'])]
-    public function fill(int $id, TemplateRepository $templateRepository,QuestionRepository $questionRepository): Response
+    public function fill(int $id,Request $request, TemplateRepository $templateRepository,QuestionRepository $questionRepository): Response
     {
         $template = $this->templateRepository->find($id);
 
@@ -548,6 +548,7 @@ class TemplateController extends AbstractController
         return $this->render('template/fill.html.twig', [
             'template' => $templateRepository->find($id),
             'template_questions' => $template_questions,
+            'request' => $request->request->all(),
 
         ]);
     }
