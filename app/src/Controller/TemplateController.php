@@ -2,6 +2,8 @@
 
 namespace App\Controller;
 
+use App\Entity\Answer;
+use App\Entity\Form;
 use App\Entity\Question;
 use App\Entity\Tag;
 use App\Entity\Template;
@@ -16,6 +18,7 @@ use Aws\S3\S3Client;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -28,18 +31,17 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ACTIVE_USER')]
 class TemplateController extends AbstractController
 {
-    private $entityManager;
-
 
     public function __construct(
-        EntityManagerInterface $entityManager,
+        private readonly EntityManagerInterface $entityManager,
         private readonly ParameterBagInterface $params,
         private readonly UserRepository $userRepo,
-        private  readonly TopicRepository $topicRepository,
-        private readonly TemplateRepository $templateRepository
+        private readonly TopicRepository $topicRepository,
+        private readonly TemplateRepository $templateRepository,
+        private readonly Security $security
     )
     {
-        $this->entityManager = $entityManager;
+
     }
 
     #[Route('/', name: 'list', methods: ['GET'])]
@@ -547,6 +549,50 @@ class TemplateController extends AbstractController
     public function fill(int $id,Request $request, TemplateRepository $templateRepository,QuestionRepository $questionRepository): Response
     {
         $template = $this->templateRepository->find($id);
+        if (!$template) {
+            throw $this->createNotFoundException('Template not found.');
+        }
+
+        if ($request->isMethod('POST')) {
+
+            $userid = $this->security->getUser()->getId();
+            $user = $this->userRepo->find($userid);
+
+
+            if (!$user) {
+                throw $this->createAccessDeniedException('You must be logged in to fill this form.');
+            }
+
+            $formEntity = new Form();
+            $formEntity->setTemplate($template);
+            $formEntity->setUser($user);
+
+            foreach ($template->getQuestions() as $question) {
+                if (!$question->isShowInTable()) {
+                    continue;
+                }
+
+                $fieldName = 'question_' . $question->getId();
+                $submittedValue = $request->request->get($fieldName);
+
+                if (is_array($submittedValue)) {
+                    $submittedValue = implode(',', $submittedValue); // Handle multi-choice if needed
+                }
+
+                $answer = new Answer();
+                $answer->setForm($formEntity);
+                $answer->setQuestion($question);
+                $answer->setValue(trim($submittedValue ?? ''));
+
+                $formEntity->getAnswers()->add($answer);
+            }
+
+            $this->entityManager->persist($formEntity);
+            $this->entityManager->flush();
+            $this->addFlash('success', 'Form successfully submitted!');
+
+            return $this->redirectToRoute('template_list');
+        }
 
         $template_questions = $questionRepository->findBy(['template' => $template], ['position' => 'ASC']);
 
