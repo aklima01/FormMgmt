@@ -97,6 +97,8 @@
                                     <div id="dropzone" class="dropzone border rounded bg-light p-3 text-center">
                                     </div>
                                     <input type="file" name="image" id="image-input" hidden  accept="image/*" />
+                                    <canvas id="resize-canvas" width="480" height="320" style="display:none;"></canvas>
+
                                     <small class="text-muted">Optional image attachment for this template.</small>
                                 </div>
 
@@ -157,6 +159,9 @@
     <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.3/min/dropzone.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+
+    <script src="https://unpkg.com/pica@8.0.0/dist/pica.min.js"></script>
+
 
     {# EasyMDE Initialization #}
     <script>
@@ -259,31 +264,78 @@
     </script>
 
     {#  Dropzone config #}
+{#    <script>#}
+{#        Dropzone.autoDiscover = false;#}
+{#        const dropzone = new Dropzone("#dropzone", {#}
+{#            url: "#",#}
+{#            autoProcessQueue: false,#}
+{#            maxFiles: 1,#}
+{#            clickable: true,#}
+{#            acceptedFiles: "image/*",#}
+{#            addRemoveLinks: true,#}
+{#            init: function () {#}
+{#                this.on("addedfile", file => {#}
+{#                    const dt = new DataTransfer();#}
+{#                    dt.items.add(file);#}
+{#                    document.querySelector("#image-input").files = dt.files;#}
+
+{#                    if (this.files.length > 1) {#}
+{#                        this.removeFile(this.files[0]);#}
+{#                    }#}
+{#                });#}
+{#                this.on("removedfile", () => {#}
+{#                    document.querySelector("#image-input").value = "";#}
+{#                });#}
+{#            }#}
+{#        });#}
+{#    </script>#}
+
+    {# Image Resizing with Pica (Fixed Loop Issue) #}
     <script>
         Dropzone.autoDiscover = false;
-        const dropzone = new Dropzone("#dropzone", {
-            url: "#",
-            autoProcessQueue: false,
-            maxFiles: 1,
-            clickable: true,
-            acceptedFiles: "image/*",
-            addRemoveLinks: true,
+        const dz = new Dropzone("#dropzone", {
+            url: "#", autoProcessQueue: false, maxFiles: 1, clickable: true,
+            acceptedFiles: "image/*", addRemoveLinks: true,
             init: function () {
                 this.on("addedfile", file => {
-                    const dt = new DataTransfer();
-                    dt.items.add(file);
-                    document.querySelector("#image-input").files = dt.files;
-
-                    if (this.files.length > 1) {
-                        this.removeFile(this.files[0]);
-                    }
+                    if (file.resized) return;
+                    resizeImage(file).then(resized => {
+                        resized.resized = true;
+                        dz.removeAllFiles(true);
+                        dz.addFile(resized);
+                        const dt = new DataTransfer();
+                        dt.items.add(resized);
+                        document.getElementById("image-input").files = dt.files;
+                    });
                 });
                 this.on("removedfile", () => {
-                    document.querySelector("#image-input").value = "";
+                    document.getElementById("image-input").value = "";
                 });
             }
         });
+
+        function resizeImage(file) {
+            return new Promise((resolve, reject) => {
+                const img = new Image();
+                img.onload = async () => {
+                    const canvas = document.getElementById("resize-canvas");
+                    const buffer = document.createElement("canvas");
+                    buffer.width = img.width;
+                    buffer.height = img.height;
+                    buffer.getContext("2d").drawImage(img, 0, 0);
+
+                    await pica().resize(buffer, canvas);
+                    canvas.toBlob(blob => {
+                        resolve(new File([blob], file.name, { type: "image/jpeg" }));
+                    }, "image/jpeg", 0.9);
+                };
+                img.onerror = reject;
+                img.src = URL.createObjectURL(file);
+            });
+        }
     </script>
+
+
 
     {#  User auto complete #}
     <script>
@@ -410,5 +462,8 @@
             }
         });
     </script>
+
+
+
 
 {% endblock %}

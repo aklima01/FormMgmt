@@ -60,13 +60,14 @@ class TemplateController extends AbstractController
         $search = $dtRequest->getSearchText();
 
         $columnsMap = [
+            0 => 't.id',
             1 => 't.title',
             2 => 't.imageUrl',
             3 => 't.description',
             4 => 'author.name', // assuming relation
         ];
 
-        $orderBy = $dtRequest->getSortText($columnsMap) ?: 't.title asc';
+        $orderBy = $dtRequest->getSortText($columnsMap) ?: 't.id desc'; // Default order by id descending
 
         $orderParts = explode(' ', explode(',', $orderBy)[0]);
         $orderColumn = $orderParts[0];

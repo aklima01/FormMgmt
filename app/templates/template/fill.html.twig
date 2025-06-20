@@ -24,7 +24,10 @@
                 </p>
 
                 <p>{{ template.description|markdown_to_html|raw }}</p>
-                <img src="{{ template.imageUrl }}" alt="Illustration" class="img-fluid rounded mb-4" width="512" height="512">
+
+                {% if template.imageUrl is not null and template.imageUrl != '' %}
+                    <img src="{{ template.imageUrl }}" alt="Illustration"  class="img-fluid rounded mb-4">
+                {% endif %}
 
                 <form action="{{ path('template_fill', {id: template.id}) }}" method="post">
 

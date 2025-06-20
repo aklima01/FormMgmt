@@ -20,6 +20,18 @@ class Question
     #[ORM\Column(length: 255)]
     private string $title;
 
+    #[ORM\Column(type: 'text', nullable: true)]
+    private ?string $description = null;
+
+    #[ORM\Column(length: 50)]
+    private string $type;
+
+    #[ORM\Column(type: 'boolean')]
+    private bool $showInTable = false;
+
+    #[ORM\Column(type: 'integer')]
+    private int $position;
+
     public function getTemplate(): Template
     {
         return $this->template;
@@ -80,17 +92,6 @@ class Question
         $this->position = $position;
     }
 
-    #[ORM\Column(type: 'text', nullable: true)]
-    private ?string $description = null;
-
-    #[ORM\Column(length: 50)]
-    private string $type;
-
-    #[ORM\Column(type: 'boolean')]
-    private bool $showInTable = false;
-
-    #[ORM\Column(type: 'integer')]
-    private int $position;
 
     public function getId(): ?int
     {

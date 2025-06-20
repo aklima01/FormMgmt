@@ -15,6 +15,13 @@ class Template
     #[ORM\Column]
     private ?int $id = null;
 
+    #[ORM\Column(length: 255)]
+    private ?string $title = null;
+
+    #[ORM\OneToMany(mappedBy: 'template', targetEntity: Question::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
+    #[ORM\OrderBy(['position' => 'ASC'])]
+    private Collection $questions;
+
     public function __construct()
     {
         $this->tags = new ArrayCollection();
@@ -23,8 +30,7 @@ class Template
     }
 
 
-    #[ORM\Column(length: 255)]
-    private ?string $title = null;
+
 
     #[ORM\Column(type: 'text', nullable: true)]
     private ?string $description = null;
@@ -62,9 +68,7 @@ class Template
     #[ORM\Column(type: 'text', nullable: true)]
     private ?string $access = null;
 
-    #[ORM\OneToMany(mappedBy: 'template', targetEntity: Question::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
-    #[ORM\OrderBy(['position' => 'ASC'])]
-    private Collection $questions;
+
 
 
     #[ORM\ManyToOne(targetEntity: Topic::class)]
