@@ -234,6 +234,9 @@ class TemplateController extends AbstractController
             $template->setAuthor($user);
 
             $this->entityManager->flush();
+
+            $this->addFlash('success', 'Template created successfully!');
+
             return $this->redirectToRoute('template_list');
         }
         return $this->render('template/create.html.twig');
@@ -540,6 +543,7 @@ class TemplateController extends AbstractController
         $em->remove($template);
         $em->flush();
 
+        $this->addFlash('success', 'Template deleted successfully.');
         return $this->redirectToRoute('template_list');
     }
 
@@ -573,16 +577,29 @@ class TemplateController extends AbstractController
                 }
 
                 $fieldName = 'question_' . $question->getId();
-                $submittedValue = $request->request->get($fieldName);
-
-                if (is_array($submittedValue)) {
-                    $submittedValue = implode(',', $submittedValue); // Handle multi-choice if needed
-                }
+                $rawValue = $request->request->get($fieldName);
 
                 $answer = new Answer();
                 $answer->setForm($formEntity);
                 $answer->setQuestion($question);
-                $answer->setValue(trim($submittedValue ?? ''));
+
+                switch ($question->getType()) {
+                    case 'Single_line_text':
+                    case 'Text':
+                        $answer->setStringValue(trim($rawValue));
+                        break;
+
+                    case 'Number':
+                        $answer->setIntValue((int)$rawValue);
+                        break;
+
+                    case 'Checkbox':
+                        $answer->setBoolValue($rawValue === '1' || $rawValue === 'on');
+                        break;
+
+                    default:
+                        $answer->setStringValue(trim($rawValue)); // fallback
+                }
 
                 $formEntity->getAnswers()->add($answer);
             }

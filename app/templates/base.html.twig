@@ -108,6 +108,33 @@
     {% block body %}{% endblock %}
 </div>
 
+{#{% for label, messages in app.flashes %}#}
+{#    {% for message in messages %}#}
+{#        <div class="alert alert-{{ label }}">#}
+{#            {{ message }}#}
+{#        </div>#}
+{#    {% endfor %}#}
+{#{% endfor %}#}
+
+<div aria-live="polite" aria-atomic="true" class="position-relative">
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+        {% for label, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="toast align-items-center text-bg-{{ label }} border-0 mb-2" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="d-flex">
+                        <div class="toast-body">
+                            {{ message }}
+                        </div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                </div>
+            {% endfor %}
+        {% endfor %}
+    </div>
+</div>
+
+
+
 <!-- Footer -->
 <footer class="text-muted mt-5 text-center small">
     <p>© {{ "now"|date("Y") }} – FormMgmt</p>
@@ -115,6 +142,16 @@
 
 
 {% block javascripts %}
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const toastElList = [].slice.call(document.querySelectorAll('.toast'));
+            toastElList.forEach(function (toastEl) {
+                const toast = new bootstrap.Toast(toastEl);
+                toast.show();
+            });
+        });
+    </script>
 
 
 {% endblock %}
