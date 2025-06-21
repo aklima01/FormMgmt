@@ -9,6 +9,7 @@ use App\Entity\Tag;
 use App\Entity\Template;
 use App\Entity\Topic;
 use App\Entity\User;
+use App\Repository\FormRepository;
 use App\Repository\QuestionRepository;
 use App\Repository\TemplateRepository;
 use App\Repository\TopicRepository;
@@ -38,7 +39,8 @@ class TemplateController extends AbstractController
         private readonly UserRepository $userRepo,
         private readonly TopicRepository $topicRepository,
         private readonly TemplateRepository $templateRepository,
-        private readonly Security $security
+        private readonly Security $security,
+        private readonly QuestionRepository $questionRepository
     )
     {
 
@@ -548,9 +550,8 @@ class TemplateController extends AbstractController
     }
 
 
-
     #[Route('/template/{id}/fill', name: 'fill', methods: ['GET', 'POST'])]
-    public function fill(int $id,Request $request, TemplateRepository $templateRepository,QuestionRepository $questionRepository): Response
+    public function fill(int $id,Request $request): Response
     {
         $template = $this->templateRepository->find($id);
         if (!$template) {
@@ -611,10 +612,10 @@ class TemplateController extends AbstractController
             return $this->redirectToRoute('template_list');
         }
 
-        $template_questions = $questionRepository->findBy(['template' => $template], ['position' => 'ASC']);
+        $template_questions = $this->questionRepository->findBy(['template' => $template], ['position' => 'ASC']);
 
         return $this->render('template/fill.html.twig', [
-            'template' => $templateRepository->find($id),
+            'template' => $this->templateRepository->find($id),
             'template_questions' => $template_questions,
             'request' => $request->request->all(),
 

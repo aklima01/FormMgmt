@@ -1,138 +1,174 @@
+{# templates/user/dashboard.html.twig #}
+
 {% extends 'base.html.twig' %}
 
 {% block stylesheets %}
     {{ parent() }}
-
 {% endblock %}
 
-{% block title %}Template List{% endblock %}
+{% block title %}My Dashboard{% endblock %}
 
 {% block body %}
-
     <div class="container-fluid mt-4">
-        <div class="row">
-            {% include 'user/_sidebaruser.html.twig' %}
-            <div class="col-lg-10">
+        <h1 class="mb-4">User Dashboard</h1>
 
+        <ul class="nav nav-tabs" id="dashboardTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="templates-tab" data-bs-toggle="tab" data-bs-target="#templates" type="button" role="tab" aria-controls="templates" aria-selected="true">
+                    My Templates
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="forms-tab" data-bs-toggle="tab" data-bs-target="#forms" type="button" role="tab" aria-controls="forms" aria-selected="false">
+                    My Filled Forms
+                </button>
+            </li>
+        </ul>
+
+        <div class="tab-content pt-4" id="dashboardTabsContent">
+            {# My Templates Tab #}
+            <div class="tab-pane fade show active" id="templates" role="tabpanel" aria-labelledby="templates-tab">
                 <div class="mb-3 d-flex justify-content-end">
                     <a href="{{ path('template_create') }}" class="btn btn-success">
                         <i class="bi bi-plus-lg"></i> Create Template
                     </a>
                 </div>
 
-                <h1 class="mb-4">Template Management</h1>
+                <div class="table-responsive">
+                    <table id="templateTable" class="table table-bordered table-striped align-middle">
+                        <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>Title</th>
+                            <th>Image</th>
+                            <th>Description</th>
+                            <th>Actions</th>
+                        </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
 
-{#                {% for label, messages in app.flashes %}#}
-{#                    {% for message in messages %}#}
-{#                        <div class="alert alert-{{ label }} alert-dismissible fade show" role="alert">#}
-{#                            {{ message }}#}
-{#                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>#}
-{#                        </div>#}
-{#                    {% endfor %}#}
-{#                {% endfor %}#}
-
-
-                    <div class="table-responsive">
-                        <table id="templateTable" class="table table-bordered table-striped align-middle">
-                            <thead class="table-light">
-                            <tr>
-                                <th>ID</th>
-                                <th>Title</th>
-                                <th>Image</th>
-                                <th>Description</th>
-                                <th>Author</th>
-                                <th>Actions</th>
-                            </tr>
-                            </thead>
-                            <tbody></tbody>
-                        </table>
-
-                        </br>
-                        </br>
-
-
-                    </div>
-
+            {# My Filled Forms Tab #}
+            <div class="tab-pane fade" id="forms" role="tabpanel" aria-labelledby="forms-tab">
+                <div class="table-responsive">
+                    <table id="formTable" class="table table-bordered table-striped align-middle">
+                        <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>Template</th>
+                            <th>Submitted At</th>
+                            <th>Actions</th>
+                        </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
-
 {% endblock %}
 
 {% block javascripts %}
     {{ parent() }}
-
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
     <script>
         document.addEventListener("DOMContentLoaded", function () {
+            // Templates Table
             $('#templateTable').DataTable({
                 processing: true,
                 serverSide: true,
                 ajax: "{{ path('template_ajax') }}",
                 order: [[0, 'desc']],
                 columns: [
-                    { data: 'id' },
-                    { data: 'title' },
-                    { data: 'image', orderable: false, searchable: false },
-
+                    {data: 'id'},
+                    {data: 'title'},
+                    {data: 'image', orderable: false, searchable: false},
                     {
                         data: 'description',
                         render: function (data, type, row, meta) {
-                            if (type === 'display') {
-                                return marked.parse(data || '');
-                            }
-                            return data;
+                            return type === 'display' ? marked.parse(data || '') : data;
                         }
                     },
-
-                    { data: 'author' },
                     {
                         data: 'actions',
                         orderable: false,
                         searchable: false,
-                        render: function(data, type, row, meta) {
+                        render: function (data) {
                             return `
-                <div class="dropdown position-relative">
-                    <button class="btn btn-sm btn-light" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="bi bi-three-dots"></i>
-                    </button>
-                    <ul class="dropdown-menu ">
-                        <li><a class="dropdown-item" href="${data.editUrl}">Edit</a></li>
-                        <li><a class="dropdown-item" href="${data.fillUrl}">Fill</a></li>
-                        <li>
-                            <a href="/template/${data.id}/delete" class="dropdown-item text-danger" data-id="${data.id}" data-token="${data.csrfToken}" onclick="submitDelete(event, this)">Delete</a>
-                        </li>
-                    </ul>
-                </div>`;
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-light" data-bs-toggle="dropdown">
+                                        <i class="bi bi-three-dots"></i>
+                                    </button>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" href="${data.editUrl}">Edit</a></li>
+                                        <li><a class="dropdown-item" href="${data.fillUrl}">Fill</a></li>
+                                        <li><a href="/template/${data.id}/delete" class="dropdown-item text-danger" data-id="${data.id}" data-token="${data.csrfToken}" onclick="submitDelete(event, this)">Delete</a></li>
+                                    </ul>
+                                </div>`;
                         }
                     }
                 ]
             });
+
+            // Forms Table
+            $('#formTable').DataTable({
+                processing: true,
+                serverSide: true,
+                ajax: {
+                    url: '/form/ajax/forms',
+                    type: 'GET',
+                },
+                order: [[0, 'desc']],
+                columns: [
+                    { data: 'id' },
+                    { data: 'template' },
+                    { data: 'submittedAt' },
+                    {
+                        data: 'id',
+                        orderable: false,
+                        searchable: false,
+                        render: function(data, type, row) {
+                            return `
+                    <a href="/form/view/${data}" class="btn btn-sm btn-primary">
+                        View
+                    </a>
+                    <a href="/form/edit/${data}" class="btn btn-sm btn-secondary">
+                        Edit
+                    </a>
+                `;
+                        }
+                    }
+                ]
+            });
+
         });
 
-    </script>
 
-    <script>
+
         function submitDelete(event, el) {
             event.preventDefault();
 
             const id = el.getAttribute('data-id');
             const token = el.getAttribute('data-token');
-            const form = document.createElement('form');
 
+            const form = document.createElement('form');
             form.method = 'post';
-            form.action = `/template/${id}/delete`;
+            form.action = `/form/${id}/delete`;
             form.style.display = 'none';
 
             const input = document.createElement('input');
             input.type = 'hidden';
             input.name = '_token';
             input.value = token;
-            form.appendChild(input);
 
+            form.appendChild(input);
             document.body.appendChild(form);
             form.submit();
         }
     </script>
+
+
 {% endblock %}
