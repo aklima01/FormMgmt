@@ -265,78 +265,25 @@ class TemplateController extends AbstractController
             $tagsInput = $request->request->get('tags', '');
             $tagNames = array_filter(array_map('trim', explode(',', $tagsInput)));
 
-            // Get current tags from the template
-            $currentTags = $template->getTags();
+// Clear existing tags
+            $template->getTags()->clear(); // Assuming it's a Doctrine Collection
 
-            // Convert to associative array for easier comparison
-            $currentTagNames = [];
-            foreach ($currentTags as $tag) {
-                $currentTagNames[$tag->getName()] = $tag;
-            }
+// Optionally: if your relation is owning side, you may need to call removeTag() for each tag individually
+// foreach ($template->getTags() as $existingTag) {
+//     $template->removeTag($existingTag);
+// }
 
-            // Remove tags not in the request
-            foreach ($currentTags as $tag) {
-                if (!in_array($tag->getName(), $tagNames, true)) {
-                    $template->removeTag($tag);
-                }
-            }
-
-            // Add or reuse tags
+// Process and re-attach tags
             foreach ($tagNames as $tagName) {
-                if (!isset($currentTagNames[$tagName])) {
-                    $tag = $this->entityManager->getRepository(Tag::class)->findOneBy(['name' => $tagName]);
-                    if (!$tag) {
-                        $tag = new Tag();
-                        $tag->setName($tagName);
-                        $this->entityManager->persist($tag);
-                    }
-                    $template->addTag($tag);
-                }
-            }
+                $tag = $this->entityManager->getRepository(Tag::class)->findOneBy(['name' => $tagName]);
 
-
-            // Handle Tags
-            $tagsInput = $request->request->get('tags', '');
-            $tagNames = array_filter(array_map('trim', explode(',', $tagsInput)));
-
-            // Get current tags and their names
-            $currentTags = $template->getTags(); // Doctrine Collection or array
-            $currentTagNames = array_map(fn($tag) => $tag->getName(), $currentTags->toArray());
-
-            // Determine which tags to add and remove
-            $namesToAdd = array_diff($tagNames, $currentTagNames);
-            $namesToRemove = array_diff($currentTagNames, $tagNames);
-
-            // Fetch all tags to add (existing only)
-            $existingTags = [];
-            if (!empty($namesToAdd)) {
-                $existingTags = $this->entityManager->getRepository(Tag::class)
-                    ->findBy(['name' => $namesToAdd]);
-            }
-
-            // Index fetched tags by name
-            $existingTagsByName = [];
-            foreach ($existingTags as $tag) {
-                $existingTagsByName[$tag->getName()] = $tag;
-            }
-
-            // Add new or existing tags
-            foreach ($namesToAdd as $tagName) {
-                if (isset($existingTagsByName[$tagName])) {
-                    $tag = $existingTagsByName[$tagName];
-                } else {
+                if (!$tag) {
                     $tag = new Tag();
                     $tag->setName($tagName);
                     $this->entityManager->persist($tag);
                 }
-                $template->addTag($tag);
-            }
 
-            // Remove tags no longer in the list
-            foreach ($currentTags as $tag) {
-                if (in_array($tag->getName(), $namesToRemove, true)) {
-                    $template->removeTag($tag);
-                }
+                $template->addTag($tag);
             }
 
 
@@ -360,6 +307,29 @@ class TemplateController extends AbstractController
                     $template->setImageUrl($this->params->get('r2_public_url') . '/' . $key);
                 } catch (\Exception $e) {
                     $this->addFlash('error', 'Upload failed: ' . $e->getMessage());
+                }
+            }
+
+
+            $template->setAccess($request->request->get('access'));
+
+            if ($template->getAccess() === 'private') {
+                // Clear previously associated users if needed
+                foreach ($template->getUsers() as $existingUser) {
+                    $template->removeUser($existingUser);
+                }
+
+                // Add newly submitted users
+                $userIds = explode(',', $request->request->get('user_ids'));
+                $users = $this->userRepo->findBy(['id' => $userIds]);
+
+                foreach ($users as $user) {
+                    $template->addUser($user);
+                }
+            } else {
+                // If not private, remove all user associations
+                foreach ($template->getUsers() as $existingUser) {
+                    $template->removeUser($existingUser);
                 }
             }
 

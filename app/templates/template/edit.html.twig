@@ -1,9 +1,7 @@
-{#Template Creation Page create.html.twig#}
 {% extends 'base.html.twig' %}
 
 {% block stylesheets %}
     {{ parent() }}
-
     <link rel="stylesheet" href="https://unpkg.com/easymde/dist/easymde.min.css">
     <link href="https://unpkg.com/dropzone@5/dist/min/dropzone.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
@@ -25,9 +23,6 @@
             font-weight: bold;
             cursor: pointer;
         }
-    </style>
-
-    <style>
         .user-pill {
             display: inline-block;
             background-color: #0d6efd;
@@ -42,140 +37,184 @@
             font-weight: bold;
         }
     </style>
-
 {% endblock %}
 
 {% block title %}Edit Template{% endblock %}
 
 {% block body %}
+    <div class="container mt-5">
+        <h1 class="text-center mb-4">Edit Template</h1>
 
-    <div class="container-fluid">
-        <div class="row mt-4">
-            {% include 'user/_sidebaruser.html.twig' %}
-            <div class="col-lg-10">
-                <!-- Main Content -->
+        {# Nav tabs #}
+        <ul class="nav nav-tabs" id="templateTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="general-tab" data-bs-toggle="tab" data-bs-target="#general" type="button" role="tab" aria-controls="general" aria-selected="true">General Settings</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="questions-tab" data-bs-toggle="tab" data-bs-target="#questions" type="button" role="tab" aria-controls="questions" aria-selected="false">Questions</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="results-tab" data-bs-toggle="tab" data-bs-target="#results" type="button" role="tab" aria-controls="results" aria-selected="false">Results</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="aggregation-tab" data-bs-toggle="tab" data-bs-target="#aggregation" type="button" role="tab" aria-controls="aggregation" aria-selected="false">Aggregated Results</button>
+            </li>
+        </ul>
 
-                <div class="container mt-5">
-                    <div class="row justify-content-center">
-                        <div class="col-md-6">
-                            <h1 class="text-center mb-4">Edit Template</h1>
+        <form action="{{ path('template_edit', {id: template.id}) }}" method="post" enctype="multipart/form-data" class="mt-3">
 
-                            <form action="{{ path('template_edit', {id: template.id}) }}" method="post" enctype="multipart/form-data">
+            <!-- CSRF Token -->
+            <input type="hidden" name="_csrf_token" value="{{ csrf_token('form') }}">
+            <input type="hidden" name="template_id" value="{{ template.id }}">
 
+            <div class="tab-content" id="templateTabsContent">
 
-                            <!-- CSRF Token -->
-                                <input type="hidden" name="_csrf_token" value="{{ csrf_token('form') }}">
+                <!-- General Settings Tab -->
+                <div class="tab-pane fade show active" id="general" role="tabpanel" aria-labelledby="general-tab">
+                    <!-- Title Input -->
+                    <div class="mb-3">
+                        <label for="title" class="form-label">Template Title</label>
+                        <input type="text" class="form-control" id="title" name="title" placeholder="Enter the title of the template" value="{{ template.title }}" required>
+                    </div>
 
-                                <input type="hidden" name="template_id" value="{{ template.id }}">
+                    <!-- Description Input -->
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Template Description</label>
+                        <textarea id="description" name="description">{{ template.description }}</textarea>
+                    </div>
 
-                                <!-- Title Input -->
-                                <div class="mb-3">
-                                    <label for="title" class="form-label">Template Title</label>
-                                    <input type="text" class="form-control" id="title" name="title" placeholder="Enter the title of the template" value="{{ template.title }}" required>
+                    <!-- Topic dropdown -->
+                    <div class="mb-3">
+                        <label for="topic" class="form-label">Select Topic</label>
+                        <select id="topic" name="topic_id" class="form-select">
+                            {% for topic in topics %}
+                                <option value="{{ topic.id }}" {% if template.topic is defined and template.topic is not null and topic.id == template.topic.id %}selected{% endif %}>{{ topic.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
 
-                                </div>
+                    <!-- Tags Input -->
+                    <div class="mb-3">
+                        <label for="tag-input" class="form-label">Tags</label>
+                        <input type="text" id="tag-input" class="form-control" placeholder="Start typing to search tags...">
+                        <div class="tag-list mt-2" id="tag-list"></div>
+                        <input type="hidden" name="tags" id="tags-hidden">
+                    </div>
 
-                                <!-- Description Input -->
-                                <div class="mb-3">
-                                    <label for="description" class="form-label">Template Description</label>
-                                    <textarea id="description" name="description">{{ template.description }}</textarea>
-                                </div>
+                    {# Pass selected tags JSON to JS #}
+                    <script>
+                        const selectedTagsFromTwig = {{ selectedTagsJson|raw }};
+                    </script>
 
-                                <!-- Topic dropdown -->
-                                <div class="mb-3">
-                                    <label for="topic" class="form-label">Select Topic</label>
-                                    <select id="topic" name="topic_id" class="form-select">
-                                        {% for topic in topics %}
-                                            <option value="{{ topic.id }}"
-                                                {% if template.topic is defined and template.topic is not null and topic.id == template.topic.id %}
-                                            selected
-                                                {% endif %}>
-                                                {{ topic.name }}
-                                            </option>
-                                        {% endfor %}
-                                    </select>
-                                </div>
-
-                                <!-- Tags Input -->
-                                <div class="mb-3">
-                                    <label for="tag-input" class="form-label">Tags</label>
-                                    <input type="text" id="tag-input" class="form-control" placeholder="Start typing to search tags...">
-                                    <div class="tag-list mt-2" id="tag-list"></div>
-                                    <input type="hidden" name="tags" id="tags-hidden">
-                                </div>
-
-                                {# Pass selected tags JSON to JS #}
-                                <script>
-                                    const selectedTagsFromTwig = {{ selectedTagsJson|raw }};
-                                </script>
-
-                                <!-- Image Upload -->
-                                <div class="mb-3">
-                                    <label class="form-label">Upload Image</label>
-                                    <div id="dropzone" class="dropzone border rounded bg-light p-3 text-center" style="cursor:pointer;">
-                                        {% if template.imageUrl %}
-                                            <img id="image-preview" src="{{ template.imageUrl }}" alt="Uploaded Image" style="max-width: 100%; max-height: 200px; object-fit: contain;"/>
-                                            <div><button type="button" id="remove-image" class="btn btn-sm btn-danger mt-2">Remove Image</button></div>
-                                        {% else %}
-                                            <p>Drag an image here or click to select</p>
-                                        {% endif %}
-                                    </div>
-                                    <input type="file" name="image" id="image-input" hidden accept="image/*" />
-                                    <small class="text-muted">Optional image attachment for this template.</small>
-                                </div>
-
-
-
-                                <!-- Access Control -->
-                                <div class="mb-3">
-                                    <label class="form-label">Access</label><br>
-                                    <div class="form-check form-check-inline">
-                                        <input class="form-check-input" type="radio" name="access" id="access_public" value="public" checked>
-                                        <label class="form-check-label" for="access_public">Public</label>
-                                    </div>
-                                    <div class="form-check form-check-inline">
-                                        <input class="form-check-input" type="radio" name="access" id="access_private" value="private">
-                                        <label class="form-check-label" for="access_private">Private (select users)</label>
-                                    </div>
-                                </div>
-
-                                <!-- User Selection Area -->
-                                <div id="user-select-area" class="mb-3" style="display: none;">
-                                    <label for="user-search" class="form-label">Select Users</label>
-                                    <input type="text" class="form-control" id="user-search" placeholder="Start typing a name or email..." autocomplete="off">
-
-                                    <div class="d-flex justify-content-end mt-2">
-                                        <label for="sort-select" class="form-label me-2">Sort by:</label>
-                                        <select id="sort-select" class="form-select w-auto">
-                                            <option value="name" selected>Name</option>
-                                            <option value="email">Email</option>
-                                        </select>
-                                    </div>
-                                    <div id="selected-users" class="mt-2"></div>
-                                    <input type="hidden" name="user_ids" id="user-ids">
-                                </div>
-
-                                <!-- Questions (Drag & Drop) -->
-                                <h6>Questions (Drag & Drop)</h6>
-                                <div id="question-list" class="mb-3"></div>
-                                <button type="button" id="add-question" class="btn btn-secondary btn-sm">+ Add Question</button>
-
-                                <!-- Submit Button -->
-                                <div class="text-center">
-                                    <button type="submit" class="btn btn-primary">Update Template</button>
-                                </div>
-                            </form>
+                    <!-- Image Upload -->
+                    <div class="mb-3">
+                        <label class="form-label">Upload Image</label>
+                        <div id="dropzone" class="dropzone border rounded bg-light p-3 text-center" style="cursor:pointer;">
+                            {% if template.imageUrl %}
+                                <img id="image-preview" src="{{ template.imageUrl }}" alt="Uploaded Image" style="max-width: 100%; max-height: 200px; object-fit: contain;"/>
+                                <div><button type="button" id="remove-image" class="btn btn-sm btn-danger mt-2">Remove Image</button></div>
+                            {% else %}
+                                <p>Drag an image here or click to select</p>
+                            {% endif %}
                         </div>
+                        <input type="file" name="image" id="image-input" hidden accept="image/*" />
+                        <small class="text-muted">Optional image attachment for this template.</small>
+                    </div>
+
+                    <!-- Access Control -->
+                    <div class="mb-3">
+                        <label class="form-label">Access</label><br>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="access" id="access_public" value="public" {% if template.access != 'private' %}checked{% endif %}>
+                            <label class="form-check-label" for="access_public">Public</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="access" id="access_private" value="private" {% if template.access == 'private' %}checked{% endif %}>
+                            <label class="form-check-label" for="access_private">Private (select users)</label>
+                        </div>
+                    </div>
+
+                    <!-- User Selection Area -->
+                    <div id="user-select-area" class="mb-3" style="display: {% if template.access == 'private' %}block{% else %}none{% endif %};">
+                        <label for="user-search" class="form-label">Select Users</label>
+                        <input type="text" class="form-control" id="user-search" placeholder="Start typing a name or email..." autocomplete="off">
+
+                        <div class="d-flex justify-content-end mt-2">
+                            <label for="sort-select" class="form-label me-2">Sort by:</label>
+                            <select id="sort-select" class="form-select w-auto">
+                                <option value="name" selected>Name</option>
+                                <option value="email">Email</option>
+                            </select>
+                        </div>
+                        <div id="selected-users" class="mt-2"></div>
+                        <input type="hidden" name="user_ids" id="user-ids">
                     </div>
                 </div>
 
-            </div> <!-- close col-lg-10 -->
-        </div> <!-- close row -->
-    </div> <!-- close container-fluid -->
+                <!-- Questions Tab -->
+                <div class="tab-pane fade" id="questions" role="tabpanel" aria-labelledby="questions-tab">
+                    <h6 class="mt-3">Questions (Drag & Drop)</h6>
+                    <div id="question-list" class="mb-3"></div>
+                    <button type="button" id="add-question" class="btn btn-secondary btn-sm mb-3">+ Add Question</button>
+                </div>
 
+                <!-- Results Tab -->
+                <div class="tab-pane fade" id="results" role="tabpanel" aria-labelledby="results-tab">
+{#                    <h5 class="mt-3">Filled Forms</h5>#}
+{#                    {% if filledForms is not empty %}#}
+{#                        <ul class="list-group">#}
+{#                            {% for form in filledForms %}#}
+{#                                <li class="list-group-item">#}
+{#                                    <a href="{{ path('form_view', {id: form.id}) }}">Form #{{ form.id }} - Submitted on {{ form.submittedAt|date('Y-m-d H:i') }}</a>#}
+{#                                </li>#}
+{#                            {% endfor %}#}
+{#                        </ul>#}
+{#                    {% else %}#}
+{#                        <p>No filled forms found for this template yet.</p>#}
+{#                    {% endif %}#}
+                </div>
 
+                <!-- Aggregated Results Tab -->
+                <div class="tab-pane fade" id="aggregation" role="tabpanel" aria-labelledby="aggregation-tab">
+{#                    <h5 class="mt-3">Aggregated Results</h5>#}
+{#                    {% if aggregatedResults is not empty %}#}
+{#                        <table class="table table-bordered">#}
+{#                            <thead>#}
+{#                            <tr>#}
+{#                                <th>Question</th>#}
+{#                                <th>Aggregation</th>#}
+{#                            </tr>#}
+{#                            </thead>#}
+{#                            <tbody>#}
+{#                            {% for questionId, aggregation in aggregatedResults %}#}
+{#                                <tr>#}
+{#                                    <td>{{ aggregation.questionTitle }}</td>#}
+{#                                    <td>#}
+{#                                        {% if aggregation.type == 'numeric' %}#}
+{#                                            Average: {{ aggregation.average }}#}
+{#                                        {% elseif aggregation.type == 'string' %}#}
+{#                                            Most Frequent Answer: {{ aggregation.mostFrequentAnswer }}#}
+{#                                        {% else %}#}
+{#                                            N/A#}
+{#                                        {% endif %}#}
+{#                                    </td>#}
+{#                                </tr>#}
+{#                            {% endfor %}#}
+{#                            </tbody>#}
+{#                        </table>#}
+{#                    {% else %}#}
+{#                        <p>No aggregated data available yet.</p>#}
+{#                    {% endif %}#}
+                </div>
 
+            </div> <!-- /.tab-content -->
 
+            <div class="text-center mt-3">
+                <button type="submit" class="btn btn-primary">Update Template</button>
+            </div>
+
+        </form>
+    </div>
 {% endblock %}
 
 {% block javascripts %}
