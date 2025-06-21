@@ -39,6 +39,7 @@ class TemplateController extends AbstractController
         private readonly UserRepository $userRepo,
         private readonly TopicRepository $topicRepository,
         private readonly TemplateRepository $templateRepository,
+        private readonly FormRepository $formRepository,
         private readonly Security $security,
         private readonly QuestionRepository $questionRepository
     )
@@ -121,6 +122,7 @@ class TemplateController extends AbstractController
                 'actions' => [
                     'editUrl' => $this->generateUrl('template_edit', ['id' => $t->getId()]),
                     'fillUrl' => $this->generateUrl('template_fill', ['id' => $t->getId()]),
+                    'deleteUrl' => $this->generateUrl('template_delete', ['id' => $t->getId()]),
                     'id' => $t->getId(),
                     'csrfToken' => $this->container->get('security.csrf.token_manager')->getToken('delete' . $t->getId())->getValue(),
                 ],
@@ -220,7 +222,7 @@ class TemplateController extends AbstractController
                 $question->setTitle($title);
                 $question->setDescription($descriptions[$i] ?? '');
                 $question->setType($types[$i] ?? 'Single_line_text');
-                $question->setShowInTable(array_key_exists($i, $showInTable));
+                $question->setShowInTable(!empty($showInTable[$i]));
                 $question->setPosition($i + 1);
 
                 $this->entityManager->persist($question);
@@ -431,6 +433,7 @@ class TemplateController extends AbstractController
             ];
         }
 
+        $forms =  $this->formRepository->findByTemplateId($template->getId());
         // Pass both to Twig
         return $this->render('template/edit.html.twig', [
             'template' => $template,
@@ -438,6 +441,8 @@ class TemplateController extends AbstractController
             'selectedTagsJson' => json_encode($selectedTags),
             'selectedUsersJson' => json_encode($selectedUsers),
             'template_questions_json' => json_encode($template_questions_json),
+            'forms' => $forms,
+
         ]);
     }
 
@@ -498,7 +503,7 @@ class TemplateController extends AbstractController
 
 
 
-    #[Route('/{id}/delete', name: 'delete', methods: ['POST'])]
+    #[Route('/{id}/delete', name: 'delete', methods: ['GET', 'POST'])]
     public function delete(int $id, Request $request, TemplateRepository $templateRepository, EntityManagerInterface $em): Response
     {
         $template = $templateRepository->find($id);
@@ -507,10 +512,21 @@ class TemplateController extends AbstractController
             throw $this->createNotFoundException('Template not found.');
         }
 
-        $submittedToken = $request->request->get('_token');
-        if (!$this->isCsrfTokenValid('delete'.$id, $submittedToken)) {
-            throw $this->createAccessDeniedException('Invalid CSRF token.');
+        $questions = $this->questionRepository->findBy(['template' => $template]);
+        foreach ($questions as $question) {
+            $em->remove($question);
         }
+
+        $forms = $this->formRepository->findBy(['template' => $template]);
+        foreach ($forms as $form) {
+            $answers = $form->getAnswers();
+            foreach ($answers as $answer) {
+                $em->remove($answer);
+            }
+            $em->remove($form);
+        }
+
+        $em->flush();
 
         $em->remove($template);
         $em->flush();
@@ -590,6 +606,43 @@ class TemplateController extends AbstractController
             'request' => $request->request->all(),
 
         ]);
+    }
+
+
+    #[Route('/{id}/results/data', name: 'template_results_data', methods: ['GET'])]
+    public function resultsData(int $id,TemplateRepository $templateRepository,FormRepository $formRepository): JsonResponse
+    {
+        $template = $templateRepository->find($id);
+
+        if (!$template) {
+            return new JsonResponse(['error' => 'Template not found'], 404);
+        }
+
+        $forms = $formRepository->findBy(['template' => $template]);
+        $data = [];
+
+        foreach ($forms as $form) {
+            $formUser = $form->getUser();
+            $answers = [];
+
+            foreach ($form->getAnswers() as $answer) {
+                $question = $answer->getQuestion();
+                if ($question->isShowInTable()) {
+                    $answers[] = sprintf('%s: %s', $question->getTitle(), $answer->getValue());
+                }
+            }
+
+            $data[] = [
+                'id' => $form->getId(),
+                'name' => $formUser->getName(),
+                'email' => $formUser->getEmail(),
+                'date' => $form->getSubmittedAt()->format('Y-m-d H:i'),
+                'keyAnswers' => implode('<br>', $answers)
+//                'actions' => '<a href="' . $this->generateUrl('form_view', ['id' => $form->getId()]) . '" class="btn btn-sm btn-primary">View</a>'
+            ];
+        }
+
+        return new JsonResponse(['data' => $data]);
     }
 
 

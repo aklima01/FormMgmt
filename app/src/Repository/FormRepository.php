@@ -16,6 +16,19 @@ class FormRepository extends ServiceEntityRepository
         parent::__construct($registry, Form::class);
     }
 
+    // src/Repository/FormRepository.php
+
+    public function findByTemplateId(int $templateId): array
+    {
+        return $this->createQueryBuilder('f')
+            ->andWhere('f.template = :templateId')
+            ->setParameter('templateId', $templateId)
+            ->orderBy('f.submittedAt', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
+
+
     //    /**
     //     * @return Form[] Returns an array of Form objects
     //     */

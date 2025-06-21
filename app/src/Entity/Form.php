@@ -29,6 +29,8 @@ class Form
     #[ORM\OneToMany(mappedBy: 'form', targetEntity: Answer::class, cascade: ['persist'], orphanRemoval: true)]
     private Collection $answers;
 
+
+
     public function __construct()
     {
         $this->answers = new ArrayCollection();

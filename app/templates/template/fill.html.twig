@@ -7,9 +7,7 @@
 
     <div class="container-fluid">
         <div class="row mt-4">
-            {% include 'user/_sidebaruser.html.twig' %}
-            <!-- Main Content -->
-            <div class="col-lg-10">
+            <div class="col-md-8 offset-md-2">
 
                 <!-- Template Info -->
                 <h2 class="mb-1">{{ template.title }}</h2>
@@ -34,33 +32,30 @@
                     <input type="hidden" name="template_id"  value="{{ template.id }}">
 
                     {% if template_questions is not empty %}
-                        {% set visible_questions = template_questions|filter(question => question.showInTable) %}
-                        {% if visible_questions|length > 0 %}
-                            {% for question in visible_questions %}
-                                <div class="mb-3">
-                                    <label class="form-label">
-                                        <strong>{{ loop.index }}. {{ question.title }}</strong>
-                                    </label>
-                                    <small class="d-block text-muted">{{ question.description }}</small>
+                        {% for question in template_questions %}
+                            <div class="mb-3">
+                                <label class="form-label">
+                                    <strong>{{ loop.index }}. {{ question.title }}</strong>
+                                </label>
+                                <small class="d-block text-muted">{{ question.description }}</small>
 
-                                    {% if question.type == 'Single_line_text' %}
-                                        <input type="text" class="form-control mt-1" name="question_{{ question.id }}">
-                                    {% elseif question.type == 'Number' %}
-                                        <input type="number" min="0" class="form-control mt-1" name="question_{{ question.id }}">
-                                    {% elseif question.type == 'Text' %}
-                                        <textarea class="form-control mt-1" rows="4" name="question_{{ question.id }}"></textarea>
-                                    {% elseif question.type == 'Checkbox' %}
-                                        <div class="form-check mt-1">
-                                            <input type="hidden" name="question_{{ question.id }}" value="0">
-                                            <input class="form-check-input" type="checkbox" name="question_{{ question.id }}" id="question_{{ question.id }}">
-                                            <label class="form-check-label" for="question_{{ question.id }}"> </label>
-                                        </div>
-                                    {% else %}
-                                        <input type="text" class="form-control mt-1" name="question_{{ question.id }}">
-                                    {% endif %}
-                                </div>
-                            {% endfor %}
-                        {% endif %}
+                                {% if question.type == 'Single_line_text' %}
+                                    <input type="text" class="form-control mt-1" name="question_{{ question.id }}">
+                                {% elseif question.type == 'Number' %}
+                                    <input type="number" min="0" class="form-control mt-1" name="question_{{ question.id }}">
+                                {% elseif question.type == 'Text' %}
+                                    <textarea class="form-control mt-1" rows="4" name="question_{{ question.id }}"></textarea>
+                                {% elseif question.type == 'Checkbox' %}
+                                    <div class="form-check mt-1">
+                                        <input type="hidden" name="question_{{ question.id }}" value="0">
+                                        <input class="form-check-input" type="checkbox" name="question_{{ question.id }}" id="question_{{ question.id }}">
+                                        <label class="form-check-label" for="question_{{ question.id }}"> </label>
+                                    </div>
+                                {% else %}
+                                    <input type="text" class="form-control mt-1" name="question_{{ question.id }}">
+                                {% endif %}
+                            </div>
+                        {% endfor %}
                     {% endif %}
 
 
@@ -72,8 +67,6 @@
                     </div>
 
                 </form>
-
-
 
                 <!-- Main Content end -->
             </div>

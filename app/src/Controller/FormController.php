@@ -7,6 +7,7 @@ use App\Repository\FormRepository;
 use App\Service\Common\DataTablesAjaxRequestService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -17,17 +18,27 @@ use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 #[Route('/form', name: 'form_')]
 class FormController extends AbstractController
 {
-    #[Route('/view/{id}', name: 'form_view', methods: ['GET'])]
-    public function view(int $id, FormRepository $formRepository): Response
+    #[Route('/form/{id}/view', name: '_view')]
+    public function view(int $id): Response
     {
-        $form = $formRepository->find($id);
+        $form = $this->getDoctrine()->getRepository(Form::class)->find($id);
 
         if (!$form) {
-            throw $this->createNotFoundException('Form not found.');
+            throw $this->createNotFoundException('Form not found');
+        }
+
+        // Authorization check (if needed)
+        $user = $this->getUser();
+        $isOwner = $form->getUser() === $user;
+        $isTemplateOwner = $form->getTemplate()->getUser() === $user;
+        $isAdmin = $this->isGranted('ROLE_ADMIN');
+
+        if (!$isOwner && !$isTemplateOwner && !$isAdmin) {
+            throw $this->createAccessDeniedException();
         }
 
         return $this->render('form/view.html.twig', [
-            'form' => $form,
+            'form' => $form
         ]);
     }
 
@@ -62,7 +73,8 @@ class FormController extends AbstractController
     public function getForms(
         Request $request,
         EntityManagerInterface $em,
-        FormRepository $formRepository
+        FormRepository $formRepository,
+        Security $security // Inject Symfony Security service
     ): JsonResponse {
         $dtRequest = new DataTablesAjaxRequestService($request);
 
@@ -77,40 +89,43 @@ class FormController extends AbstractController
             2 => 'f.submittedAt',
         ];
 
-        // Get sort text like 'f.id asc' or 'template.title desc' from DataTablesAjaxRequestService
         $orderBy = $dtRequest->getSortText($columnsMap) ?: 'f.id desc';
+        [$orderColumn, $orderDir] = explode(' ', $orderBy) + [null, 'asc'];
+        $orderDir = strtolower($orderDir);
 
-        // Parse order by: "field direction" (e.g., "template.title asc")
-        $orderParts = explode(' ', $orderBy);
-        $orderColumn = $orderParts[0];
-        $orderDir = strtolower($orderParts[1] ?? 'asc');
+        $user = $security->getUser(); // Get current user
+        if (!$user) {
+            return new JsonResponse(['error' => 'Unauthorized'], 401);
+        }
 
         $qb = $em->createQueryBuilder()
             ->select('f', 'template')
             ->from(Form::class, 'f')
-            ->leftJoin('f.template', 'template');
+            ->leftJoin('f.template', 'template')
+            ->where('f.user = :user') // Filter by user
+            ->setParameter('user', $user);
 
-        // Apply search filter on template title or form ID (cast ID to string for LIKE)
+        // Apply search
         if ($search) {
             $qb->andWhere('LOWER(template.title) LIKE :search')
                 ->setParameter('search', '%' . strtolower($search) . '%');
         }
 
-        // Get filtered count with a clone query builder
+        // Count after filter
         $filteredCount = (clone $qb)
             ->select('COUNT(f.id)')
             ->getQuery()
             ->getSingleScalarResult();
 
-        // Apply sorting, paging
+        // Apply order and pagination
         $qb->orderBy($orderColumn, $orderDir)
             ->setFirstResult($start)
             ->setMaxResults($length);
 
         $forms = $qb->getQuery()->getResult();
 
-        // Total count of all records (without filtering)
-        $total = $formRepository->count([]);
+        // Count total forms for this user (without filters)
+        $total = $formRepository->count(['user' => $user]);
 
         $data = array_map(function (Form $f) {
             return [
@@ -126,6 +141,30 @@ class FormController extends AbstractController
             'recordsFiltered' => $filteredCount,
             'data' => $data,
         ]);
+    }
+
+
+    #[Route('/data', name: 'submitted_data', methods: ['GET'])]
+    public function fetchForms(Request $request, FormRepository $formRepository): JsonResponse
+    {
+        $templateId = $request->query->get('templateId');
+
+        if (!$templateId) {
+            return new JsonResponse(['data' => []]); // or return all if preferred
+        }
+
+        $forms = $formRepository->findBy(['template' => $templateId]);
+
+        $data = [];
+        foreach ($forms as $form) {
+            $data[] = [
+                'id' => $form->getId(),
+                'template' => $form->getTemplate()->getTitle(), // adjust method if needed
+                'submittedAt' => $form->getSubmittedAt()->format('Y-m-d H:i:s'),
+            ];
+        }
+
+        return $this->json(['data' => $data]);
     }
 
 

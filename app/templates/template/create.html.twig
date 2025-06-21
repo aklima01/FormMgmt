@@ -1,19 +1,14 @@
-{#Template Creation Page create.html.twig#}
-
 {% extends 'base.html.twig' %}
 
 {% block stylesheets %}
     {{ parent() }}
-
     <link rel="stylesheet" href="https://unpkg.com/easymde/dist/easymde.min.css">
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
     <link href="https://unpkg.com/dropzone@5/dist/min/dropzone.min.css" rel="stylesheet" />
 
     <style>
-        .tag-list {
-            margin-top: 10px;
-        }
-        .tag-item {
+        .tag-list, .user-pill { margin-top: 10px; }
+        .tag-item, .user-pill {
             display: inline-block;
             background-color: #0d6efd;
             color: white;
@@ -21,135 +16,124 @@
             border-radius: 20px;
             margin: 3px;
         }
-        .tag-item .remove-tag {
+        .tag-item .remove-tag, .user-pill .remove-user {
             margin-left: 8px;
             font-weight: bold;
             cursor: pointer;
         }
     </style>
-
-    <style>
-        .user-pill {
-            display: inline-block;
-            background-color: #0d6efd;
-            color: #fff;
-            padding: 5px 10px;
-            border-radius: 20px;
-            margin: 3px;
-        }
-        .user-pill .remove-user {
-            margin-left: 8px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-    </style>
-
 {% endblock %}
 
 {% block title %}Create Template{% endblock %}
 
 {% block body %}
-    <div class="container-fluid">
-        <div class="row mt-4">
-            {% include 'user/_sidebaruser.html.twig' %}
-            <div class="col-lg-10">
-                <!-- Main Content -->
+    <div class="container-fluid mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <h1 class="text-center mb-4">Create Template</h1>
 
-                <div class="container mt-5">
-                    <div class="row justify-content-center">
-                        <div class="col-md-6">
-                            <h1 class="text-center mb-4">Create Template</h1>
-                            <form action="{{ path('template_create') }}" method="post" enctype="multipart/form-data">
-                                <!-- CSRF Token -->
-                                <input type="hidden" name="_csrf_token" value="{{ csrf_token('form') }}">
+                <form action="{{ path('template_create') }}" method="post" enctype="multipart/form-data">
+                    <input type="hidden" name="_csrf_token" value="{{ csrf_token('form') }}">
 
-                                <!-- Title Input -->
-                                <div class="mb-3">
-                                    <label for="title" class="form-label">Template Title</label>
-                                    <input type="text" class="form-control" id="title" name="title" placeholder="Enter the title of the template" required>
+                    <!-- Nav Tabs -->
+                    <ul class="nav nav-tabs mb-3" id="templateTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="general-tab" data-bs-toggle="tab" data-bs-target="#general" type="button" role="tab">General Settings</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="questions-tab" data-bs-toggle="tab" data-bs-target="#questions" type="button" role="tab">Questions</button>
+                        </li>
+                    </ul>
+
+                    <div class="tab-content" id="templateTabContent">
+                        <!-- General Tab -->
+                        <div class="tab-pane fade show active" id="general" role="tabpanel">
+                            <!-- Title -->
+                            <div class="mb-3">
+                                <label for="title" class="form-label">Template Title</label>
+                                <input type="text" class="form-control" id="title" name="title" placeholder="Enter the title of the template" required>
+                            </div>
+
+                            <!-- Description -->
+                            <div class="mb-3">
+                                <label for="description" class="form-label">Template Description</label>
+                                <textarea id="description" name="description"></textarea>
+                            </div>
+
+                            <!-- Topic Dropdown -->
+                            <div class="mb-3">
+                                <label for="topic" class="form-label">Select Topic</label>
+                                <select id="topic" name="topic_id" class="form-select">
+                                    <option value="">Loading topics...</option>
+                                </select>
+                            </div>
+
+                            <!-- Tags -->
+                            <div class="mb-3">
+                                <label for="tag-input" class="form-label">Tags</label>
+                                <input type="text" id="tag-input" class="form-control" placeholder="Start typing to search tags...">
+                                <div class="tag-list" id="tag-list"></div>
+                                <input type="hidden" name="tags" id="tags-hidden">
+                            </div>
+
+                            <!-- Image Upload -->
+                            <div class="mb-3">
+                                <label class="form-label">Upload Image</label>
+                                <div id="dropzone" class="dropzone border rounded bg-light p-3 text-center"></div>
+                                <input type="file" name="image" id="image-input" hidden accept="image/*" />
+                                <canvas id="resize-canvas" width="480" height="320" style="display:none;"></canvas>
+                                <small class="text-muted">Optional image attachment for this template.</small>
+                            </div>
+
+                            <!-- Access -->
+                            <div class="mb-3">
+                                <label class="form-label">Access</label><br>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="access" id="access_public" value="public" checked>
+                                    <label class="form-check-label" for="access_public">Public</label>
                                 </div>
-
-                                <!-- Description Input -->
-                                <div class="mb-3">
-                                    <label for="description" class="form-label">Template Description</label>
-                                    <textarea id="description" name="description"></textarea>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="access" id="access_private" value="private">
+                                    <label class="form-check-label" for="access_private">Private (select users)</label>
                                 </div>
+                            </div>
 
-                                <!-- Topic Dropdown -->
-                                <div class="mb-3">
-                                    <label for="topic" class="form-label">Select Topic</label>
-                                    <select id="topic" name="topic_id" class="form-select" >
-                                        <option value="">Loading topics...</option>
+                            <!-- User Selection Area -->
+                            <div id="user-select-area" class="mb-3" style="display: none;">
+                                <label for="user-search" class="form-label">Select Users</label>
+                                <input type="text" class="form-control" id="user-search" placeholder="Start typing a name or email..." autocomplete="off">
+
+                                <div class="d-flex justify-content-end mt-2">
+                                    <label for="sort-select" class="form-label me-2">Sort by:</label>
+                                    <select id="sort-select" class="form-select w-auto">
+                                        <option value="name" selected>Name</option>
+                                        <option value="email">Email</option>
                                     </select>
                                 </div>
-
-                                <!-- Tags -->
-                                <div class="mb-3">
-                                    <label for="tag-input" class="form-label">Tags</label>
-                                    <input type="text" id="tag-input" class="form-control" placeholder="Start typing to search tags...">
-                                    <div class="tag-list" id="tag-list"></div>
-                                    <input type="hidden" name="tags" id="tags-hidden">
-                                </div>
-
-                                <!-- Image Upload -->
-                                <div class="mb-3">
-                                    <label class="form-label">Upload Image</label>
-                                    <div id="dropzone" class="dropzone border rounded bg-light p-3 text-center">
-                                    </div>
-                                    <input type="file" name="image" id="image-input" hidden  accept="image/*" />
-                                    <canvas id="resize-canvas" width="480" height="320" style="display:none;"></canvas>
-
-                                    <small class="text-muted">Optional image attachment for this template.</small>
-                                </div>
-
-                                <!-- Access Control -->
-                                <div class="mb-3">
-                                    <label class="form-label">Access</label><br>
-                                    <div class="form-check form-check-inline">
-                                        <input class="form-check-input" type="radio" name="access" id="access_public" value="public" checked>
-                                        <label class="form-check-label" for="access_public">Public</label>
-                                    </div>
-                                    <div class="form-check form-check-inline">
-                                        <input class="form-check-input" type="radio" name="access" id="access_private" value="private">
-                                        <label class="form-check-label" for="access_private">Private (select users)</label>
-                                    </div>
-                                </div>
-
-                                <!-- User Selection Area -->
-                                <div id="user-select-area" class="mb-3" style="display: none;">
-                                    <label for="user-search" class="form-label">Select Users</label>
-                                    <input type="text" class="form-control" id="user-search" placeholder="Start typing a name or email..." autocomplete="off">
-
-                                    <div class="d-flex justify-content-end mt-2">
-                                        <label for="sort-select" class="form-label me-2">Sort by:</label>
-                                        <select id="sort-select" class="form-select w-auto">
-                                            <option value="name" selected>Name</option>
-                                            <option value="email">Email</option>
-                                        </select>
-                                    </div>
-                                    <div id="selected-users" class="mt-2"></div>
-                                    <input type="hidden" name="user_ids" id="user-ids">
-                                </div>
-
-                                <!-- Questions (Drag & Drop) -->
-                                <h6>Questions (Drag & Drop)</h6>
-                                <div id="question-list" class="mb-3"></div>
-                                <button type="button" id="add-question" class="btn btn-secondary btn-sm">+ Add Question</button>
-
-                                <!-- Submit Button -->
-                                <div class="text-center">
-                                    <button type="submit" class="btn btn-primary">Create Template</button>
-                                </div>
-                            </form>
+                                <div id="selected-users" class="mt-2"></div>
+                                <input type="hidden" name="user_ids" id="user-ids">
+                            </div>
                         </div>
+
+                        <!-- Questions Tab -->
+                        <div class="tab-pane fade" id="questions" role="tabpanel" aria-labelledby="questions-tab">
+                            <h6 class="mt-3">Questions (Drag & Drop)</h6>
+                            <div id="question-list" class="mb-3"></div>
+                            <button type="button" id="add-question" class="btn btn-secondary btn-sm mb-3">+ Add Question</button>
+                        </div>
+
                     </div>
-                </div>
 
-            </div> <!-- close col-lg-10 -->
-        </div> <!-- close row -->
-    </div> <!-- close container-fluid -->
-
+                    <!-- Submit -->
+                    <div class="text-center mt-4">
+                        <button type="submit" class="btn btn-primary">Create Template</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 {% endblock %}
+
 
 {% block javascripts %}
     {{ parent() }}
@@ -419,48 +403,81 @@
         });
     </script>
 
-    {#Sortable.min.js#}
     <script>
         const questionList = document.getElementById('question-list');
+        let questionIndex = 0; // To keep indexes in sync for all questions
+
+        // Initialize Sortable.js
         Sortable.create(questionList, {
             animation: 150,
             ghostClass: 'sortable-ghost'
         });
 
+        // Add Question Button
         document.getElementById('add-question').addEventListener('click', () => {
-            addQuestionRow('', '', 'Single_line_text', false);
+            addQuestionRow('', '', '', 'Single_line_text', true);
         });
 
-        function addQuestionRow(title, description, type, showInTable) {
+        // Function to Add a Question Row
+        function addQuestionRow(id, title, description, type, showInTable) {
             const div = document.createElement('div');
             div.className = 'border rounded p-2 mb-2 bg-light';
 
             div.innerHTML = `
-            <input type="text" name="question_title[]" class="form-control mb-1" placeholder="Title" value="${title}" required>
-            <textarea name="question_description[]" class="form-control mb-1" placeholder="Description">${description}</textarea>
-            <select name="question_type[]" class="form-select mb-1">
-                <option value="Single_line_text" ${type === 'Single_line_text' ? 'selected' : ''}>Single line text</option>
-                <option value="Text" ${type === 'Text' ? 'selected' : ''}>Text</option>
-                <option value="Number" ${type === 'Number' ? 'selected' : ''}>Number</option>
-                <option value="Checkbox" ${type === 'Checkbox' ? 'selected' : ''}>Checkbox</option>
-            </select>
-            <div class="form-check mb-1">
-                <input type="checkbox" name="question_show_in_table[]" class="form-check-input" checked ${showInTable ? 'checked' : '' }>
-                <label class="form-check-label">Show in Table</label>
-            </div>
+        <input type="hidden" name="question_id[${questionIndex}]" value="${id}">
+        <input type="text" name="question_title[${questionIndex}]" class="form-control mb-1" placeholder="Title" value="${escapeHtml(title)}" required>
+        <textarea name="question_description[${questionIndex}]" class="form-control mb-1" placeholder="Description">${escapeHtml(description)}</textarea>
+        <select name="question_type[${questionIndex}]" class="form-select mb-1">
+            <option value="Single_line_text" ${type === 'Single_line_text' ? 'selected' : ''}>Single line text</option>
+            <option value="Text" ${type === 'Text' ? 'selected' : ''}>Text</option>
+            <option value="Number" ${type === 'Number' ? 'selected' : ''}>Number</option>
+            <option value="Checkbox" ${type === 'Checkbox' ? 'selected' : ''}>Checkbox</option>
+        </select>
 
-            <button type="button" class="btn btn-danger btn-sm remove-btn">
-                <i class="bi bi-trash"></i> Remove
-            </button> `;
+        <div class="form-check mb-1">
+            <input type="hidden" name="question_show_in_table[${questionIndex}]" value="0">
+            <input type="checkbox" name="question_show_in_table[${questionIndex}]" class="form-check-input" value="1" ${showInTable ? 'checked' : ''}>
+            <label class="form-check-label">Show in Table</label>
+        </div>
+
+        <button type="button" class="btn btn-danger btn-sm remove-btn d-flex justify-content-center align-items-center" style="width: 38px; height: 38px;">
+            <i class="bi bi-trash"></i>
+        </button>
+    `;
 
             questionList.appendChild(div);
+            questionIndex++;
         }
 
+        // Remove Button Handler
         questionList.addEventListener('click', function (e) {
-            if (e.target.classList.contains('remove-btn')) {
+            if (e.target.closest('.remove-btn')) {
                 e.target.closest('.border').remove();
+                // Optional: reindex inputs here if you want indexes to be continuous after deletion
             }
         });
+
+        // Utility function to escape HTML to prevent injection
+        function escapeHtml(text) {
+            if (!text) return '';
+            return text.replace(/[&<>"']/g, function(m) {
+                switch (m) {
+                    case '&': return '&amp;';
+                    case '<': return '&lt;';
+                    case '>': return '&gt;';
+                    case '"': return '&quot;';
+                    case "'": return '&#039;';
+                    default: return m;
+                }
+            });
+        }
+
+        {#// Load Questions from Server#}
+        {#const templateQuestions = {{ template_questions_json|raw }};#}
+        {#templateQuestions.forEach(q => {#}
+        {#    addQuestionRow(q.id, q.title, q.description, q.type, q.showInTable);#}
+        {#});#}
+
     </script>
 
 
