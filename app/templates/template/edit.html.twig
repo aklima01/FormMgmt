@@ -164,7 +164,7 @@
                 <div class="tab-pane fade" id="results" role="tabpanel" aria-labelledby="results-tab">
                     <h5 class="mt-3">Filled Forms </h5>
                     <div class="table-responsive">
-                        <table id="resultsTable" class="table  align-middle">
+                        <table id="resultsTable" class="table table-hover align-middle">
                             <thead class="table-light">
                             <tr>
                                 <th>ID</th>
@@ -553,10 +553,10 @@
 
     {#Results table#}
     <script>
-        $(document).ready(function() {
+        $(document).ready(function () {
             const templateId = {{ template.id|json_encode|raw }};
 
-            $('#resultsTable').DataTable({
+            const table = $('#resultsTable').DataTable({
                 ajax: {
                     url: `/template/${templateId}/results/data`,
                     method: 'GET',
@@ -569,35 +569,49 @@
                     { data: 'date' },
                     {
                         data: 'keyAnswers',
-                        render: function(data, type, row) {
-                            return data; // allow HTML rendering (for <br>)
+                        render: function (data, type, row) {
+                            return data;
                         }
                     },
-
                     {
                         data: null,
                         orderable: false,
                         searchable: false,
-                        render: function(data, type, row) {
+                        render: function (data, type, row) {
                             return `
                             <div class="dropdown">
                                 <button class="btn btn-sm btn-light" data-bs-toggle="dropdown" aria-expanded="false">
                                     <i class="bi bi-three-dots"></i>
                                 </button>
                                 <ul class="dropdown-menu">
-                                   <li><a class="dropdown-item" href="/template/${templateId}/results/view/${row.id}">View</a></li>
-                                    <li><a class="dropdown-item" href="/template/${templateId}/results/edit/${row.id}">Edit</a></li>
+                                    <li><a class="dropdown-item" href="/template/${templateId}/results/view/${row.id}">View</a></li>
+                                    <li><a class="dropdown-item" href="/form/${row.id}/edit">Edit</a></li>
                                     <li><a class="dropdown-item text-danger" href="#" onclick="deleteResult(${row.id}); return false;">Delete</a></li>
                                 </ul>
                             </div>
                         `;
                         }
                     }
+                ],
+                createdRow: function (row, data) {
+                    $(row).attr('data-href', `/form/${data.id}/edit`);
+                    $(row).css('cursor', 'pointer');
+                }
+            });
 
-                ]
+            // Handle row click (excluding the dropdown column)
+            $('#resultsTable tbody').on('click', 'tr', function (e) {
+                // Skip click if it's inside the dropdown menu or button
+                if ($(e.target).closest('.dropdown').length === 0) {
+                    const rowData = table.row(this).data();
+                    if (rowData && rowData.id) {
+                        window.location.href = `/form/${rowData.id}/edit`;
+                    }
+                }
             });
         });
     </script>
+
 
 
 
