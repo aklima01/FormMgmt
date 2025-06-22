@@ -4,18 +4,16 @@
 
 {% block body %}
 
-    {{ dump(form) }}
-    {{ dump(form.answers) }}
+    <div class="container   my-5">
 
-    {{ dump(form.template.title) }}
-
-    <div class="container my-5">
-
+        <div class="row mt-4">
+            <div class="col-md-8 offset-md-2">
+                
         <!-- Page Header -->
         <div class="d-flex justify-content-between align-items-center mb-4">
             <div>
                 <h2 class="mb-0">Form: {{ form.template.title }}</h2>
-                <small class="text-muted">Filled by <strong>{{ form.user.name }}</strong>. Email: <strong>{{ form.user.email }}</strong> on {{ form.submittedAt|date('Y-m-d H:i:s') }}</small>
+                <small class="text-muted">Filled by <strong>{{ form.user.name }}</strong>. Email: <strong>{{ form.user.email }}</strong> on {{ form.submittedAt|date('Y-m-d h:i A') }}</small>
             </div>
             <div class="dropdown">
                 <button class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
@@ -29,45 +27,33 @@
         </div>
 
         <!-- Answers -->
-        <div class="card mb-3">
-            <div class="card-header bg-light">
-                <strong>1. Position</strong>
-                <div class="text-muted small">What position do you apply for?</div>
-            </div>
-            <div class="card-body">
-                Frontend Developer
-            </div>
-        </div>
 
-        <div class="card mb-3">
-            <div class="card-header bg-light">
-                <strong>2. Experience</strong>
-                <div class="text-muted small">Work on the commercial projects or freelance (in years)</div>
+        {% for question in questions %}
+            <div class="card mb-3">
+                <div class="card-header bg-light">
+                    <strong>{{ loop.index }}. {{ question.title }}</strong>
+                    <div class="text-muted small">{{ question.description }}</div>
+                </div>
+                <div class="card-body">
+                    {% for answer in answers %}
+                        {% if answer.question.id == question.id %}
+                            {% if answer.stringValue is not null %}
+                                <p>{{ answer.stringValue }}</p>
+                            {% elseif answer.intValue is not null %}
+                                <p>{{ answer.intValue }}</p>
+                            {% elseif answer.boolValue is not null %}
+                                <p>{{ answer.boolValue ? 'Yes' : 'No' }}</p>
+                            {% else %}
+                                <p><em>No answer provided</em></p>
+                            {% endif %}
+                        {% endif %}
+                    {% endfor %}
+                </div>
             </div>
-            <div class="card-body">
-                3
-            </div>
-        </div>
+        {% endfor %}
 
-        <div class="card mb-3">
-            <div class="card-header bg-light">
-                <strong>3. Contact</strong>
-                <div class="text-muted small">Phone number or Skype</div>
-            </div>
-            <div class="card-body">
-                alice_skype
-            </div>
-        </div>
 
-        <div class="card mb-3">
-            <div class="card-header bg-light">
-                <strong>4. Additional Information</strong>
-                <div class="text-muted small">Write anything in the field below</div>
-            </div>
-            <div class="card-body">
-                I am open to relocation and flexible on working hours.
-            </div>
-        </div>
+
 
         <!-- Fixed Fields -->
         <div class="card mb-3">
@@ -75,7 +61,7 @@
                 <strong>User</strong>
             </div>
             <div class="card-body">
-                Alice (alice@example.com)
+                {{ form.user.name }} ( {{ form.user.email }} )
             </div>
         </div>
 
@@ -84,12 +70,14 @@
                 <strong>Date</strong>
             </div>
             <div class="card-body">
-                2025-06-18 10:32 AM
+                {{ form.submittedAt|date('Y-m-d h:i A') }}
             </div>
         </div>
 
         <div class="mt-4">
-            <a href="/template/7" class="btn btn-outline-primary btn-sm">Back to Template</a>
+            <a href="{{ path('template_list') }}" class="btn btn-outline-primary btn-sm">Back to Template</a>
         </div>
+    </div>
+    </div>
     </div>
 {% endblock %}

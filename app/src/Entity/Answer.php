@@ -22,7 +22,7 @@ class Answer
     #[ORM\JoinColumn(nullable: false)]
     private Question $question;
 
-    #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    #[ORM\Column(type: 'text', nullable: true)]
     private ?string $stringValue = null;
 
     #[ORM\Column(type: 'integer', nullable: true)]

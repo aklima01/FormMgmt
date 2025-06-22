@@ -3,7 +3,9 @@
 namespace App\Controller;
 
 use App\Entity\Form;
+use App\Repository\AnswerRepository;
 use App\Repository\FormRepository;
+use App\Repository\QuestionRepository;
 use App\Service\Common\DataTablesAjaxRequestService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -18,56 +20,37 @@ use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 #[Route('/form', name: 'form_')]
 class FormController extends AbstractController
 {
-    #[Route('/form/{id}/view', name: '_view')]
+    public function __construct(
+        private readonly FormRepository $formRepository,
+        private readonly QuestionRepository $questionRepository,
+        private readonly AnswerRepository $answerRepository,
+    )
+    {
+
+    }
+
+    #[Route('/{id}/view', name: '_view')]
     public function view(int $id): Response
     {
-        $form = $this->getDoctrine()->getRepository(Form::class)->find($id);
+        $form = $this->formRepository->find($id);
 
         if (!$form) {
             throw $this->createNotFoundException('Form not found');
         }
 
-        // Authorization check (if needed)
-        $user = $this->getUser();
-        $isOwner = $form->getUser() === $user;
-        $isTemplateOwner = $form->getTemplate()->getUser() === $user;
-        $isAdmin = $this->isGranted('ROLE_ADMIN');
+        $answers = $this->answerRepository->findBy(['form' => $form]);
+        $templateId = $form->getTemplate()?->getId();
+        $questions = $this->questionRepository->findBy(['template' => $templateId], ['position' => 'ASC']);
 
-        if (!$isOwner && !$isTemplateOwner && !$isAdmin) {
-            throw $this->createAccessDeniedException();
-        }
 
         return $this->render('form/view.html.twig', [
-            'form' => $form
+            'form' => $form,
+            'questions' => $questions,
+            'answers' => $answers,
+
         ]);
     }
 
-    #[Route('/{id}/edit', name: 'edit', methods: ['GET', 'POST'])]
-    public function edit(
-        Request $request,
-        Form $form,
-        EntityManagerInterface $em
-    ): Response {
-        $this->denyAccessUnlessGranted('edit', $form); // Optional security
-
-        if ($request->isMethod('POST')) {
-            foreach ($form->getAnswers() as $answer) {
-                $fieldName = 'answer_' . $answer->getId();
-                if ($request->request->has($fieldName)) {
-                    $answer->setValue($request->request->get($fieldName));
-                }
-            }
-
-            $em->flush();
-
-            $this->addFlash('success', 'Form updated successfully.');
-            return $this->redirectToRoute('form_view', ['id' => $form->getId()]);
-        }
-
-        return $this->render('form/edit.html.twig', [
-            'formEntity' => $form,
-        ]);
-    }
 
     #[Route('/ajax/forms', name: 'ajax_forms', methods: ['GET'])]
     public function getForms(
@@ -143,29 +126,6 @@ class FormController extends AbstractController
         ]);
     }
 
-
-    #[Route('/data', name: 'submitted_data', methods: ['GET'])]
-    public function fetchForms(Request $request, FormRepository $formRepository): JsonResponse
-    {
-        $templateId = $request->query->get('templateId');
-
-        if (!$templateId) {
-            return new JsonResponse(['data' => []]); // or return all if preferred
-        }
-
-        $forms = $formRepository->findBy(['template' => $templateId]);
-
-        $data = [];
-        foreach ($forms as $form) {
-            $data[] = [
-                'id' => $form->getId(),
-                'template' => $form->getTemplate()->getTitle(), // adjust method if needed
-                'submittedAt' => $form->getSubmittedAt()->format('Y-m-d H:i:s'),
-            ];
-        }
-
-        return $this->json(['data' => $data]);
-    }
 
 
 }

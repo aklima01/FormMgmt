@@ -9,6 +9,7 @@ use App\Entity\Tag;
 use App\Entity\Template;
 use App\Entity\Topic;
 use App\Entity\User;
+use App\Repository\AnswerRepository;
 use App\Repository\FormRepository;
 use App\Repository\QuestionRepository;
 use App\Repository\TemplateRepository;
@@ -41,7 +42,8 @@ class TemplateController extends AbstractController
         private readonly TemplateRepository $templateRepository,
         private readonly FormRepository $formRepository,
         private readonly Security $security,
-        private readonly QuestionRepository $questionRepository
+        private readonly QuestionRepository $questionRepository,
+        private readonly LoggerInterface $logger,
     )
     {
 
@@ -549,7 +551,6 @@ class TemplateController extends AbstractController
             $userid = $this->security->getUser()->getId();
             $user = $this->userRepo->find($userid);
 
-
             if (!$user) {
                 throw $this->createAccessDeniedException('You must be logged in to fill this form.');
             }
@@ -558,15 +559,14 @@ class TemplateController extends AbstractController
             $formEntity->setTemplate($template);
             $formEntity->setUser($user);
 
+
             foreach ($template->getQuestions() as $question) {
-                if (!$question->isShowInTable()) {
-                    continue;
-                }
 
                 $fieldName = 'question_' . $question->getId();
                 $rawValue = $request->request->get($fieldName);
 
                 $answer = new Answer();
+
                 $answer->setForm($formEntity);
                 $answer->setQuestion($question);
 
