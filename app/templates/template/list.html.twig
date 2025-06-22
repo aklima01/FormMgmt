@@ -99,20 +99,25 @@
                         searchable: false,
                         render: function (data) {
                             return `
-                                <div class="dropdown">
-                                    <button class="btn btn-sm btn-light" data-bs-toggle="dropdown">
-                                        <i class="bi bi-three-dots"></i>
-                                    </button>
-                                    <ul class="dropdown-menu">
-                                        <li><a class="dropdown-item" href="${data.editUrl}">Edit</a></li>
-                                        <li><a class="dropdown-item" href="${data.fillUrl}">Fill</a></li>
-                                        <li><a class="dropdown-item text-danger" href="${data.deleteUrl}">Delete</a></li>
-                                    </ul>
-                                </div>`;
+                    <div class="dropdown">
+                        <button class="btn btn-sm btn-light" data-bs-toggle="dropdown">
+                            <i class="bi bi-three-dots"></i>
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="${data.editUrl}">Edit</a></li>
+                            <li><a class="dropdown-item" href="${data.fillUrl}">Fill</a></li>
+                            <li><a class="dropdown-item text-danger" href="${data.deleteUrl}">Delete</a></li>
+                        </ul>
+                    </div>`;
                         }
                     }
-                ]
+                ],
+                createdRow: function (row, data, dataIndex) {
+                    $(row).attr('data-href', data.actions.editUrl);
+                    $(row).css('cursor', 'pointer');
+                }
             });
+
 
             // Forms Table
             $('#formTable').DataTable({
@@ -131,21 +136,35 @@
                         data: 'id',
                         orderable: false,
                         searchable: false,
-                        render: function(data, type, row) {
+                        render: function(data) {
                             return `
-                    <a href="/form/${data}/view" class="btn btn-sm btn-primary">
-                        View
-                    </a>
-                    <a href="/form/${data}/edit" class="btn btn-sm btn-secondary">
-                        Edit
-                    </a>
+                    <a href="/form/${data}/view" class="btn btn-sm btn-primary">View</a>
+                    <a href="/form/${data}/edit" class="btn btn-sm btn-secondary">Edit</a>
                 `;
                         }
                     }
-                ]
+                ],
+                createdRow: function (row, data) {
+                    $(row).attr('data-href', `/form/${data.id}/edit`);
+                    $(row).css('cursor', 'pointer');
+                }
             });
 
         });
+
+        $(document).on('click', 'table tbody tr', function (e) {
+            // Avoid triggering if clicked on a button or link
+            if (!$(e.target).is('a, button, i')) {
+                const href = $(this).attr('data-href');
+                if (href) {
+                    window.location.href = href;
+                }
+            }
+        });
+
+
+
+
 
     </script>
 
