@@ -1,0 +1,77 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Edit Submitted Form{% endblock %}
+
+{% block body %}
+
+    <div class="container-fluid">
+        <div class="row mt-4">
+            <div class="col-md-8 offset-md-2">
+
+                <!-- Template Info -->
+                <h2 class="mb-1">{{ template.title }}</h2>
+                <p class="text-muted">
+                    Topic:
+                    {% if template.topic is not null and template.topic.name is defined %}
+                        <strong>{{ template.topic.name }}</strong>
+                    {% else %}
+                        <em>No topic available</em>
+                    {% endif %}
+                </p>
+
+                <p>{{ template.description|markdown_to_html|raw }}</p>
+
+                {% if template.imageUrl is not null and template.imageUrl != '' %}
+                    <img src="{{ template.imageUrl }}" alt="Illustration" class="img-fluid rounded mb-4" width="480" height="320">
+                {% endif %}
+
+                <!-- Form Start -->
+                <form action="{{ path('form_edit', {id: form.id}) }}" method="post">
+                    <input type="hidden" name="form_id" value="{{ form.id }}">
+
+                    {% for question in questions %}
+                        {% set answer = (answers | filter(a => a.question.id == question.id) | first) %}
+                        <div class="mb-3">
+                            <label class="form-label">
+                                <strong>{{ loop.index }}. {{ question.title }}</strong>
+                            </label>
+                            <small class="d-block text-muted">{{ question.description }}</small>
+
+                            {% if question.type == 'Single_line_text' %}
+                                <input type="text" class="form-control mt-1" name="question_{{ question.id }}" value="{{ answer.stringValue ?? '' }}">
+
+                            {% elseif question.type == 'Number' %}
+                                <input type="number" min="0" class="form-control mt-1" name="question_{{ question.id }}" value="{{ answer.intValue ?? '' }}">
+
+                            {% elseif question.type == 'Text' %}
+                                <textarea class="form-control mt-1" rows="4" name="question_{{ question.id }}">{{ answer.stringValue ?? '' }}</textarea>
+
+                            {% elseif question.type == 'Checkbox' %}
+                                <div class="form-check mt-1">
+                                    <input type="hidden" name="question_{{ question.id }}" value="0">
+                                    <input class="form-check-input"
+                                           type="checkbox"
+                                           name="question_{{ question.id }}"
+                                           id="question_{{ question.id }}"
+                                           value="1"
+                                           {% if answer.boolValue ?? false %}checked{% endif %}>
+                                    <label class="form-check-label" for="question_{{ question.id }}"></label>
+                                </div>
+
+                            {% else %}
+                                <input type="text" class="form-control mt-1" name="question_{{ question.id }}" value="{{ answer.stringValue ?? '' }}">
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-success">Update Form</button>
+                        <a href="{{ path('template_list') }}" class="btn btn-outline-secondary">Cancel</a>
+                    </div>
+                </form>
+
+            </div>
+        </div>
+    </div>
+
+{% endblock %}

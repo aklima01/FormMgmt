@@ -528,7 +528,7 @@ class TemplateController extends AbstractController
             $em->remove($form);
         }
 
-        $em->flush();
+
 
         $em->remove($template);
         $em->flush();

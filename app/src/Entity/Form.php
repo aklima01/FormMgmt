@@ -87,5 +87,4 @@ class Form
         $this->answers = $answers;
     }
 
-
 }

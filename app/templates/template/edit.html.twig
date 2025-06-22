@@ -164,7 +164,7 @@
                 <div class="tab-pane fade" id="results" role="tabpanel" aria-labelledby="results-tab">
                     <h5 class="mt-3">Filled Forms </h5>
                     <div class="table-responsive">
-                        <table id="resultsTable" class="table table-bordered table-striped align-middle">
+                        <table id="resultsTable" class="table  align-middle">
                             <thead class="table-light">
                             <tr>
                                 <th>ID</th>
@@ -172,6 +172,7 @@
                                 <th>Email</th>
                                 <th>Date</th>
                                 <th>Key Answers</th>
+                                <th>Actions</th>
                             </tr>
                             </thead>
                             <tbody>
@@ -550,6 +551,7 @@
 
 
 
+    {#Results table#}
     <script>
         $(document).ready(function() {
             const templateId = {{ template.id|json_encode|raw }};
@@ -570,7 +572,28 @@
                         render: function(data, type, row) {
                             return data; // allow HTML rendering (for <br>)
                         }
+                    },
+
+                    {
+                        data: null,
+                        orderable: false,
+                        searchable: false,
+                        render: function(data, type, row) {
+                            return `
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-light" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="bi bi-three-dots"></i>
+                                </button>
+                                <ul class="dropdown-menu">
+                                   <li><a class="dropdown-item" href="/template/${templateId}/results/view/${row.id}">View</a></li>
+                                    <li><a class="dropdown-item" href="/template/${templateId}/results/edit/${row.id}">Edit</a></li>
+                                    <li><a class="dropdown-item text-danger" href="#" onclick="deleteResult(${row.id}); return false;">Delete</a></li>
+                                </ul>
+                            </div>
+                        `;
+                        }
                     }
+
                 ]
             });
         });
