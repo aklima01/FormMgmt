@@ -22,15 +22,6 @@ class Template
     #[ORM\OrderBy(['position' => 'ASC'])]
     private Collection $questions;
 
-    public function __construct()
-    {
-        $this->tags = new ArrayCollection();
-        $this->users = new ArrayCollection();
-        $this->questions = new ArrayCollection();
-    }
-
-
-
 
     #[ORM\Column(type: 'text', nullable: true)]
     private ?string $description = null;
@@ -38,21 +29,6 @@ class Template
     #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'templates')]
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private ?User $author = null;
-
-    public function getAuthor(): ?User
-    {
-        return $this->author;
-    }
-
-    public function setAuthor(?User $author): void
-    {
-        $this->author = $author;
-    }
-
-    // Getter and setter
-
-
-
 
     #[ORM\ManyToMany(targetEntity: Tag::class, cascade: ["persist"])]
     #[ORM\JoinTable(name: "template_tag")]
@@ -68,12 +44,30 @@ class Template
     #[ORM\Column(type: 'text', nullable: true)]
     private ?string $access = null;
 
-
-
-
     #[ORM\ManyToOne(targetEntity: Topic::class)]
     #[ORM\JoinColumn(name: 'topic_id', referencedColumnName: 'id', nullable: true, onDelete: 'SET NULL')]
     private ?Topic $topic = null;
+
+    public function __construct()
+    {
+        $this->tags = new ArrayCollection();
+        $this->users = new ArrayCollection();
+        $this->questions = new ArrayCollection();
+    }
+
+
+    public function getAuthor(): ?User
+    {
+        return $this->author;
+    }
+
+    public function setAuthor(?User $author): void
+    {
+        $this->author = $author;
+    }
+
+    // Getter and setter
+
 
     // Getter
     public function getTopic(): ?Topic

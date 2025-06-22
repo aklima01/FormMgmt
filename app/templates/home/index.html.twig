@@ -1,11 +1,120 @@
-
 {% extends 'base.html.twig' %}
 
 {% block title %}Home Page{% endblock %}
 
 {% block body %}
+    <div class="container mt-4">
+        <div class="col-md-8 offset-md-2">
 
-    <h1>Home</h1>
+
+        <!-- Latest Templates (in Table Format) -->
+        <section class="mb-5">
+            <h2>Latest Templates</h2>
+            <table class="table  table-hover" id="latest-templates">
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Title</th>
+                    <th>Description</th>
+                    <th>Author</th>
+                </tr>
+                </thead>
+                <tbody>
+
+                </tbody>
+            </table>
+        </section>
+
+        <!-- Top 5 Most Popular Templates -->
+        <section class="mb-5">
+            <h2>Top 5 Most Popular Templates</h2>
+            <table class="table table-hover">
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Template Name</th>
+                    <th>Author</th>
+                    <th>Filled Forms</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for i in 1..5 %}
+                    <tr>
+                        <td>{{ i }}</td>
+                        <td>Popular Template {{ i }}</td>
+                        <td>Author {{ i }}</td>
+                        <td>{{ 100 - i * 10 }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </section>
+
+        <!-- Tag Cloud (Simple Badge List) -->
+        <section>
+            <h2>Tags</h2>
+            <div>
+                {% for tag in ['Business', 'Education', 'Health', 'Finance', 'Design', 'Technology', 'Travel'] %}
+                    <a href="/search?tag={{ tag | lower }}" class="badge bg-secondary me-1 mb-1" style="font-size: {{ 0.9 + (loop.index0 % 3) * 0.2 }}rem;">
+                        {{ tag }}
+                    </a>
+                {% endfor %}
+            </div>
+        </section>
+        </div>
+
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            console.log('Home page scripts loaded.');
 
 
-{%  endblock %}
+            $('#latest-templates').DataTable({
+                processing: true,
+                serverSide: true,
+                lengthChange: false,
+                searching: false,
+                responsive: true,
+                ajax: {
+                    url: '/templates/latest',
+                    type: 'GET',
+                    dataSrc: 'data',
+                    data: function (d) {
+                        return d;
+                    }
+                },
+                columns: [
+                    { data: 'id', title: 'ID', visible: false }, // hide ID column from view but keep it for sorting/searching
+                    { data: 'title', title: 'Title' },
+                    {
+                        data: 'description',
+                        title: 'Description',
+                        render: function (data, type, row, meta) {
+                            if (type === 'display' && data.length > 50) {
+                                // Show truncated description with ellipsis on display
+                                return data.substr(0, 50) + '…';
+                            }
+                            // For sorting, filtering and other types, return full data
+                            return data;
+                        }
+                    },
+                    { data: 'author', title: 'Author' }
+                ],
+                order: [[0, 'desc']], // initially order by hidden ID column descending
+                lengthMenu: [10, 25, 50, 100],
+                pageLength: 10,
+                language: {
+                    processing: "Loading..."
+                }
+            });
+
+        });
+    </script>
+
+
+{% endblock %}
