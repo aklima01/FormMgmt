@@ -539,7 +539,7 @@ class TemplateController extends AbstractController
     }
 
 
-    #[Route('/template/{id}/fill', name: 'fill', methods: ['GET', 'POST'])]
+    #[Route('/{id}/fill', name: 'fill', methods: ['GET', 'POST'])]
     public function fill(int $id,Request $request): Response
     {
         $template = $this->templateRepository->find($id);
@@ -809,6 +809,70 @@ class TemplateController extends AbstractController
         $em->flush();
 
         return new JsonResponse(['status' => 'success']);
+    }
+
+    #[Route('/{id}/aggregate', name: 'template_aggregate', methods: ['GET'])]
+    public function aggregate(
+        int $id,
+        TemplateRepository $templateRepository,
+        FormRepository $formRepository,
+        AnswerRepository $answerRepository,
+        QuestionRepository $questionRepository
+    ): JsonResponse {
+        $template = $templateRepository->find($id);
+        if (!$template) {
+            return new JsonResponse(['error' => 'Template not found'], 404);
+        }
+
+        $questions = $questionRepository->findBy(['template' => $template], ['position' => 'ASC']);
+        $results = [];
+
+        foreach ($questions as $question) {
+            $type = $question->getType();
+
+            $answers = $answerRepository->createQueryBuilder('a')
+                ->select('a')
+                ->join('a.form', 'f')
+                ->where('a.question = :question')
+                ->andWhere('f.template = :template')
+                ->setParameter('question', $question)
+                ->setParameter('template', $template)
+                ->getQuery()
+                ->getResult();
+
+
+
+            $values = array_map(function ($answer) {
+                return $answer->getValue();
+            }, $answers);
+
+            $summary = null;
+
+            $info = dump($type, $values); // or use logger to file
+
+            if ($type === 'Number') {
+                $numeric = array_filter($values, fn($v) => is_numeric($v));
+                $summary = count($numeric) > 0 ? array_sum($numeric) / count($numeric) : null;
+            } elseif ($type === 'Single_line_text' || $type === 'Text') {
+                $counts = array_count_values(array_filter($values, fn($v) => !empty($v)));
+                arsort($counts);
+                $summary = array_key_first($counts);
+            } elseif ($type === 'Checkbox') {
+                $checked = count(array_filter($values, fn($v) => $v === true));
+                $total = count($values);
+                $summary = "$checked / $total checked";
+            }
+
+            $results[] = [
+                'question' => $question->getTitle(),
+                'type' => $type,
+                'summary' => $summary,
+                //'info' => $info, // or use logger to file
+
+            ];
+        }
+
+        return new JsonResponse($results);
     }
 
 
