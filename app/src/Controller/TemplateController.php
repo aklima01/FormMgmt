@@ -18,6 +18,7 @@ use App\Repository\User\UserRepository;
 use App\Service\Common\DataTablesAjaxRequestService;
 use Aws\S3\S3Client;
 use Doctrine\ORM\EntityManagerInterface;
+use Knp\Component\Pager\PaginatorInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Bundle\SecurityBundle\Security;
@@ -663,8 +664,8 @@ class TemplateController extends AbstractController
         $forms = $formRepository->createQueryBuilder('f')
             ->leftJoin('f.template', 't')
             ->addSelect('t')
-            ->where('f.template IN (:templateIds)')
-            ->setParameter('templateIds', $templateIds)
+            ->where('f.user = :user') // Adjust 'submittedBy' to your actual property name
+            ->setParameter('user', $user)
             ->getQuery()
             ->getResult();
 
