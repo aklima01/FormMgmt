@@ -192,6 +192,27 @@ class FormController extends AbstractController
         ]);
     }
 
+    #[Route('/bulk-delete', name: 'bulk_delete', methods: ['POST'])]
+    public function bulkDeleteForms(Request $request, FormRepository $formRepository, EntityManagerInterface $em): JsonResponse
+    {
+        $data = json_decode($request->getContent(), true);
+        $ids = $data['ids'] ?? [];
+
+        if (!is_array($ids) || empty($ids)) {
+            return new JsonResponse(['error' => 'No IDs provided'], 400);
+        }
+
+        $forms = $formRepository->findBy(['id' => $ids]);
+
+        foreach ($forms as $form) {
+            $em->remove($form);
+        }
+
+        $em->flush();
+
+        return new JsonResponse(['status' => 'success']);
+    }
+
 
 
 }

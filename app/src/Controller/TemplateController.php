@@ -771,6 +771,46 @@ class TemplateController extends AbstractController
     }
 
 
+    #[Route('/bulk-delete', name: 'bulk_delete', methods: ['POST'])]
+    public function bulkDelete(
+        Request $request,
+        TemplateRepository $templateRepository,
+        EntityManagerInterface $em
+    ): JsonResponse {
+        $data = json_decode($request->getContent(), true);
+        $ids = $data['ids'] ?? [];
+
+        if (!is_array($ids) || empty($ids)) {
+            return new JsonResponse(['error' => 'No IDs provided'], 400);
+        }
+
+        $templates = $templateRepository->findBy(['id' => $ids]);
+
+        foreach ($templates as $template) {
+            // Delete related questions
+            $questions = $this->questionRepository->findBy(['template' => $template]);
+            foreach ($questions as $question) {
+                $em->remove($question);
+            }
+
+            // Delete related forms and their answers
+            $forms = $this->formRepository->findBy(['template' => $template]);
+            foreach ($forms as $form) {
+                foreach ($form->getAnswers() as $answer) {
+                    $em->remove($answer);
+                }
+                $em->remove($form);
+            }
+
+            // Delete the template itself
+            $em->remove($template);
+        }
+
+        $em->flush();
+
+        return new JsonResponse(['status' => 'success']);
+    }
+
 
 
 }
