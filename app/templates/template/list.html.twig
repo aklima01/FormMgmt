@@ -10,6 +10,9 @@
 
 {% block body %}
     <div class="container-fluid mt-4">
+
+        <div class="col-md-8 offset-md-2">
+
         <h1 class="mb-4">User Dashboard</h1>
 
         <div class="mb-3 d-flex justify-content-end">
@@ -54,22 +57,21 @@
             {# My Filled Forms Tab #}
             <div class="tab-pane fade" id="forms" role="tabpanel" aria-labelledby="forms-tab">
                 <div class="table-responsive">
-                    <table id="myfiledforms" class="table table-hover align-middle">
+                    <table id="formTable" class="table table-hover align-middle">
                         <thead class="table-light">
                         <tr>
                             <th>ID</th>
-                            <th>Template/Form Name</th>
-                            <th>Key Answers</th>
-                            <th>Date</th>
+                            <th>Template</th>
+                            <th>Submitted At</th>
+                            <th>Actions</th>
                         </tr>
                         </thead>
-                        <tbody>
-
-                        </tbody>
+                        <tbody></tbody>
                     </table>
                 </div>
             </div>
         </div>
+    </div>
     </div>
 {% endblock %}
 
@@ -139,6 +141,7 @@
                         data: 'id',
                         orderable: false,
                         searchable: false,
+                        visible: false,
                         render: function(data) {
                             return `
                     <a href="/form/${data}/view" class="btn btn-sm btn-primary">View</a>
@@ -169,28 +172,6 @@
 
 
     {# myfiledforms script#}
-    <script>
-        $(document).ready(function () {
-            $('#myfiledforms').DataTable({
-                order: [[0, 'desc']],
-                ajax: {
-                    url: '/template/myfiledforms',
-                    dataSrc: 'data'
-                },
-                columns: [
-                    { data: 'id' },
-                    {data : 'template'},
-                    {
-                        data: 'keyAnswers',
-                        render: function (data, type, row) {
-                            return data.replace(/\\u003Cbr\\u003E/g, '<br>').replace(/\\r\\n/g, '<br>');
-                        }
-                    },
-                    { data: 'date' }
-                ]
-            });
-        });
-    </script>
 
 
 

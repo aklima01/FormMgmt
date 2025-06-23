@@ -647,34 +647,106 @@ class TemplateController extends AbstractController
     }
 
 
-    #[Route('/myfiledforms', name: 'myfiledforms', methods: ['GET'])]
+    #[Route('/myfiledforms', name: 'myfiledforms', methods: ['GET', 'POST'])]
     public function myfiledforms(
+        Request $request,
         TemplateRepository $templateRepository,
-        FormRepository $formRepository
+        FormRepository $formRepository,
     ): JsonResponse {
+        // Fix missing keys in request to avoid undefined array key warnings
+        $input = $request->isMethod('GET') ? $request->query->all() : $request->request->all();
+
+        if (!isset($input['length'])) {
+            if ($request->isMethod('GET')) {
+                $request->query->set('length', 10);
+            } else {
+                $request->request->set('length', 10);
+            }
+        }
+
+        if (!isset($input['start'])) {
+            if ($request->isMethod('GET')) {
+                $request->query->set('start', 0);
+            } else {
+                $request->request->set('start', 0);
+            }
+        }
+
+        if (!isset($input['draw'])) {
+            if ($request->isMethod('GET')) {
+                $request->query->set('draw', 0);
+            } else {
+                $request->request->set('draw', 0);
+            }
+        }
+
+        // Create DataTables service with sanitized request
+        $dataTablesRequest = new DataTablesAjaxRequestService($request);
+
+        // Get current user entity
         $user = $this->userRepo->find($this->security->getUser());
 
         // Get all templates for this user
         $templates = $templateRepository->findBy(['author' => $user]);
 
-        // Extract template IDs
-        $templateIds = array_map(fn($t) => $t->getId(), $templates);
-
-        // Get forms for those template IDs
-        $forms = $formRepository->createQueryBuilder('f')
+        // Prepare QueryBuilder for forms
+        $qb = $formRepository->createQueryBuilder('f')
             ->leftJoin('f.template', 't')
             ->addSelect('t')
-            ->where('f.user = :user') // Adjust 'submittedBy' to your actual property name
-            ->setParameter('user', $user)
-            ->getQuery()
-            ->getResult();
+            ->where('f.user = :user')
+            ->setParameter('user', $user);
+
+        // Filtering: apply search on relevant fields (example: template title)
+        $search = $dataTablesRequest->getSearchText();
+        if ($search !== '') {
+            $qb->andWhere('t.title LIKE :search OR f.id LIKE :search')
+                ->setParameter('search', '%' . $search . '%');
+        }
+
+        // Sorting
+        $columnMap = [
+            0 => 'f.id',
+            1 => 'f.submittedAt',
+            2 => 't.title',
+            // Add more mappings if your table has more columns
+        ];
+
+        $orderBy = $dataTablesRequest->getSortText($columnMap);
+        if ($orderBy !== '') {
+            foreach (explode(',', $orderBy) as $orderPart) {
+                $orderPart = trim($orderPart);
+                if ($orderPart === '') {
+                    continue;
+                }
+                [$field, $dir] = explode(' ', $orderPart);
+                $qb->addOrderBy($field, strtoupper($dir));
+            }
+        } else {
+            $qb->orderBy('f.submittedAt', 'DESC');
+        }
+
+        // Pagination
+        $page = $dataTablesRequest->getPageIndex();
+        $limit = $dataTablesRequest->getPageSize();
+        $offset = $dataTablesRequest->getStart();
+
+        $qb->setFirstResult($offset)
+            ->setMaxResults($limit);
+
+        // Get total counts (before filtering)
+        $totalRecords = $formRepository->count(['user' => $user]);
+
+        // Get filtered count
+        $filteredQb = clone $qb;
+        $filteredQb->select('COUNT(f.id)');
+        $filteredCount = (int) $filteredQb->getQuery()->getSingleScalarResult();
+
+        // Fetch paged results
+        $forms = $qb->getQuery()->getResult();
 
         $data = [];
-
         foreach ($forms as $form) {
-
             $answers = [];
-
             foreach ($form->getAnswers() as $answer) {
                 $question = $answer->getQuestion();
                 if ($question->isShowInTable()) {
@@ -686,13 +758,17 @@ class TemplateController extends AbstractController
                 'id' => $form->getId(),
                 'date' => $form->getSubmittedAt()->format('Y-m-d H:i'),
                 'template' => $form->getTemplate()->getTitle(),
-                'keyAnswers' => implode('<br>', $answers)
+                'keyAnswers' => implode('<br>', $answers),
             ];
         }
 
-        return new JsonResponse(['data' => $data]);
+        return new JsonResponse([
+            'draw' => (int) $dataTablesRequest->getRequestData()['draw'] ?? 0,
+            'recordsTotal' => $totalRecords,
+            'recordsFiltered' => $filteredCount,
+            'data' => $data,
+        ]);
     }
-
 
 
 
