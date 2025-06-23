@@ -43,7 +43,6 @@
 
 {% block body %}
 
-
     <div class="container mt-5">
         <h1 class="text-center mb-4">Edit Template</h1>
 
@@ -172,7 +171,7 @@
                                 <th>Email</th>
                                 <th>Date</th>
                                 <th>Key Answers</th>
-                                <th>Actions</th>
+
                             </tr>
                             </thead>
                             <tbody>
@@ -554,7 +553,10 @@
         });
     </script>
 
-
+    <script>
+        const templateId = {{ template.id | json_encode|raw  }};
+        const userRoles = {{ app.user.roles|json_encode|raw }};
+    </script>
 
     {#Results table#}
     <script>
@@ -562,6 +564,7 @@
             const templateId = {{ template.id|json_encode|raw }};
 
             const table = $('#resultsTable').DataTable({
+
                 ajax: {
                     url: `/template/${templateId}/results/data`,
                     method: 'GET',
@@ -582,6 +585,7 @@
                         data: null,
                         orderable: false,
                         searchable: false,
+                        visible: false,
                         render: function (data, type, row) {
                             return `
                             <div class="dropdown">
@@ -617,6 +621,8 @@
         });
     </script>
 
+
+    {#    Aggregated Results Script#}
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const templateId = {{ template.id }}; // Replace with dynamic ID if needed

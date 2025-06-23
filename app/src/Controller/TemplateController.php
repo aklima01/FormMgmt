@@ -639,12 +639,17 @@ class TemplateController extends AbstractController
                 'email' => $formUser->getEmail(),
                 'date' => $form->getSubmittedAt()->format('Y-m-d H:i'),
                 'keyAnswers' => implode('<br>', $answers)
-//                'actions' => '<a href="' . $this->generateUrl('form_view', ['id' => $form->getId()]) . '" class="btn btn-sm btn-primary">View</a>'
+
             ];
         }
 
         return new JsonResponse(['data' => $data]);
     }
+
+
+
+
+
 
 
     #[Route('/myfiledforms', name: 'myfiledforms', methods: ['GET', 'POST'])]
