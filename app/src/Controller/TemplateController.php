@@ -269,15 +269,15 @@ class TemplateController extends AbstractController
             $tagsInput = $request->request->get('tags', '');
             $tagNames = array_filter(array_map('trim', explode(',', $tagsInput)));
 
-// Clear existing tags
+            // Clear existing tags
             $template->getTags()->clear(); // Assuming it's a Doctrine Collection
 
-// Optionally: if your relation is owning side, you may need to call removeTag() for each tag individually
-// foreach ($template->getTags() as $existingTag) {
-//     $template->removeTag($existingTag);
-// }
+            // Optionally: if your relation is owning side, you may need to call removeTag() for each tag individually
+            // foreach ($template->getTags() as $existingTag) {
+            //     $template->removeTag($existingTag);
+            // }
 
-// Process and re-attach tags
+            // Process and re-attach tags
             foreach ($tagNames as $tagName) {
                 $tag = $this->entityManager->getRepository(Tag::class)->findOneBy(['name' => $tagName]);
 
@@ -346,7 +346,7 @@ class TemplateController extends AbstractController
             $types = $request->request->all('question_type');
             $showInTable = $request->request->all('question_show_in_table');
 
-// Preload all existing questions for the template
+            // Preload all existing questions for the template
             $existingQuestions = [];
             foreach ($questionRepository->findBy(['template' => $template], ['position' => 'ASC']) as $existingQuestion) {
                 $existingQuestions[$existingQuestion->getId()] = $existingQuestion;
@@ -382,7 +382,7 @@ class TemplateController extends AbstractController
                 }
             }
 
-// Remove deleted questions
+            // Remove deleted questions
             foreach ($existingQuestions as $id => $existingQuestion) {
                 if (!in_array($id, $usedQuestionIds)) {
                     $this->entityManager->remove($existingQuestion);
@@ -639,6 +639,53 @@ class TemplateController extends AbstractController
                 'date' => $form->getSubmittedAt()->format('Y-m-d H:i'),
                 'keyAnswers' => implode('<br>', $answers)
 //                'actions' => '<a href="' . $this->generateUrl('form_view', ['id' => $form->getId()]) . '" class="btn btn-sm btn-primary">View</a>'
+            ];
+        }
+
+        return new JsonResponse(['data' => $data]);
+    }
+
+
+    #[Route('/myfiledforms', name: 'myfiledforms', methods: ['GET'])]
+    public function myfiledforms(
+        TemplateRepository $templateRepository,
+        FormRepository $formRepository
+    ): JsonResponse {
+        $user = $this->userRepo->find($this->security->getUser());
+
+        // Get all templates for this user
+        $templates = $templateRepository->findBy(['author' => $user]);
+
+        // Extract template IDs
+        $templateIds = array_map(fn($t) => $t->getId(), $templates);
+
+        // Get forms for those template IDs
+        $forms = $formRepository->createQueryBuilder('f')
+            ->leftJoin('f.template', 't')
+            ->addSelect('t')
+            ->where('f.template IN (:templateIds)')
+            ->setParameter('templateIds', $templateIds)
+            ->getQuery()
+            ->getResult();
+
+        $data = [];
+
+        foreach ($forms as $form) {
+
+            $answers = [];
+
+            foreach ($form->getAnswers() as $answer) {
+                $question = $answer->getQuestion();
+                if ($question->isShowInTable()) {
+                    $answers[] = sprintf('%s: %s', $question->getTitle(), $answer->getValue());
+                }
+            }
+
+            $data[] = [
+                'id' => $form->getId(),
+                'date' => $form->getSubmittedAt()->format('Y-m-d H:i'),
+                'template' => $form->getTemplate()->getTitle(),
+                'keyAnswers' => implode('<br>', $answers)
             ];
         }
 

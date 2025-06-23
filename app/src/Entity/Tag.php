@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\TagRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: TagRepository::class)]
@@ -15,6 +17,19 @@ class Tag
 
     #[ORM\Column(type:"string", unique:true)]
     private string $name;
+
+    #[ORM\ManyToMany(targetEntity: Template::class, mappedBy: 'tags')]
+    private Collection $templates;
+
+    public function __construct()
+    {
+        $this->templates = new ArrayCollection();
+    }
+
+    public function getTemplates(): Collection
+    {
+        return $this->templates;
+    }
 
     public function getName(): string
     {

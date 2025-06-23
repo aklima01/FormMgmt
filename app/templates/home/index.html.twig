@@ -28,39 +28,28 @@
         <!-- Top 5 Most Popular Templates -->
         <section class="mb-5">
             <h2>Top 5 Most Popular Templates</h2>
-            <table class="table table-hover">
+            <table class="table table-hover" id="popularTemplatesTable">
                 <thead>
                 <tr>
                     <th>ID</th>
                     <th>Template Name</th>
+                    <th>Description</th>
                     <th>Author</th>
                     <th>Filled Forms</th>
                 </tr>
                 </thead>
                 <tbody>
-                {% for i in 1..5 %}
-                    <tr>
-                        <td>{{ i }}</td>
-                        <td>Popular Template {{ i }}</td>
-                        <td>Author {{ i }}</td>
-                        <td>{{ 100 - i * 10 }}</td>
-                    </tr>
-                {% endfor %}
+
                 </tbody>
             </table>
         </section>
 
         <!-- Tag Cloud (Simple Badge List) -->
-        <section>
-            <h2>Tags</h2>
-            <div>
-                {% for tag in ['Business', 'Education', 'Health', 'Finance', 'Design', 'Technology', 'Travel'] %}
-                    <a href="/search?tag={{ tag | lower }}" class="badge bg-secondary me-1 mb-1" style="font-size: {{ 0.9 + (loop.index0 % 3) * 0.2 }}rem;">
-                        {{ tag }}
-                    </a>
-                {% endfor %}
-            </div>
-        </section>
+            <section id="popular-tags">
+                <h2>Tags</h2>
+                <div id="tag-badges"></div>
+            </section>
+
         </div>
 
     </div>
@@ -75,11 +64,15 @@
 
 
             $('#latest-templates').DataTable({
-                processing: true,
-                serverSide: true,
+                processing: false,
+                serverSide: false,
                 lengthChange: false,
                 searching: false,
                 responsive: true,
+                info: false,
+                paging: false,
+                ordering: false,
+
                 ajax: {
                     url: '/templates/latest',
                     type: 'GET',
@@ -106,15 +99,86 @@
                     { data: 'author', title: 'Author' }
                 ],
                 order: [[0, 'desc']], // initially order by hidden ID column descending
-                lengthMenu: [10, 25, 50, 100],
+
                 pageLength: 10,
-                language: {
-                    processing: "Loading..."
-                }
+
             });
 
         });
     </script>
+
+
+    <script>
+        $(document).ready(function () {
+            $('#popularTemplatesTable').DataTable({
+                ajax: {
+                    url: '/templates/popular',
+                    dataSrc: 'data'
+                },
+                columns: [
+                    { data: 'id', title: 'ID', visible: false },
+                    { data: 'title' },
+                    {
+                        data: 'description',
+                        title: 'Description',
+                        render: function (data, type, row, meta) {
+                            if (type === 'display' && data.length > 50) {
+                                // Show truncated description with ellipsis on display
+                                return data.substr(0, 50) + '…';
+                            }
+                            // For sorting, filtering and other types, return full data
+                            return data;
+                        }
+                    },
+                    { data: 'author' },
+                    { data: 'filledForms' }
+                ],
+                ordering: false,
+                searching: false,
+                paging: false,
+                info: false
+            });
+        });
+    </script>
+
+    <script>
+        $(document).ready(function () {
+            $.ajax({
+                url: '/tags/popular',
+                method: 'GET',
+                success: function (response) {
+                    const tags = response.data;
+                    const bgColors = [
+                        'bg-primary',
+                        'bg-secondary',
+                        'bg-success',
+                        'bg-danger',
+                        'bg-warning',
+                        'bg-info',
+                        'bg-dark'
+                    ];
+                    let html = '';
+                    tags.forEach((tag, index) => {
+                        const colorClass = bgColors[index % bgColors.length];
+                        html += `
+                        <a href="/search?tag=${encodeURIComponent(tag.name.toLowerCase())}"
+                           class="badge text-white ${colorClass} me-1 mb-1"
+                           style="font-size: 1rem;">
+                            ${tag.name}
+                        </a>
+                    `;
+                    });
+                    $('#tag-badges').html(html);
+                },
+                error: function () {
+                    $('#tag-badges').html('<span class="text-danger">Failed to load tags.</span>');
+                }
+            });
+        });
+    </script>
+
+
+
 
 
 {% endblock %}

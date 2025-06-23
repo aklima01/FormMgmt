@@ -66,16 +66,12 @@ class Template
         $this->author = $author;
     }
 
-    // Getter and setter
 
-
-    // Getter
     public function getTopic(): ?Topic
     {
         return $this->topic;
     }
 
-    // Setter
     public function setTopic(?Topic $topic): self
     {
         $this->topic = $topic;
@@ -196,7 +192,6 @@ class Template
         return $this;
     }
 
-    // In Template.php (Entity)
 
     public function clearTags(): void
     {

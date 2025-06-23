@@ -2,6 +2,8 @@
 
 namespace App\Controller;
 
+use App\Entity\Form;
+use App\Entity\Tag;
 use App\Entity\Template;
 use App\Repository\TemplateRepository;
 use App\Service\Common\DataTablesAjaxRequestService;
@@ -33,67 +35,18 @@ class HomeController extends AbstractController
     }
 
     #[Route('templates/latest', name: 'templates_latest_ajax', methods: ['GET'])]
-    public function latestTemplatesAjax(Request $request, EntityManagerInterface $em, PaginatorInterface $paginator): JsonResponse
+    public function latestTemplatesAjax(Request $request, EntityManagerInterface $em): JsonResponse
     {
-        $queryParams = $request->query->all();
+        $queryBuilder = $this->templateRepository->createQueryBuilder('t')
+            ->leftJoin('t.author', 'a')
+            ->addSelect('a')
+            ->orderBy('t.id', 'DESC') // Assuming higher ID = newer
+            ->setMaxResults(10);
 
-        $start = $queryParams['start'] ?? 0;
-        $length = $queryParams['length'] ?? 10;
-        $page = (int) floor($start / $length) + 1;
-
-        $orderColumnIndex = null;
-        $orderDir = 'asc';
-        $columns = [];
-
-        if (isset($queryParams['order'][0]['column'])) {
-            $orderColumnIndex = $queryParams['order'][0]['column'];
-        }
-
-        if (isset($queryParams['order'][0]['dir'])) {
-            $orderDir = $queryParams['order'][0]['dir'];
-        }
-
-        if (isset($queryParams['columns'])) {
-            $columns = $queryParams['columns'];
-        }
-
-        $queryBuilder = $this->templateRepository->createQueryBuilder('t');
-
-        $orderColumnName = 't.id'; // default
-
-        if ($orderColumnIndex !== null && isset($columns[$orderColumnIndex]['data'])) {
-            $columnData = $columns[$orderColumnIndex]['data'];
-
-            switch ($columnData) {
-                case 'id':
-                    $orderColumnName = 't.id';
-                    break;
-                case 'title':
-                    $orderColumnName = 't.title';
-                    break;
-                case 'description':
-                    $orderColumnName = 't.description';
-                    break;
-                case 'author':
-                    $queryBuilder->leftJoin('t.author', 'a');
-                    $orderColumnName = 'a.name';
-                    break;
-                default:
-                    $orderColumnName = 't.id';
-                    break;
-            }
-        }
-
-        $queryBuilder->orderBy($orderColumnName, $orderDir);
-
-        $pagination = $paginator->paginate(
-            $queryBuilder,
-            $page,
-            $length
-        );
+        $templates = $queryBuilder->getQuery()->getResult();
 
         $data = [];
-        foreach ($pagination->getItems() as $template) {
+        foreach ($templates as $template) {
             $data[] = [
                 'id' => $template->getId(),
                 'title' => $template->getTitle(),
@@ -103,10 +56,49 @@ class HomeController extends AbstractController
         }
 
         return new JsonResponse([
-            'draw' => (int) ($queryParams['draw'] ?? 0),
-            'recordsTotal' => $pagination->getTotalItemCount(),
-            'recordsFiltered' => $pagination->getTotalItemCount(),
+            'draw' => (int) ($request->query->get('draw', 0)),
+            'recordsTotal' => 10,
+            'recordsFiltered' => 10,
             'data' => $data,
+        ]);
+    }
+
+    #[Route('/templates/popular', name: 'templates_popular_ajax', methods: ['GET'])]
+    public function mostPopularTemplates(Request $request, EntityManagerInterface $em): JsonResponse
+    {
+        $qb = $em->createQueryBuilder();
+
+        $qb->select('t.id', 't.title', 't.description', 'a.name AS author', 'COUNT(f.id) AS filledForms')
+            ->from(Template::class, 't')
+            ->leftJoin('t.author', 'a')
+            ->leftJoin(Form::class, 'f', 'WITH', 'f.template = t')
+            ->groupBy('t.id, t.title, t.description, a.name')
+            ->orderBy('filledForms', 'DESC')
+            ->setMaxResults(10);
+
+        $results = $qb->getQuery()->getArrayResult();
+
+        return new JsonResponse([
+            'data' => $results,
+        ]);
+    }
+
+    #[Route('/tags/popular', name: 'tags_popular_ajax', methods: ['GET'])]
+    public function popularTags(EntityManagerInterface $em): JsonResponse
+    {
+        $qb = $em->createQueryBuilder();
+
+        $qb->select('tag.name', 'COUNT(t.id) AS templateCount')
+            ->from(Tag::class, 'tag')
+            ->leftJoin('tag.templates', 't')
+            ->groupBy('tag.id')
+            ->orderBy('templateCount', 'DESC')
+            ->setMaxResults(10);
+
+        $tags = $qb->getQuery()->getArrayResult();
+
+        return new JsonResponse([
+            'data' => $tags
         ]);
     }
 
