@@ -2,6 +2,22 @@
 
 {% block title %}Home Page{% endblock %}
 
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        /* Show pointer cursor on row hover */
+        #popularTemplatesTable tbody tr:hover {
+            cursor: pointer;
+        }
+    </style>
+
+    <style>
+        #latest-templates tbody tr {
+            cursor: pointer;
+        }
+    </style>
+{% endblock %}
+
 {% block body %}
     <div class="container mt-4">
         <div class="col-md-8 offset-md-2">
@@ -61,9 +77,7 @@
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             console.log('Home page scripts loaded.');
-
-
-            $('#latest-templates').DataTable({
+            const table = $('#latest-templates').DataTable({
                 processing: false,
                 serverSide: false,
                 lengthChange: false,
@@ -72,7 +86,6 @@
                 info: false,
                 paging: false,
                 ordering: false,
-
                 ajax: {
                     url: '/templates/latest',
                     type: 'GET',
@@ -82,34 +95,32 @@
                     }
                 },
                 columns: [
-                    { data: 'id', title: 'ID', visible: false }, // hide ID column from view but keep it for sorting/searching
+                    { data: 'id', title: 'ID', visible: false }, // hidden ID
                     { data: 'title', title: 'Title' },
                     {
                         data: 'description',
                         title: 'Description',
                         render: function (data, type, row, meta) {
                             if (type === 'display' && data.length > 50) {
-                                // Show truncated description with ellipsis on display
                                 return data.substr(0, 50) + '…';
                             }
-                            // For sorting, filtering and other types, return full data
                             return data;
                         }
                     },
                     { data: 'author', title: 'Author' }
                 ],
-                order: [[0, 'desc']], // initially order by hidden ID column descending
-
+                order: [[0, 'desc']],
                 pageLength: 10,
-
             });
 
-        });
-    </script>
+            // Add click event to rows
+            $('#latest-templates tbody').on('click', 'tr', function () {
+                const data = table.row(this).data();
+                if (data && data.id) {
+                    window.location.href = `/template/${data.id}/fill`;
+                }
+            });
 
-
-    <script>
-        $(document).ready(function () {
             $('#popularTemplatesTable').DataTable({
                 ajax: {
                     url: '/templates/popular',
@@ -117,32 +128,34 @@
                 },
                 columns: [
                     { data: 'id', title: 'ID', visible: false },
-                    { data: 'title' },
+                    { data: 'title', title: 'Title' },
                     {
                         data: 'description',
                         title: 'Description',
                         render: function (data, type, row, meta) {
                             if (type === 'display' && data.length > 50) {
-                                // Show truncated description with ellipsis on display
                                 return data.substr(0, 50) + '…';
                             }
-                            // For sorting, filtering and other types, return full data
                             return data;
                         }
                     },
-                    { data: 'author' },
-                    { data: 'filledForms' }
+                    { data: 'author', title: 'Author' },
+                    { data: 'filledForms', title: 'Filled' }
                 ],
                 ordering: false,
                 searching: false,
                 paging: false,
                 info: false
             });
-        });
-    </script>
 
-    <script>
-        $(document).ready(function () {
+            // Make rows clickable
+            $('#popularTemplatesTable tbody').on('click', 'tr', function () {
+                const data = table.row(this).data();
+                if (data && data.id) {
+                    window.location.href = `/template/${data.id}/fill`;
+                }
+            });
+
             $.ajax({
                 url: '/tags/popular',
                 method: 'GET',
@@ -174,11 +187,13 @@
                     $('#tag-badges').html('<span class="text-danger">Failed to load tags.</span>');
                 }
             });
+
+            $('#latest-templates tbody').on('mouseenter', 'tr', function () {
+                $(this).css('cursor', 'pointer');
+            });
+            //end
         });
     </script>
-
-
-
 
 
 {% endblock %}

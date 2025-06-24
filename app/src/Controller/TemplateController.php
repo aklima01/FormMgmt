@@ -81,18 +81,32 @@ class TemplateController extends AbstractController
         $orderColumn = $orderParts[0];
         $orderDir = strtolower($orderParts[1] ?? 'asc');
 
+        if($this->isGranted('ROLE_ADMIN')) {
+            $qb = $em->createQueryBuilder()
+            ->select('t', 'author')
+            ->from(Template::class, 't')
+            ->leftJoin('t.author', 'author');
+
+        }
+        else {
+            $currentUserId = $this->getUser()?->getId();
+            $qb = $em->createQueryBuilder()
+                ->select('t', 'author')
+                ->from(Template::class, 't')
+                ->leftJoin('t.author', 'author')
+                ->where('author.id = :currentUserId')
+                ->setParameter('currentUserId', $currentUserId);
+        }
+
+
+
+//        $currentUserId = $this->getUser()?->getId();
 //        $qb = $em->createQueryBuilder()
 //            ->select('t', 'author')
 //            ->from(Template::class, 't')
-//            ->leftJoin('t.author', 'author');
-
-        $currentUserId = $this->getUser()?->getId();
-        $qb = $em->createQueryBuilder()
-            ->select('t', 'author')
-            ->from(Template::class, 't')
-            ->leftJoin('t.author', 'author')
-            ->where('author.id = :currentUserId')
-            ->setParameter('currentUserId', $currentUserId);
+//            ->leftJoin('t.author', 'author')
+//            ->where('author.id = :currentUserId')
+//            ->setParameter('currentUserId', $currentUserId);
 
         if ($search) {
             $qb->andWhere('t.title LIKE :search OR t.description LIKE :search OR author.name LIKE :search')

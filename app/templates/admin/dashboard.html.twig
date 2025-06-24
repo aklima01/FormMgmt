@@ -1,3 +1,4 @@
+{# templates/admin/dashboard.html.twig #}
 {% extends 'base.html.twig' %}
 
 {% block title %}User Management{% endblock %}
@@ -15,7 +16,7 @@
             </li>
             <li class="nav-item" role="presentation">
                 <button class="nav-link" id="templates-tab" data-bs-toggle="tab" data-bs-target="#templates" type="button" role="tab" aria-controls="templates" aria-selected="false">
-                    Templates
+                    All Templates
                 </button>
             </li>
         </ul>
@@ -48,7 +49,7 @@
                         </div>
                     </div>
 
-                    <table id="users-table" class="table  table-hover" style="width:100%">
+                    <table id="users-table" class="table table-hover" style="width:100%">
                         <thead class="table-light">
                         <tr>
                             <th><input type="checkbox" id="select-all"></th>
@@ -63,11 +64,27 @@
                 </form>
             </div>
 
-            <!-- Templates Tab -->
+            <!-- My Templates Tab -->
             <div class="tab-pane fade" id="templates" role="tabpanel" aria-labelledby="templates-tab">
-                <div class="p-3 border rounded bg-light">
-                    <p>This is the <strong>Templates</strong> section. Add your template-related UI and logic here.</p>
-                    {# Add template list, management options, upload forms, etc. here #}
+                <div class="mb-2">
+                    <button id="bulkDeleteBtn" class="btn btn-danger btn-sm" disabled>
+                        <i class="bi bi-trash"></i> Delete
+                    </button>
+                </div>
+                <div class="table-responsive">
+                    <table id="templateTable" class="table table-hover align-middle">
+                        <thead class="table-light">
+                        <tr>
+                            <th><input type="checkbox" id="selectAll"></th>
+                            <th>ID</th>
+                            <th>Title</th>
+                            <th>Image</th>
+                            <th>Description</th>
+                            <th>Actions</th>
+                        </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
                 </div>
             </div>
         </div>
@@ -80,9 +97,7 @@
                         <h5 class="modal-title" id="deleteConfirmModalLabel">Confirm Deletion</h5>
                         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
-                    <div class="modal-body">
-                        Are you sure you want to delete the selected users?
-                    </div>
+                    <div class="modal-body">Are you sure you want to delete the selected users?</div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
                         <button type="button" class="btn btn-danger btn-sm" id="confirm-delete-btn">Yes, Delete</button>
@@ -90,18 +105,9 @@
                 </div>
             </div>
         </div>
-
-{#        <!-- Toast Notification -->#}
-{#        <div class="toast align-items-center text-bg-warning border-0 position-fixed bottom-0 end-0 m-3" role="alert" aria-live="assertive" aria-atomic="true" id="noUsersToast" style="z-index: 1056;">#}
-{#            <div class="d-flex">#}
-{#                <div class="toast-body">#}
-{#                    Please select at least one user before performing this action.#}
-{#                </div>#}
-{#                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>#}
-{#            </div>#}
-{#        </div>#}
     </div>
 {% endblock %}
+
 
 {% block stylesheets %}
     {{ parent() }}
@@ -109,6 +115,9 @@
 
 {% block javascripts %}
     {{ parent() }}
+
+    {# Load marked.js FIRST #}
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
     <script>
         $(document).ready(function () {
@@ -210,4 +219,105 @@
             });
         });
     </script>
+
+
+    {# template table script#}
+    <script>
+        $(document).ready(function () {
+            const templateTable = $('#templateTable').DataTable({
+                processing: true,
+                serverSide: true,
+                ajax: "{{ path('template_ajax') }}",
+                order: [[0, 'desc']],
+                columns: [
+                    {
+                        data: 'id',
+                        orderable: false,
+                        searchable: false,
+                        render: data => `<input type="checkbox" class="row-checkbox" value="${data}">`
+                    },
+                    { data: 'id' },
+                    { data: 'title' },
+                    { data: 'image', orderable: false, searchable: false },
+                    {
+                        data: 'description',
+                        render: (data, type) => type === 'display' ? marked.parse(data || '') : data
+                    },
+                    {
+                        data: 'actions',
+                        orderable: false,
+                        visible: false,
+                        searchable: false,
+
+                        render: data => `
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-light" data-bs-toggle="dropdown">
+                                    <i class="bi bi-three-dots"></i>
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="${data.editUrl}">Edit</a></li>
+                                    <li><a class="dropdown-item" href="${data.fillUrl}">Fill</a></li>
+                                    <li><a class="dropdown-item text-danger" href="${data.deleteUrl}">Delete</a></li>
+                                </ul>
+                            </div>`
+                    }
+                ],
+                createdRow: (row, data) => {
+                    $(row).attr('data-href', data.actions.editUrl);
+                    $(row).css('cursor', 'pointer');
+                }
+            });
+
+            $('#selectAll').on('click', function () {
+                const checked = this.checked;
+                $('.row-checkbox').prop('checked', checked);
+                $('#bulkDeleteBtn').prop('disabled', $('.row-checkbox:checked').length === 0);
+            });
+
+            $(document).on('change', '.row-checkbox', function () {
+                const allChecked = $('.row-checkbox').length === $('.row-checkbox:checked').length;
+                $('#selectAll').prop('checked', allChecked);
+                $('#bulkDeleteBtn').prop('disabled', $('.row-checkbox:checked').length === 0);
+            });
+
+            $('#bulkDeleteBtn').on('click', function () {
+                const ids = $('.row-checkbox:checked').map(function () {
+                    return $(this).val();
+                }).get();
+
+                if (ids.length === 0) return;
+
+                $.ajax({
+                    url: "{{ path('template_bulk_delete') }}",
+                    type: 'POST',
+                    data: JSON.stringify({ ids: ids }),
+                    contentType: 'application/json',
+                    success: function () {
+                        templateTable.ajax.reload(null, false);
+                        $('#selectAll').prop('checked', false);
+                        $('#bulkDeleteBtn').prop('disabled', true);
+                    },
+                    error: function () {
+                        alert('Error deleting templates.');
+                    }
+                });
+            });
+
+            $(document).on('click', '#templateTable tbody tr', function (e) {
+                if (
+                    $(e.target).is('a, button, i, input[type="checkbox"], .row-checkbox') ||
+                    $(e.target).closest('.dropdown').length
+                ) return;
+
+                const href = $(this).attr('data-href');
+                if (href) {
+                    window.location.href = href;
+                }
+            });
+        });
+    </script>
+
+
+
+
 {% endblock %}
