@@ -31,7 +31,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 
 #[Route('/template', name: 'template_')]
-#[IsGranted('ACTIVE_USER')]
+
 class TemplateController extends AbstractController
 {
 
