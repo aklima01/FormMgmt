@@ -48,6 +48,19 @@ class Template
     #[ORM\JoinColumn(name: 'topic_id', referencedColumnName: 'id', nullable: true, onDelete: 'SET NULL')]
     private ?Topic $topic = null;
 
+    #[ORM\OneToMany(mappedBy: 'template', targetEntity: Like::class, cascade: ['remove'])]
+    private Collection $likes;
+
+    public function getLikesCount(): int
+    {
+        return $this->likes->count();
+    }
+
+    public function isLikedBy(User $user): bool
+    {
+        return $this->likes->exists(fn($key, Like $like) => $like->getUser() === $user);
+    }
+
     public function __construct()
     {
         $this->tags = new ArrayCollection();
