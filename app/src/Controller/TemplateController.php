@@ -98,16 +98,6 @@ class TemplateController extends AbstractController
                 ->setParameter('currentUserId', $currentUserId);
         }
 
-
-
-//        $currentUserId = $this->getUser()?->getId();
-//        $qb = $em->createQueryBuilder()
-//            ->select('t', 'author')
-//            ->from(Template::class, 't')
-//            ->leftJoin('t.author', 'author')
-//            ->where('author.id = :currentUserId')
-//            ->setParameter('currentUserId', $currentUserId);
-
         if ($search) {
             $qb->andWhere('t.title LIKE :search OR t.description LIKE :search OR author.name LIKE :search')
                 ->setParameter('search', '%' . $search . '%');
@@ -132,8 +122,6 @@ class TemplateController extends AbstractController
                 'image' => $t->getImageUrl() ? sprintf('<img src="%s" class="img-fluid" width="50" height="50"/>', $t->getImageUrl()) : '<em>No image</em>',
 
                 'description' => $t->getDescription() ?: '<em>No description</em>',
-
-
 
                 'author' => $t->getAuthor()?->getName() ?? '',
                 'actions' => [
@@ -285,12 +273,7 @@ class TemplateController extends AbstractController
             $tagNames = array_filter(array_map('trim', explode(',', $tagsInput)));
 
             // Clear existing tags
-            $template->getTags()->clear(); // Assuming it's a Doctrine Collection
-
-            // Optionally: if your relation is owning side, you may need to call removeTag() for each tag individually
-            // foreach ($template->getTags() as $existingTag) {
-            //     $template->removeTag($existingTag);
-            // }
+            $template->getTags()->clear();
 
             // Process and re-attach tags
             foreach ($tagNames as $tagName) {
@@ -893,7 +876,5 @@ class TemplateController extends AbstractController
 
         return new JsonResponse($results);
     }
-
-
-
+    
 }

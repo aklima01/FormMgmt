@@ -215,52 +215,112 @@
 {#                    {% endif %}#}
 {#                </section>#}
 
+{#                <!-- Comments Section -->#}
+{#                <section class="mt-5">#}
+{#                    <div class="card border-0 shadow-sm">#}
+{#                        <div class="card-body">#}
+{#                            <h4 class="card-title mb-4">#}
+{#                                <i class="bi bi-chat-left-dots-fill me-2"></i>Comments#}
+{#                            </h4>#}
+
+{#                            <!-- Existing Comments -->#}
+{#                            <div class="mb-4">#}
+{#                                <div class="mb-3">#}
+{#                                    <div class="fw-semibold">Alice</div>#}
+{#                                    <div class="text-body">Interesting topic! I love apples 🍏</div>#}
+{#                                    <div class="text-muted small">2 minutes ago</div>#}
+{#                                </div>#}
+{#                                <div class="mb-3">#}
+{#                                    <div class="fw-semibold">Bob</div>#}
+{#                                    <div class="text-body">I prefer pears 😅</div>#}
+{#                                    <div class="text-muted small">Just now</div>#}
+{#                                </div>#}
+{#                            </div>#}
+
+{#                            {% if canEdit %}#}
+{#                                <!-- Comment Form -->#}
+{#                                <div class="border-top pt-3">#}
+{#                                    <h6 class="mb-3">#}
+{#                                        <i class="bi bi-pencil-fill me-1 text-primary"></i>Leave a Comment#}
+{#                                    </h6>#}
+{#                                    <form method="post" action="#">#}
+{#                                        <div class="mb-3">#}
+{#                                            <textarea class="form-control" name="comment" placeholder="Write your comment here..." rows="3" required></textarea>#}
+{#                                        </div>#}
+{#                                        <button type="submit" class="btn btn-sm btn-primary">#}
+{#                                            <i class="bi bi-send-fill me-1"></i> Post Comment#}
+{#                                        </button>#}
+{#                                    </form>#}
+{#                                </div>#}
+{#                            {% else %}#}
+{#                                <div class="alert alert-info d-flex align-items-center mt-4" role="alert">#}
+{#                                    <i class="bi bi-lock-fill me-2"></i>#}
+{#                                    <div>Please <a href="{{ path('app_login') }}" class="text-decoration-underline ms-1">log in</a> to leave a comment.</div>#}
+{#                                </div>#}
+{#                            {% endif %}#}
+{#                        </div>#}
+{#                    </div>#}
+{#                </section>#}
+
+{#                <!-- Comments Section -->#}
+{#                <div class="mt-5">#}
+{#                    <h5>Comments</h5>#}
+{#                    <div id="comment-list" class="mb-3"></div>#}
+
+{#                    {% if app.user %}#}
+{#                        <div class="input-group">#}
+{#                            <textarea id="comment-input" class="form-control" placeholder="Write a comment..."></textarea>#}
+{#                            <button id="comment-submit" class="btn btn-primary">Post</button>#}
+{#                        </div>#}
+{#                    {% else %}#}
+{#                        <div class="alert alert-info d-flex align-items-center mt-4" role="alert">#}
+{#                            <i class="bi bi-lock-fill me-2"></i>#}
+{#                            Please <a href="{{ path('app_login') }}" class="ms-1 text-decoration-underline">log in</a> to post comment.#}
+{#                        </div>#}
+{#                    {% endif %}#}
+{#                </div>#}
+
                 <!-- Comments Section -->
                 <section class="mt-5">
-                    <div class="card border-0 shadow-sm">
+                    <div class="card border-0 shadow-sm rounded-3">
                         <div class="card-body">
                             <h4 class="card-title mb-4">
-                                <i class="bi bi-chat-left-dots-fill me-2"></i>Comments
+                                <i class="bi bi-chat-left-dots-fill me-2 text-primary"></i>Comments
                             </h4>
 
-                            <!-- Existing Comments -->
-                            <div class="mb-4">
-                                <div class="mb-3">
-                                    <div class="fw-semibold">Alice</div>
-                                    <div class="text-body">Interesting topic! I love apples 🍏</div>
-                                    <div class="text-muted small">2 minutes ago</div>
-                                </div>
-                                <div class="mb-3">
-                                    <div class="fw-semibold">Bob</div>
-                                    <div class="text-body">I prefer pears 😅</div>
-                                    <div class="text-muted small">Just now</div>
-                                </div>
+                            <!-- Comment List -->
+                            <div id="comment-list" class="mb-4">
+                                {# Comments will be loaded via AJAX or rendered here #}
                             </div>
 
-                            {% if canEdit %}
+                            {% if app.user %}
                                 <!-- Comment Form -->
                                 <div class="border-top pt-3">
                                     <h6 class="mb-3">
                                         <i class="bi bi-pencil-fill me-1 text-primary"></i>Leave a Comment
                                     </h6>
-                                    <form method="post" action="#">
-                                        <div class="mb-3">
-                                            <textarea class="form-control" name="comment" placeholder="Write your comment here..." rows="3" required></textarea>
-                                        </div>
-                                        <button type="submit" class="btn btn-sm btn-primary">
-                                            <i class="bi bi-send-fill me-1"></i> Post Comment
+
+                                    <div class="input-group">
+                                        <textarea id="comment-input" class="form-control" rows="2" placeholder="Write your comment here..." required></textarea>
+                                        <button id="comment-submit" class="btn btn-primary">
+                                            <i class="bi bi-send-fill me-1"></i> Post
                                         </button>
-                                    </form>
+                                    </div>
+
                                 </div>
                             {% else %}
+                                <!-- Login Alert -->
                                 <div class="alert alert-info d-flex align-items-center mt-4" role="alert">
                                     <i class="bi bi-lock-fill me-2"></i>
-                                    <div>Please <a href="{{ path('app_login') }}" class="text-decoration-underline ms-1">log in</a> to leave a comment.</div>
+                                    <div>
+                                        Please <a href="{{ path('app_login') }}" class="text-decoration-underline ms-1">log in</a> to leave a comment.
+                                    </div>
                                 </div>
                             {% endif %}
                         </div>
                     </div>
                 </section>
+
 
 
             </div>
@@ -292,4 +352,70 @@
             });
         });
     </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/customParseFormat.js"></script>
+    <script>
+        dayjs.extend(window.dayjs_plugin_customParseFormat);
+    </script>
+
+    <script>
+        $(document).ready(function () {
+            const templateId = {{ template.id }};
+
+            // function loadComments() {
+            //     $.get(`/template/${templateId}/comments`, function (data) {
+            //         const list = $('#comment-list').empty();
+            //         data.forEach(c => {
+            //             // list.append(`<div class="border-bottom py-2"><strong>${c.author}</strong>: ${c.content}<br><small>${c.createdAt}</small></div>`);
+            //
+            //         });
+            //     });
+            // }
+
+            function loadComments() {
+                $.get(`/template/${templateId}/comments`, function (data) {
+                    const list = $('#comment-list').empty();
+                    data.forEach(c => {
+                        const formatted = dayjs(c.createdAt).format('D MMMM YYYY, h:mm A');
+                        list.append(`
+                <div class="border-bottom py-2">
+                    <strong>${c.author}</strong>: ${c.content}<br>
+                    <small>${formatted}</small>
+                </div>
+            `);
+                    });
+                });
+            }
+
+
+
+            $('#comment-submit').click(function () {
+                const content = $('#comment-input').val().trim();
+                if (!content) return;
+
+                $.ajax({
+                    url: `/template/${templateId}/comment`,
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({content}),
+                    success: function () {
+                        $('#comment-input').val('');
+                        loadComments();
+                    },
+                    error: function () {
+                        $('#comment-input').val('');
+                        loadComments();
+                       // alert('Failed to post comment.');
+                    }
+                });
+            });
+
+            setInterval(loadComments, 5000);
+            loadComments();
+        });
+    </script>
+
+
+
 {% endblock %}

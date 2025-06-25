@@ -51,6 +51,32 @@ class Template
     #[ORM\OneToMany(mappedBy: 'template', targetEntity: Like::class, cascade: ['remove'])]
     private Collection $likes;
 
+
+    #[ORM\OneToMany(mappedBy: 'template', targetEntity: Comment::class, cascade: ['remove'])]
+    #[ORM\OrderBy(['createdAt' => 'ASC'])]
+    private Collection $comments;
+
+    public function getLikes(): Collection
+    {
+        return $this->likes;
+    }
+
+    public function setLikes(Collection $likes): void
+    {
+        $this->likes = $likes;
+    }
+
+    public function getComments(): Collection
+    {
+        return $this->comments;
+    }
+
+    public function setComments(Collection $comments): void
+    {
+        $this->comments = $comments;
+    }
+
+
     public function getLikesCount(): int
     {
         return $this->likes->count();
