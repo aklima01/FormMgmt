@@ -1,3 +1,3 @@
 # FormMgmt
-FormMgmt
+Web application for customisable forms
 
