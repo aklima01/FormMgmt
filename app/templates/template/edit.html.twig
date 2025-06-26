@@ -185,7 +185,7 @@
                 <!-- Aggregated Results Tab -->
                 <div class="tab-pane fade" id="aggregation" role="tabpanel" aria-labelledby="aggregation-tab">
                     <div class="container mt-4">
-                        <h4>📊 Aggregated Statistics</h4>
+                        <h4>📊 Aggregated Results</h4>
                         <div id="aggregateResults" class="mt-3">
                             <div class="text-muted">Loading statistics...</div>
                         </div>
@@ -556,12 +556,15 @@
     <script>
         const templateId = {{ template.id | json_encode|raw  }};
         const userRoles = {{ app.user.roles|json_encode|raw }};
+        console.log(userRoles);
     </script>
 
     {#Results table#}
     <script>
         $(document).ready(function () {
             const templateId = {{ template.id|json_encode|raw }};
+            const userRoles = {{ app.user.roles|json_encode|raw }};
+            const isAdmin = userRoles.includes('ROLE_ADMIN');
 
             const table = $('#resultsTable').DataTable({
 
@@ -603,18 +606,21 @@
                     }
                 ],
                 createdRow: function (row, data) {
-                    $(row).attr('data-href', `/form/${data.id}/edit`);
+                    $(row).attr('data-href', isAdmin ? `/form/${data.id}/edit` : `/form/${data.id}/view`);
                     $(row).css('cursor', 'pointer');
                 }
             });
 
+        // Handle row click (excluding the dropdown column)
             // Handle row click (excluding the dropdown column)
             $('#resultsTable tbody').on('click', 'tr', function (e) {
-                // Skip click if it's inside the dropdown menu or button
                 if ($(e.target).closest('.dropdown').length === 0) {
                     const rowData = table.row(this).data();
                     if (rowData && rowData.id) {
-                        window.location.href = `/form/${rowData.id}/edit`;
+                        const url = isAdmin
+                            ? `/form/${rowData.id}/edit`
+                            : `/form/${rowData.id}/view`;
+                        window.location.href = url;
                     }
                 }
             });
