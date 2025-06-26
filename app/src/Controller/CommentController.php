@@ -33,7 +33,7 @@ class CommentController extends AbstractController
 
         return new JsonResponse([
             'id' => $comment->getId(),
-            'author' => $comment->getAuthor()->getUserIdentifier(),
+            'author' => $comment->getUser()->getUserIdentifier(),
             'content' => $comment->getContent(),
             'createdAt' => $comment->getCreatedAt()->format('Y-m-d H:i:s')
         ]);
