@@ -96,7 +96,7 @@
             const table = $('#templateTable').DataTable({
                 processing: true,
                 serverSide: true,
-                ajax: "{{ path('template_ajax') }}",
+                ajax: "{{ path('template_ajax_user', { userId: user.id }) }}",
                 order: [[0, 'desc']],
                 columns: [
                     {
@@ -194,7 +194,7 @@
                 serverSide: true,
                 order: [[3, 'desc']],
                 ajax: {
-                    url: '/form/ajax/forms',
+                    url: "{{ path('form_ajax_user', { userId: user.id }) }}",
                     type: 'GET',
                 },
                 columns: [

@@ -185,7 +185,7 @@
                 <!-- Aggregated Results Tab -->
                 <div class="tab-pane fade" id="aggregation" role="tabpanel" aria-labelledby="aggregation-tab">
                     <div class="container mt-4">
-                        <h4>📊 Aggregated Results</h4>
+                        <h4>Aggregated Results</h4>
                         <div id="aggregateResults" class="mt-3">
                             <div class="text-muted">Loading statistics...</div>
                         </div>
@@ -567,7 +567,7 @@
             const isAdmin = userRoles.includes('ROLE_ADMIN');
 
             const table = $('#resultsTable').DataTable({
-
+                order : [[0, 'desc']],
                 ajax: {
                     url: `/template/${templateId}/results/data`,
                     method: 'GET',

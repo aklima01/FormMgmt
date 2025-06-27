@@ -2,9 +2,11 @@
 
 namespace App\Controller;
 
+use App\Repository\User\UserRepository;
 use App\Service\User\UserManagementServiceInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
@@ -12,9 +14,14 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ACTIVE_USER')]
 class UserController extends AbstractController
 {
+
+
     private UserManagementServiceInterface $userManagementService;
 
-    public function __construct(UserManagementServiceInterface $userManagementService)
+    public function __construct
+    (
+        UserManagementServiceInterface $userManagementService,
+    )
     {
         $this->userManagementService = $userManagementService;
     }
@@ -35,6 +42,21 @@ class UserController extends AbstractController
     public function bulkAction(Request $request)
     {
         return $this->userManagementService->handleBulkActionRequest($request);
+    }
+
+
+    #[Route('/users/{id}', name: 'admin_user_show', methods: ['GET'])]
+    public function show(int $id, UserRepository $userRepository): Response
+    {
+        $user = $userRepository->find($id);
+
+        if (!$user) {
+            throw $this->createNotFoundException('User not found');
+        }
+
+        return $this->render('admin/userprofile.html.twig', [
+            'user' => $user,
+        ]);
     }
 
 }

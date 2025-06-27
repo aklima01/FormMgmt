@@ -112,83 +112,6 @@ class TemplateService
         $this->em->flush();
     }
 
-    public function getMyFiledFormsData(
-        User $user,
-        Request $request,
-        DataTablesAjaxRequestService $dataTablesRequest
-    ): array {
-
-        $input = $request->isMethod('GET') ? $request->query : $request->request;
-        foreach (['length' => 10, 'start' => 0, 'draw' => 0] as $key => $default) {
-            if (!$input->has($key)) {
-                $input->set($key, $default);
-            }
-        }
-
-        $qb = $this->formRepository->createQueryBuilder('f')
-            ->leftJoin('f.template', 't')
-            ->addSelect('t')
-            ->where('f.user = :user')
-            ->setParameter('user', $user);
-
-        $search = $dataTablesRequest->getSearchText();
-        if ($search !== '') {
-            $qb->andWhere('t.title LIKE :search OR f.id LIKE :search')
-                ->setParameter('search', '%' . $search . '%');
-        }
-
-        $columnMap = [
-            0 => 'f.id',
-            1 => 'f.submittedAt',
-            2 => 't.title',
-        ];
-        $orderBy = $dataTablesRequest->getSortText($columnMap);
-        if ($orderBy !== '') {
-            foreach (explode(',', $orderBy) as $orderPart) {
-                [$field, $dir] = explode(' ', trim($orderPart));
-                $qb->addOrderBy($field, strtoupper($dir));
-            }
-        } else {
-            $qb->orderBy('f.submittedAt', 'DESC');
-        }
-
-        $qb->setFirstResult($dataTablesRequest->getStart())
-            ->setMaxResults($dataTablesRequest->getPageSize());
-
-        $totalRecords = $this->formRepository->count(['user' => $user]);
-
-        $filteredQb = clone $qb;
-        $filteredQb->select('COUNT(f.id)');
-        $filteredCount = (int) $filteredQb->getQuery()->getSingleScalarResult();
-
-        $forms = $qb->getQuery()->getResult();
-
-        $data = [];
-        foreach ($forms as $form) {
-            $answers = [];
-            foreach ($form->getAnswers() as $answer) {
-                $question = $answer->getQuestion();
-                if ($question->isShowInTable()) {
-                    $answers[] = sprintf('%s: %s', $question->getTitle(), $answer->getValue());
-                }
-            }
-
-            $data[] = [
-                'id' => $form->getId(),
-                'date' => $form->getSubmittedAt()->format('Y-m-d H:i'),
-                'template' => $form->getTemplate()->getTitle(),
-                'keyAnswers' => implode('<br>', $answers),
-            ];
-        }
-
-        return [
-            'draw' => (int) $dataTablesRequest->getRequestData()['draw'] ?? 0,
-            'recordsTotal' => $totalRecords,
-            'recordsFiltered' => $filteredCount,
-            'data' => $data,
-        ];
-    }
-
     public function getResultsData(Template $template): array
     {
         $forms = $this->formRepository->findBy(['template' => $template]);
@@ -626,5 +549,80 @@ class TemplateService
             'data' => $data,
         ];
     }
+
+    public function getTemplatesByUserId(Request $request, int $userId): array
+    {
+        $dtRequest = new DataTablesAjaxRequestService($request);
+
+        $start = $dtRequest->getStart();
+        $length = $dtRequest->getLength();
+        $search = $dtRequest->getSearchText();
+
+        $columnsMap = [
+            0 => 't.id',
+            1 => 't.title',
+            2 => 't.imageUrl',
+            3 => 't.description',
+            4 => 'author.name',
+        ];
+
+        $orderBy = $dtRequest->getSortText($columnsMap) ?: 't.id desc';
+        $orderParts = explode(' ', explode(',', $orderBy)[0]);
+        $orderColumn = $orderParts[0];
+        $orderDir = strtolower($orderParts[1] ?? 'asc');
+
+        $user = $this->userRepo->find($userId);
+        $isAdmin = $this->security->isGranted('ROLE_ADMIN');
+
+        $qb = $this->em->createQueryBuilder()
+            ->select('t', 'author')
+            ->from(Template::class, 't')
+            ->leftJoin('t.author', 'author')
+            ->where('author.id = :currentUserId')
+            ->setParameter('currentUserId', $user?->getId());
+
+        if ($search) {
+            $qb->andWhere('t.title LIKE :search OR t.description LIKE :search OR author.name LIKE :search')
+                ->setParameter('search', '%' . $search . '%');
+        }
+
+        $filteredCount = (clone $qb)
+            ->select('COUNT(t.id)')
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        $qb->orderBy($orderColumn, $orderDir)
+            ->setFirstResult($start)
+            ->setMaxResults($length);
+
+        $templates = $qb->getQuery()->getResult();
+        $total = $this->templateRepository->count([]);
+
+        $data = array_map(function (Template $t) {
+            return [
+                'id' => $t->getId(),
+                'title' => $t->getTitle(),
+                'image' => $t->getImageUrl() ? sprintf('<img src="%s" class="img-fluid" width="50" height="50"/>', $t->getImageUrl()) : '<em>No image</em>',
+                'description' => $t->getDescription() ?: '<em>No description</em>',
+                'author' => $t->getAuthor()?->getName() ?? '',
+                'actions' => [
+                    'editUrl'   => '/template/' . $t->getId() . '/edit',
+                    'fillUrl'   => '/template/' . $t->getId() . '/fill',
+                    'deleteUrl' => '/template/' . $t->getId() . '/delete',
+                    'id' => $t->getId(),
+                    'csrfToken' => $this->csrfTokenManager->getToken('delete' . $t->getId())->getValue(),
+                ],
+            ];
+        }, $templates);
+
+        return [
+            'draw' => $dtRequest->getRequestData()['draw'] ?? 0,
+            'recordsTotal' => $total,
+            'recordsFiltered' => $filteredCount,
+            'data' => $data,
+        ];
+    }
+
+
 
 }

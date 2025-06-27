@@ -30,6 +30,12 @@ class TemplateController extends AbstractController
     )
     {}
 
+    #[Route('/', name: 'list', methods: ['GET'])]
+    public function list(): Response
+    {
+        return $this->render('template/list.html.twig', []);
+    }
+
     #[Route('/ajax/templates', name: 'ajax', methods: ['GET'])]
     public function handleAjaxTemplatesRequest(Request $request): JsonResponse
     {
@@ -37,10 +43,11 @@ class TemplateController extends AbstractController
         return new JsonResponse($data);
     }
 
-    #[Route('/', name: 'list', methods: ['GET'])]
-    public function list(TemplateRepository $templateRepository): Response
+    #[Route('/ajax/templates/{userId}', name: 'ajax_user', methods: ['GET'])]
+    public function handleAjaxUserTemplatesRequest(int $userId, Request $request): JsonResponse
     {
-        return $this->render('template/list.html.twig', []);
+        $data = $this->templateService->getTemplatesByUserId($request, $userId);
+        return new JsonResponse($data);
     }
 
     #[Route('/create', name: 'create', methods: ['GET', 'POST'])]
@@ -160,18 +167,6 @@ class TemplateController extends AbstractController
 
         $data = $this->templateService->getResultsData($template);
         return new JsonResponse(['data' => $data]);
-    }
-
-    #[Route('/myfiledforms', name: 'myfiledforms', methods: ['GET', 'POST'])]
-    public function myfiledforms(
-        Request $request,
-        DataTablesAjaxRequestService $dataTablesRequest
-    ): JsonResponse {
-
-        $user = $this->userRepo->find($this->security->getUser());
-        $result = $this->templateService->getMyFiledFormsData($user, $request, $dataTablesRequest);
-
-        return new JsonResponse($result);
     }
 
     #[Route('/bulk-delete', name: 'bulk_delete', methods: ['POST'])]

@@ -2,11 +2,13 @@
 
 namespace App\Controller;
 
+use App\Entity\Answer;
 use App\Entity\Form;
 use App\Repository\AnswerRepository;
 use App\Repository\FormRepository;
 use App\Repository\QuestionRepository;
 use App\Repository\TemplateRepository;
+use App\Repository\User\UserRepository;
 use App\Service\Common\DataTablesAjaxRequestService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -25,12 +27,10 @@ class FormController extends AbstractController
         private readonly FormRepository $formRepository,
         private readonly QuestionRepository $questionRepository,
         private readonly AnswerRepository $answerRepository,
-        private readonly TemplateRepository $templateRepository,
         private readonly EntityManagerInterface $entityManager,
+        private readonly UserRepository $userRepository,
     )
-    {
-
-    }
+    {}
 
     #[Route('/{id}/view', name: '_view')]
     public function view(int $id): Response
@@ -80,6 +80,81 @@ class FormController extends AbstractController
         $orderDir = strtolower($orderDir);
 
         $user = $security->getUser(); // Get current user
+        if (!$user) {
+            return new JsonResponse(['error' => 'Unauthorized'], 401);
+        }
+
+        $qb = $em->createQueryBuilder()
+            ->select('f', 'template')
+            ->from(Form::class, 'f')
+            ->leftJoin('f.template', 'template')
+            ->where('f.user = :user') // Filter by user
+            ->setParameter('user', $user);
+
+        // Apply search
+        if ($search) {
+            $qb->andWhere('LOWER(template.title) LIKE :search')
+                ->setParameter('search', '%' . strtolower($search) . '%');
+        }
+
+        // Count after filter
+        $filteredCount = (clone $qb)
+            ->select('COUNT(f.id)')
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        // Apply order and pagination
+        $qb->orderBy($orderColumn, $orderDir)
+            ->setFirstResult($start)
+            ->setMaxResults($length);
+
+        $forms = $qb->getQuery()->getResult();
+
+        // Count total forms for this user (without filters)
+        $total = $formRepository->count(['user' => $user]);
+
+        $data = array_map(function (Form $f) {
+            return [
+                'id' => $f->getId(),
+                'template' => $f->getTemplate()?->getTitle() ?? '<em>Deleted</em>',
+                'submittedAt' => $f->getSubmittedAt()?->format('Y-m-d H:i:s') ?? '',
+            ];
+        }, $forms);
+
+        return new JsonResponse([
+            'draw' => $dtRequest->getRequestData()['draw'] ?? 0,
+            'recordsTotal' => $total,
+            'recordsFiltered' => $filteredCount,
+            'data' => $data,
+        ]);
+    }
+
+    #[Route('/ajax/forms/{userId}', name: 'ajax_user', methods: ['GET'])]
+    public function getUserForms(
+        int $userId,
+        Request $request,
+        EntityManagerInterface $em,
+        FormRepository $formRepository,
+        Security $security // Inject Symfony Security service
+    ): JsonResponse {
+        $dtRequest = new DataTablesAjaxRequestService($request);
+
+        $start = $dtRequest->getStart();
+        $length = $dtRequest->getLength();
+        $search = $dtRequest->getSearchText();
+
+        // Map DataTables column indexes to DQL aliases/fields for sorting
+        $columnsMap = [
+            0 => 'f.id',
+            1 => 'template.title',
+            2 => 'f.submittedAt',
+        ];
+
+        $orderBy = $dtRequest->getSortText($columnsMap) ?: 'f.id desc';
+        [$orderColumn, $orderDir] = explode(' ', $orderBy) + [null, 'asc'];
+        $orderDir = strtolower($orderDir);
+
+        $user = $this->userRepository->find($userId);
         if (!$user) {
             return new JsonResponse(['error' => 'Unauthorized'], 401);
         }

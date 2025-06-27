@@ -106,8 +106,7 @@ class HomeController extends AbstractController
     #[Route(path: '/access-denied', name: 'access-denied')]
     public function accessDenied() :Response
     {
-        $this->addFlash('error', 'You do not have permission to access this page.');
-        return $this->redirectToRoute('app_logout');
+        return $this->render('home/access_denied.html.twig');
     }
 
 }
