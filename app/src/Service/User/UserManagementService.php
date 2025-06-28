@@ -176,7 +176,7 @@ class UserManagementService implements UserManagementServiceInterface
         }
 
         $this->em->flush();
-        
+
         return new RedirectResponse($this->router->generate('admin_users_list'));
     }
 }

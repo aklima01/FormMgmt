@@ -253,7 +253,10 @@ class Template
         }
     }
 
-
+    public function getCreatedBy(): ?User
+    {
+        return $this->author;
+    }
 
 
 }

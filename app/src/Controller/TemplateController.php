@@ -7,8 +7,9 @@ use App\Repository\FormRepository;
 use App\Repository\QuestionRepository;
 use App\Repository\TemplateRepository;
 use App\Repository\User\UserRepository;
-use App\Service\Common\DataTablesAjaxRequestService;
 use App\Service\Template\TemplateService;
+use Doctrine\ORM\EntityManagerInterface;
+use Dom\Entity;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -26,7 +27,8 @@ class TemplateController extends AbstractController
         private readonly FormRepository $formRepository,
         private readonly Security $security,
         private readonly QuestionRepository $questionRepository,
-        private readonly TemplateService $templateService
+        private readonly TemplateService $templateService,
+        private readonly EntityManagerInterface $em,
     )
     {}
 
@@ -72,6 +74,9 @@ class TemplateController extends AbstractController
         Request $request,
         Template $template,
     ): Response {
+
+        $this->isAuthorized($id);
+
         if ($request->isMethod('POST')) {
             try {
                 $this->templateService->updateTemplateFromRequest($template, $request);
@@ -119,6 +124,7 @@ class TemplateController extends AbstractController
     #[Route('/{id}/delete', name: 'delete', methods: ['GET', 'POST'])]
     public function delete(int $id): Response
     {
+        $this->isAuthorized($id);
         try {
             $this->templateService->deleteTemplate($id);
             $this->addFlash('success', 'Template deleted successfully.');
@@ -159,7 +165,10 @@ class TemplateController extends AbstractController
     }
 
     #[Route('/{id}/results/data', name: 'template_results_data', methods: ['GET'])]
-    public function resultsData(int $id,): JsonResponse {
+    public function resultsData(int $id): JsonResponse
+    {
+        $this->isAuthorized($id);
+
         $template = $this->templateRepository->find($id);
         if (!$template) {
             return new JsonResponse(['error' => 'Template not found'], 404);
@@ -175,8 +184,8 @@ class TemplateController extends AbstractController
         $data = json_decode($request->getContent(), true);
         $ids = $data['ids'] ?? [];
 
-        if (!is_array($ids) || empty($ids)) {
-            return new JsonResponse(['error' => 'No IDs provided'], 400);
+        foreach ($ids as $id) {
+            $this->isAuthorized($id);
         }
 
         $this->templateService->bulkDeleteTemplates($ids);
@@ -184,11 +193,15 @@ class TemplateController extends AbstractController
     }
 
     #[Route('/{id}/aggregate', name: 'template_aggregate', methods: ['GET'])]
-    public function aggregate(
+    public function aggregate
+    (
         int $id,
         TemplateRepository $templateRepository,
         TemplateService $templateService
-    ): JsonResponse {
+
+    ): JsonResponse
+    {
+        $this->isAuthorized($id);
         $template = $templateRepository->find($id);
 
         if (!$template) {
@@ -197,6 +210,12 @@ class TemplateController extends AbstractController
 
         $aggregates = $templateService->getTemplateAggregates($template);
         return new JsonResponse($aggregates);
+    }
+
+    public function isAuthorized($templateId) : void
+    {
+        $template = $this->em->getRepository(Template::class)->find($templateId);
+        $this->denyAccessUnlessGranted('TEMPLATE_MANAGE', $template);
     }
 
 

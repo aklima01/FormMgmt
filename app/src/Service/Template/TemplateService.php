@@ -20,6 +20,7 @@ use Aws\S3\S3Client;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 
@@ -86,8 +87,8 @@ class TemplateService
 
     public function bulkDeleteTemplates(array $ids): void
     {
-        if (empty($ids)) {
-            return;
+        if (!is_array($ids) || empty($ids)) {
+            return ;
         }
 
         $templates = $this->templateRepository->findBy(['id' => $ids]);
