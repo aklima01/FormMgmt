@@ -475,7 +475,7 @@ class TemplateService
         return $template;
     }
 
-    public function getTemplatesForDataTable(Request $request): array
+    public function getTemplates(Request $request): array
     {
         $dtRequest = new DataTablesAjaxRequestService($request);
 

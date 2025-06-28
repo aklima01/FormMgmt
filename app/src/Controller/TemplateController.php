@@ -9,13 +9,14 @@ use App\Repository\TemplateRepository;
 use App\Repository\User\UserRepository;
 use App\Service\Template\TemplateService;
 use Doctrine\ORM\EntityManagerInterface;
-use Dom\Entity;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Core\Exception\AccessDeniedException;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 
 #[Route('/template', name: 'template_')]
@@ -32,26 +33,30 @@ class TemplateController extends AbstractController
     )
     {}
 
+    #[IsGranted('ACTIVE_USER')]
     #[Route('/', name: 'list', methods: ['GET'])]
     public function list(): Response
     {
         return $this->render('template/list.html.twig', []);
     }
 
+    #[IsGranted('ACTIVE_USER')]
     #[Route('/ajax/templates', name: 'ajax', methods: ['GET'])]
-    public function handleAjaxTemplatesRequest(Request $request): JsonResponse
+    public function getTemplates(Request $request): JsonResponse
     {
-        $data = $this->templateService->getTemplatesForDataTable($request);
+        $data = $this->templateService->getTemplates($request);
         return new JsonResponse($data);
     }
 
+    #[IsGranted('ROLE_ADMIN')]
     #[Route('/ajax/templates/{userId}', name: 'ajax_user', methods: ['GET'])]
-    public function handleAjaxUserTemplatesRequest(int $userId, Request $request): JsonResponse
+    public function getTemplatesByUserId(int $userId, Request $request): JsonResponse
     {
         $data = $this->templateService->getTemplatesByUserId($request, $userId);
         return new JsonResponse($data);
     }
 
+    #[IsGranted('ACTIVE_USER')]
     #[Route('/create', name: 'create', methods: ['GET', 'POST'])]
     public function create(Request $request): Response
     {
@@ -68,6 +73,7 @@ class TemplateController extends AbstractController
         return $this->render('template/create.html.twig');
     }
 
+    #[IsGranted('ACTIVE_USER')]
     #[Route('/{id}/edit', name: 'edit', methods: ['GET', 'POST'])]
     public function edit(
         int $id,
@@ -96,6 +102,7 @@ class TemplateController extends AbstractController
         ]));
     }
 
+    #[IsGranted('ACTIVE_USER')]
     #[Route('/ajax/topics', name: 'ajax_topics')]
     public function fetchTopics(): JsonResponse
     {
@@ -103,6 +110,7 @@ class TemplateController extends AbstractController
         return new JsonResponse($data);
     }
 
+    #[IsGranted('ACTIVE_USER')]
     #[Route('/tag/search', name: 'tag_search')]
     public function tagSearch(Request $request): JsonResponse
     {
@@ -112,6 +120,7 @@ class TemplateController extends AbstractController
         return new JsonResponse($results);
     }
 
+    #[IsGranted('ACTIVE_USER')]
     #[Route('/user-search', name: 'user_search', methods: ['GET'])]
     public function userSearch(Request $request, TemplateService $templateService): JsonResponse
     {
@@ -121,6 +130,7 @@ class TemplateController extends AbstractController
         return new JsonResponse($results);
     }
 
+    #[IsGranted('ACTIVE_USER')]
     #[Route('/{id}/delete', name: 'delete', methods: ['GET', 'POST'])]
     public function delete(int $id): Response
     {
@@ -135,6 +145,7 @@ class TemplateController extends AbstractController
         return $this->redirectToRoute('template_list');
     }
 
+
     #[Route('/{id}/fill', name: 'fill', methods: ['GET', 'POST'])]
     public function fill(int $id, Request $request): Response
     {
@@ -144,11 +155,8 @@ class TemplateController extends AbstractController
         }
 
         if ($request->isMethod('POST')) {
+            $this->denyAccessUnlessGranted('ACTIVE_USER');
             $user = $this->userRepo->find($this->security->getUser()->getId());
-            if (!$user) {
-                throw $this->createAccessDeniedException('You must be logged in to fill this form.');
-            }
-
             $this->templateService->submitForm($request, $template, $user);
             $this->addFlash('success', 'Form successfully submitted!');
 
@@ -164,6 +172,7 @@ class TemplateController extends AbstractController
         ]);
     }
 
+    #[IsGranted('ACTIVE_USER')]
     #[Route('/{id}/results/data', name: 'template_results_data', methods: ['GET'])]
     public function resultsData(int $id): JsonResponse
     {
@@ -178,6 +187,7 @@ class TemplateController extends AbstractController
         return new JsonResponse(['data' => $data]);
     }
 
+    #[IsGranted('ACTIVE_USER')]
     #[Route('/bulk-delete', name: 'bulk_delete', methods: ['POST'])]
     public function bulkDelete(Request $request): JsonResponse
     {
@@ -194,6 +204,7 @@ class TemplateController extends AbstractController
         return new JsonResponse(['status' => 'success']);
     }
 
+    #[IsGranted('ACTIVE_USER')]
     #[Route('/{id}/aggregate', name: 'template_aggregate', methods: ['GET'])]
     public function aggregate
     (
@@ -223,7 +234,6 @@ class TemplateController extends AbstractController
     private function getAuthorizedTemplates(array $ids): array
     {
         $templates = $this->em->getRepository(Template::class)->findBy(['id' => $ids]);
-
         $templatesById = [];
         foreach ($templates as $template) {
             $templatesById[$template->getId()] = $template;
@@ -233,7 +243,6 @@ class TemplateController extends AbstractController
             if (!isset($templatesById[$id])) {
                 continue;
             }
-
             $this->denyAccessUnlessGranted('TEMPLATE_MANAGE', $templatesById[$id]);
         }
 
