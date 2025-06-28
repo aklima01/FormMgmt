@@ -174,7 +174,7 @@
                     tags.forEach((tag, index) => {
                         const colorClass = bgColors[index % bgColors.length];
                         html += `
-                        <a href="/search?tag=${encodeURIComponent(tag.name.toLowerCase())}"
+                        <a href="/search?q=${encodeURIComponent(tag.name.toLowerCase())}"
                            class="badge text-white ${colorClass} me-1 mb-1"
                            style="font-size: 1rem;">
                             ${tag.name}

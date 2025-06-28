@@ -40,4 +40,32 @@ class TemplateRepository extends ServiceEntityRepository
     //            ->getOneOrNullResult()
     //        ;
     //    }
+
+    public function fullTextSearch(string $term): array
+    {
+        $conn = $this->getEntityManager()->getConnection();
+
+        $sql = <<<SQL
+        SELECT template_id
+        FROM template_search_view
+        WHERE document @@ plainto_tsquery('english', :term)
+        ORDER BY ts_rank(document, plainto_tsquery('english', :term)) DESC
+    SQL;
+
+        $stmt = $conn->prepare($sql);
+        $stmt->bindValue('term', $term);
+        $templateIds = $stmt->executeQuery()->fetchFirstColumn();
+
+        if (empty($templateIds)) {
+            return [];
+        }
+
+        return $this->createQueryBuilder('t')
+            ->where('t.id IN (:ids)')
+            ->setParameter('ids', $templateIds)
+            ->getQuery()
+            ->getResult();
+    }
+
+
 }

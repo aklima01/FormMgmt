@@ -92,12 +92,27 @@
                 {% endif %}
 
                 <!-- Search + Language + Theme -->
-                <form class="d-flex ms-3 me-lg-3 my-2 my-lg-0" role="search">
-                    <input class="form-control me-2" type="search" placeholder="search any keywords" aria-label="Search">
+{#                <form class="d-flex ms-3 me-lg-3 my-2 my-lg-0" role="search">#}
+{#                    <input class="form-control me-2" type="search" placeholder="search any keywords" aria-label="Search">#}
+{#                    <button class="btn btn-outline-light" type="submit">#}
+{#                        <i class="bi bi-search"></i>#}
+{#                    </button>#}
+{#                </form>#}
+
+                <form class="d-flex ms-3 me-lg-3 my-2 my-lg-0" role="search" action="{{ path('template_search') }}" method="get">
+                    <input
+                        class="form-control me-2"
+                        type="search"
+                        name="q"
+                        placeholder="Search any keywords"
+                        aria-label="Search"
+                        value="{{ query|default('') }}"
+                    >
                     <button class="btn btn-outline-light" type="submit">
                         <i class="bi bi-search"></i>
                     </button>
                 </form>
+
 
                 <div class="d-flex align-items-center text-white">
                     <span class="me-2">En</span>

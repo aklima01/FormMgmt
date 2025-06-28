@@ -1,0 +1,24 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <div class="container d-flex flex-column justify-content-center align-items-center ">
+        <div class="text-center">
+            <h2 class="mb-4">Search Results for "<span class="text-primary">{{ query }}</span>"</h2>
+            {% if templates|length > 0 %}
+                <ul class="list-group w-100" style="max-width: 600px;">
+                    {% for template in templates %}
+                        <li class="list-group-item">
+                            <a href="{{ path('template_fill', {'id': template.id}) }}" class="text-decoration-none text-dark">
+                                {{ template.title }}
+                            </a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <div class="alert alert-warning mt-4" role="alert">
+                    No results found.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}
