@@ -69,14 +69,11 @@ class UserManagementService implements UserManagementServiceInterface
         ];
 
         $orderBy = $dtRequest->getSortText($columnsMap);
-        // If no order defined, fallback to default ordering
+
         if (empty($orderBy)) {
             $orderBy = 'u.name asc';
         }
 
-        // Extract order column and direction from orderBy string, for QueryBuilder orderBy method
-        // orderBy could be multiple columns separated by comma
-        // We'll only use the first order clause here for simplicity
         $orderParts = explode(' ', explode(',', $orderBy)[0]);
         $orderColumn = $orderParts[0];
         $orderDir = strtolower($orderParts[1] ?? 'asc');
@@ -141,11 +138,13 @@ class UserManagementService implements UserManagementServiceInterface
                 case 'block':
                     $user->setStatus('blocked');
                     $this->em->persist($user);
+                    $this->session->getFlashBag()->add('success', 'Users blocked successfully.');
                     break;
 
                 case 'unblock':
                     $user->setStatus('active');
                     $this->em->persist($user);
+                    $this->session->getFlashBag()->add('success', 'Users unblocked successfully.');
                     break;
 
                 case 'make_admin':
@@ -154,6 +153,7 @@ class UserManagementService implements UserManagementServiceInterface
                         $roles[] = 'ROLE_ADMIN';
                         $user->setRoles($roles);
                         $this->em->persist($user);
+                        $this->session->getFlashBag()->add('success', 'Users made admin successfully.');
                     }
                     break;
 
@@ -163,20 +163,20 @@ class UserManagementService implements UserManagementServiceInterface
                         $roles = array_filter($roles, fn($role) => $role !== 'ROLE_ADMIN');
                         $user->setRoles(array_values($roles));
                         $this->em->persist($user);
+                        $this->session->getFlashBag()->add('success', 'Admin role removed successfully.');
                     }
                     break;
 
                 case 'delete':
-                    // Instead of removing, just mark as deleted
                     $user->setStatus('deleted');
                     $this->em->persist($user);
+                    $this->session->getFlashBag()->add('success', 'Users deleted successfully.');
                     break;
             }
         }
 
         $this->em->flush();
-
-        $this->session->getFlashBag()->add('success', 'Bulk action performed successfully.');
+        
         return new RedirectResponse($this->router->generate('admin_users_list'));
     }
 }
