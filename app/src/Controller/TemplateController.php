@@ -184,8 +184,10 @@ class TemplateController extends AbstractController
         $data = json_decode($request->getContent(), true);
         $ids = $data['ids'] ?? [];
 
-        foreach ($ids as $id) {
-            $this->isAuthorized($id);
+        $templates = $this->getAuthorizedTemplates($ids);
+
+        if (count($templates) !== count($ids)) {
+            return new JsonResponse(['error' => 'One or more templates not found or unauthorized'], 404);
         }
 
         $this->templateService->bulkDeleteTemplates($ids);
@@ -212,10 +214,30 @@ class TemplateController extends AbstractController
         return new JsonResponse($aggregates);
     }
 
-    public function isAuthorized($templateId) : void
+    private function isAuthorized($templateId) : void
     {
         $template = $this->em->getRepository(Template::class)->find($templateId);
         $this->denyAccessUnlessGranted('TEMPLATE_MANAGE', $template);
+    }
+
+    private function getAuthorizedTemplates(array $ids): array
+    {
+        $templates = $this->em->getRepository(Template::class)->findBy(['id' => $ids]);
+
+        $templatesById = [];
+        foreach ($templates as $template) {
+            $templatesById[$template->getId()] = $template;
+        }
+
+        foreach ($ids as $id) {
+            if (!isset($templatesById[$id])) {
+                continue;
+            }
+
+            $this->denyAccessUnlessGranted('TEMPLATE_MANAGE', $templatesById[$id]);
+        }
+
+        return $templates;
     }
 
 
