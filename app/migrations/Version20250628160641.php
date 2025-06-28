@@ -1,0 +1,260 @@
+<?php
+
+declare(strict_types=1);
+
+namespace DoctrineMigrations;
+
+use Doctrine\DBAL\Schema\Schema;
+use Doctrine\Migrations\AbstractMigration;
+
+/**
+ * Auto-generated Migration: Please modify to your needs!
+ */
+final class Version20250628160641 extends AbstractMigration
+{
+    public function getDescription(): string
+    {
+        return '';
+    }
+
+    public function up(Schema $schema): void
+    {
+        // this up() migration is auto-generated, please modify it to your needs
+        $this->addSql(<<<'SQL'
+            DROP SEQUENCE users_id_seq CASCADE
+        SQL);
+        $this->addSql(<<<'SQL'
+            CREATE TABLE answer (id SERIAL NOT NULL, form_id INT NOT NULL, question_id INT NOT NULL, string_value TEXT DEFAULT NULL, int_value INT DEFAULT NULL, bool_value BOOLEAN DEFAULT NULL, PRIMARY KEY(id))
+        SQL);
+        $this->addSql(<<<'SQL'
+            CREATE INDEX IDX_DADD4A255FF69B7D ON answer (form_id)
+        SQL);
+        $this->addSql(<<<'SQL'
+            CREATE INDEX IDX_DADD4A251E27F6BF ON answer (question_id)
+        SQL);
+        $this->addSql(<<<'SQL'
+            CREATE TABLE comment (id SERIAL NOT NULL, template_id INT NOT NULL, user_id INT NOT NULL, content TEXT NOT NULL, created_at TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL, PRIMARY KEY(id))
+        SQL);
+        $this->addSql(<<<'SQL'
+            CREATE INDEX IDX_9474526C5DA0FB8 ON comment (template_id)
+        SQL);
+        $this->addSql(<<<'SQL'
+            CREATE INDEX IDX_9474526CA76ED395 ON comment (user_id)
+        SQL);
+        $this->addSql(<<<'SQL'
+            CREATE TABLE form (id SERIAL NOT NULL, template_id INT NOT NULL, user_id INT NOT NULL, submitted_at TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL, PRIMARY KEY(id))
+        SQL);
+        $this->addSql(<<<'SQL'
+            CREATE INDEX IDX_5288FD4F5DA0FB8 ON form (template_id)
+        SQL);
+        $this->addSql(<<<'SQL'
+            CREATE INDEX IDX_5288FD4FA76ED395 ON form (user_id)
+        SQL);
+        $this->addSql(<<<'SQL'
+            COMMENT ON COLUMN form.submitted_at IS '(DC2Type:datetime_immutable)'
+        SQL);
+        $this->addSql(<<<'SQL'
+            CREATE TABLE "like" (id SERIAL NOT NULL, user_id INT NOT NULL, template_id INT NOT NULL, created_at TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL, PRIMARY KEY(id))
+        SQL);
+        $this->addSql(<<<'SQL'
+            CREATE INDEX IDX_AC6340B3A76ED395 ON "like" (user_id)
+        SQL);
+        $this->addSql(<<<'SQL'
+            CREATE INDEX IDX_AC6340B35DA0FB8 ON "like" (template_id)
+        SQL);
+        $this->addSql(<<<'SQL'
+            CREATE TABLE question (id SERIAL NOT NULL, template_id INT NOT NULL, title VARCHAR(255) NOT NULL, description TEXT DEFAULT NULL, type VARCHAR(50) NOT NULL, show_in_table BOOLEAN NOT NULL, position INT NOT NULL, PRIMARY KEY(id))
+        SQL);
+        $this->addSql(<<<'SQL'
+            CREATE INDEX IDX_B6F7494E5DA0FB8 ON question (template_id)
+        SQL);
+        $this->addSql(<<<'SQL'
+            CREATE TABLE tag (id SERIAL NOT NULL, name VARCHAR(255) NOT NULL, PRIMARY KEY(id))
+        SQL);
+        $this->addSql(<<<'SQL'
+            CREATE UNIQUE INDEX UNIQ_389B7835E237E06 ON tag (name)
+        SQL);
+        $this->addSql(<<<'SQL'
+            CREATE TABLE template (id SERIAL NOT NULL, author_id INT NOT NULL, topic_id INT DEFAULT NULL, title VARCHAR(255) NOT NULL, description TEXT DEFAULT NULL, image_url TEXT DEFAULT NULL, access TEXT DEFAULT NULL, PRIMARY KEY(id))
+        SQL);
+        $this->addSql(<<<'SQL'
+            CREATE INDEX IDX_97601F83F675F31B ON template (author_id)
+        SQL);
+        $this->addSql(<<<'SQL'
+            CREATE INDEX IDX_97601F831F55203D ON template (topic_id)
+        SQL);
+        $this->addSql(<<<'SQL'
+            CREATE TABLE template_tag (template_id INT NOT NULL, tag_id INT NOT NULL, PRIMARY KEY(template_id, tag_id))
+        SQL);
+        $this->addSql(<<<'SQL'
+            CREATE INDEX IDX_ADE23EA15DA0FB8 ON template_tag (template_id)
+        SQL);
+        $this->addSql(<<<'SQL'
+            CREATE INDEX IDX_ADE23EA1BAD26311 ON template_tag (tag_id)
+        SQL);
+        $this->addSql(<<<'SQL'
+            CREATE TABLE template_user_access (template_id INT NOT NULL, user_id INT NOT NULL, PRIMARY KEY(template_id, user_id))
+        SQL);
+        $this->addSql(<<<'SQL'
+            CREATE INDEX IDX_68C2240D5DA0FB8 ON template_user_access (template_id)
+        SQL);
+        $this->addSql(<<<'SQL'
+            CREATE INDEX IDX_68C2240DA76ED395 ON template_user_access (user_id)
+        SQL);
+        $this->addSql(<<<'SQL'
+            CREATE TABLE topics (id SERIAL NOT NULL, name VARCHAR(100) NOT NULL, PRIMARY KEY(id))
+        SQL);
+        $this->addSql(<<<'SQL'
+            CREATE UNIQUE INDEX UNIQ_91F646395E237E06 ON topics (name)
+        SQL);
+        $this->addSql(<<<'SQL'
+            CREATE TABLE "user" (id SERIAL NOT NULL, name VARCHAR(255) NOT NULL, email VARCHAR(180) NOT NULL, roles JSON NOT NULL, password VARCHAR(255) NOT NULL, status VARCHAR(255) DEFAULT 'active' NOT NULL, created_at TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL, PRIMARY KEY(id))
+        SQL);
+        $this->addSql(<<<'SQL'
+            CREATE UNIQUE INDEX UNIQ_IDENTIFIER_EMAIL ON "user" (email)
+        SQL);
+        $this->addSql(<<<'SQL'
+            ALTER TABLE answer ADD CONSTRAINT FK_DADD4A255FF69B7D FOREIGN KEY (form_id) REFERENCES form (id) NOT DEFERRABLE INITIALLY IMMEDIATE
+        SQL);
+        $this->addSql(<<<'SQL'
+            ALTER TABLE answer ADD CONSTRAINT FK_DADD4A251E27F6BF FOREIGN KEY (question_id) REFERENCES question (id) NOT DEFERRABLE INITIALLY IMMEDIATE
+        SQL);
+        $this->addSql(<<<'SQL'
+            ALTER TABLE comment ADD CONSTRAINT FK_9474526C5DA0FB8 FOREIGN KEY (template_id) REFERENCES template (id) ON DELETE CASCADE NOT DEFERRABLE INITIALLY IMMEDIATE
+        SQL);
+        $this->addSql(<<<'SQL'
+            ALTER TABLE comment ADD CONSTRAINT FK_9474526CA76ED395 FOREIGN KEY (user_id) REFERENCES "user" (id) ON DELETE CASCADE NOT DEFERRABLE INITIALLY IMMEDIATE
+        SQL);
+        $this->addSql(<<<'SQL'
+            ALTER TABLE form ADD CONSTRAINT FK_5288FD4F5DA0FB8 FOREIGN KEY (template_id) REFERENCES template (id) NOT DEFERRABLE INITIALLY IMMEDIATE
+        SQL);
+        $this->addSql(<<<'SQL'
+            ALTER TABLE form ADD CONSTRAINT FK_5288FD4FA76ED395 FOREIGN KEY (user_id) REFERENCES "user" (id) NOT DEFERRABLE INITIALLY IMMEDIATE
+        SQL);
+        $this->addSql(<<<'SQL'
+            ALTER TABLE "like" ADD CONSTRAINT FK_AC6340B3A76ED395 FOREIGN KEY (user_id) REFERENCES "user" (id) NOT DEFERRABLE INITIALLY IMMEDIATE
+        SQL);
+        $this->addSql(<<<'SQL'
+            ALTER TABLE "like" ADD CONSTRAINT FK_AC6340B35DA0FB8 FOREIGN KEY (template_id) REFERENCES template (id) ON DELETE CASCADE NOT DEFERRABLE INITIALLY IMMEDIATE
+        SQL);
+        $this->addSql(<<<'SQL'
+            ALTER TABLE question ADD CONSTRAINT FK_B6F7494E5DA0FB8 FOREIGN KEY (template_id) REFERENCES template (id) NOT DEFERRABLE INITIALLY IMMEDIATE
+        SQL);
+        $this->addSql(<<<'SQL'
+            ALTER TABLE template ADD CONSTRAINT FK_97601F83F675F31B FOREIGN KEY (author_id) REFERENCES "user" (id) ON DELETE CASCADE NOT DEFERRABLE INITIALLY IMMEDIATE
+        SQL);
+        $this->addSql(<<<'SQL'
+            ALTER TABLE template ADD CONSTRAINT FK_97601F831F55203D FOREIGN KEY (topic_id) REFERENCES topics (id) ON DELETE SET NULL NOT DEFERRABLE INITIALLY IMMEDIATE
+        SQL);
+        $this->addSql(<<<'SQL'
+            ALTER TABLE template_tag ADD CONSTRAINT FK_ADE23EA15DA0FB8 FOREIGN KEY (template_id) REFERENCES template (id) ON DELETE CASCADE NOT DEFERRABLE INITIALLY IMMEDIATE
+        SQL);
+        $this->addSql(<<<'SQL'
+            ALTER TABLE template_tag ADD CONSTRAINT FK_ADE23EA1BAD26311 FOREIGN KEY (tag_id) REFERENCES tag (id) ON DELETE CASCADE NOT DEFERRABLE INITIALLY IMMEDIATE
+        SQL);
+        $this->addSql(<<<'SQL'
+            ALTER TABLE template_user_access ADD CONSTRAINT FK_68C2240D5DA0FB8 FOREIGN KEY (template_id) REFERENCES template (id) ON DELETE CASCADE NOT DEFERRABLE INITIALLY IMMEDIATE
+        SQL);
+        $this->addSql(<<<'SQL'
+            ALTER TABLE template_user_access ADD CONSTRAINT FK_68C2240DA76ED395 FOREIGN KEY (user_id) REFERENCES "user" (id) ON DELETE CASCADE NOT DEFERRABLE INITIALLY IMMEDIATE
+        SQL);
+        $this->addSql(<<<'SQL'
+            DROP TABLE users
+        SQL);
+    }
+
+    public function down(Schema $schema): void
+    {
+        // this down() migration is auto-generated, please modify it to your needs
+        $this->addSql(<<<'SQL'
+            CREATE SCHEMA public
+        SQL);
+        $this->addSql(<<<'SQL'
+            CREATE SEQUENCE users_id_seq INCREMENT BY 1 MINVALUE 1 START 1
+        SQL);
+        $this->addSql(<<<'SQL'
+            CREATE TABLE users (id SERIAL NOT NULL, name VARCHAR(255) NOT NULL, email VARCHAR(180) NOT NULL, roles JSON NOT NULL, password VARCHAR(255) NOT NULL, created_at TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL, status VARCHAR(255) DEFAULT 'active' NOT NULL, PRIMARY KEY(id))
+        SQL);
+        $this->addSql(<<<'SQL'
+            CREATE UNIQUE INDEX uniq_identifier_email ON users (email)
+        SQL);
+        $this->addSql(<<<'SQL'
+            ALTER TABLE answer DROP CONSTRAINT FK_DADD4A255FF69B7D
+        SQL);
+        $this->addSql(<<<'SQL'
+            ALTER TABLE answer DROP CONSTRAINT FK_DADD4A251E27F6BF
+        SQL);
+        $this->addSql(<<<'SQL'
+            ALTER TABLE comment DROP CONSTRAINT FK_9474526C5DA0FB8
+        SQL);
+        $this->addSql(<<<'SQL'
+            ALTER TABLE comment DROP CONSTRAINT FK_9474526CA76ED395
+        SQL);
+        $this->addSql(<<<'SQL'
+            ALTER TABLE form DROP CONSTRAINT FK_5288FD4F5DA0FB8
+        SQL);
+        $this->addSql(<<<'SQL'
+            ALTER TABLE form DROP CONSTRAINT FK_5288FD4FA76ED395
+        SQL);
+        $this->addSql(<<<'SQL'
+            ALTER TABLE "like" DROP CONSTRAINT FK_AC6340B3A76ED395
+        SQL);
+        $this->addSql(<<<'SQL'
+            ALTER TABLE "like" DROP CONSTRAINT FK_AC6340B35DA0FB8
+        SQL);
+        $this->addSql(<<<'SQL'
+            ALTER TABLE question DROP CONSTRAINT FK_B6F7494E5DA0FB8
+        SQL);
+        $this->addSql(<<<'SQL'
+            ALTER TABLE template DROP CONSTRAINT FK_97601F83F675F31B
+        SQL);
+        $this->addSql(<<<'SQL'
+            ALTER TABLE template DROP CONSTRAINT FK_97601F831F55203D
+        SQL);
+        $this->addSql(<<<'SQL'
+            ALTER TABLE template_tag DROP CONSTRAINT FK_ADE23EA15DA0FB8
+        SQL);
+        $this->addSql(<<<'SQL'
+            ALTER TABLE template_tag DROP CONSTRAINT FK_ADE23EA1BAD26311
+        SQL);
+        $this->addSql(<<<'SQL'
+            ALTER TABLE template_user_access DROP CONSTRAINT FK_68C2240D5DA0FB8
+        SQL);
+        $this->addSql(<<<'SQL'
+            ALTER TABLE template_user_access DROP CONSTRAINT FK_68C2240DA76ED395
+        SQL);
+        $this->addSql(<<<'SQL'
+            DROP TABLE answer
+        SQL);
+        $this->addSql(<<<'SQL'
+            DROP TABLE comment
+        SQL);
+        $this->addSql(<<<'SQL'
+            DROP TABLE form
+        SQL);
+        $this->addSql(<<<'SQL'
+            DROP TABLE "like"
+        SQL);
+        $this->addSql(<<<'SQL'
+            DROP TABLE question
+        SQL);
+        $this->addSql(<<<'SQL'
+            DROP TABLE tag
+        SQL);
+        $this->addSql(<<<'SQL'
+            DROP TABLE template
+        SQL);
+        $this->addSql(<<<'SQL'
+            DROP TABLE template_tag
+        SQL);
+        $this->addSql(<<<'SQL'
+            DROP TABLE template_user_access
+        SQL);
+        $this->addSql(<<<'SQL'
+            DROP TABLE topics
+        SQL);
+        $this->addSql(<<<'SQL'
+            DROP TABLE "user"
+        SQL);
+    }
+}

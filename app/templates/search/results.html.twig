@@ -7,7 +7,7 @@
             {% if templates|length > 0 %}
                 <ul class="list-group w-100" style="max-width: 600px;">
                     {% for template in templates %}
-                        <li class="list-group-item">
+                        <li class="list-group-item list-group-item-action">
                             <a href="{{ path('template_fill', {'id': template.id}) }}" class="text-decoration-none text-dark">
                                 {{ template.title }}
                             </a>
