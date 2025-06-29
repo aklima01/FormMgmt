@@ -15,7 +15,6 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class UserController extends AbstractController
 {
 
-
     private UserManagementServiceInterface $userManagementService;
 
     public function __construct
@@ -45,7 +44,7 @@ class UserController extends AbstractController
     }
 
 
-    #[Route('/users/{id}', name: 'admin_user_show', methods: ['GET'])]
+    #[Route('/user/{id}', name: 'admin_user_show', methods: ['GET'])]
     public function show(int $id, UserRepository $userRepository): Response
     {
         $user = $userRepository->find($id);

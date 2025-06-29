@@ -11,12 +11,13 @@ use Symfony\Component\Security\Core\User\UserInterface;
 final class FormVoter extends Voter
 {
     public const MANAGE = 'FORM_MANAGE'; // e.g., delete, edit answers
+    public const VIEW = 'FORM_VIEW';
 
     public function __construct(private Security $security) {}
 
     protected function supports(string $attribute, mixed $subject): bool
     {
-        return $attribute === self::MANAGE && $subject instanceof Form;
+        return in_array($attribute, [self::MANAGE, self::VIEW], true) && $subject instanceof Form;
     }
 
     protected function voteOnAttribute(string $attribute, mixed $subject, TokenInterface $token): bool
@@ -30,12 +31,30 @@ final class FormVoter extends Voter
         /** @var Form $form */
         $form = $subject;
 
-        // Allow if user is admin
+        // Admins can do everything
         if ($this->security->isGranted('ROLE_ADMIN')) {
             return true;
         }
 
-        // Allow if user is the creator of the form
-        return $form->getCreatedBy() === $user;
+        switch ($attribute) {
+            case self::MANAGE:
+                return $form->getCreatedBy() === $user;
+
+            case self::VIEW:
+                // Check if user is the form owner
+                if ($form->getCreatedBy() === $user) {
+                    return true;
+                }
+
+                // Check if user is the creator of the form's template
+                $template = $form->getTemplate();
+                if ($template && $template->getCreatedBy() === $user) {
+                    return true;
+                }
+
+                return false;
+        }
+
+        return false;
     }
 }
