@@ -8,8 +8,8 @@ framework:
         storage_factory_id: session.storage.factory.native
         handler_id: null
         save_path: '%kernel.project_dir%/var/sessions/%kernel.environment%'
-        cookie_secure: auto       # Use 'auto' to make it HTTPS-aware
-        cookie_samesite: lax      # Common default; adjust as needed
+        cookie_secure: auto
+        cookie_samesite: lax
 
     trusted_proxies: '127.0.0.1,REMOTE_ADDR'
     trusted_headers:
@@ -18,7 +18,6 @@ framework:
         - 'x-forwarded-host'
         - 'x-forwarded-port'
 
-    # Enable CSRF protection for forms (optional but common)
     csrf_protection:
         enabled: true
 

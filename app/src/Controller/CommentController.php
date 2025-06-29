@@ -2,20 +2,32 @@
 
 namespace App\Controller;
 
-use App\Entity\Comment;
 use App\Entity\Template;
-use Doctrine\ORM\EntityManagerInterface;
+use App\Repository\User\UserRepository;
+use App\Service\Comment\CommentService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
+
 class CommentController extends AbstractController
 {
+    public function __construct
+    (
+        private readonly CommentService $commentService,
+        private readonly UserRepository $userRepo,
+    )
+    {}
+
+    #[IsGranted('ACTIVE_USER')]
     #[Route('/template/{id}/comment', name: 'add_comment', methods: ['POST'])]
-    public function add(Request $request, Template $template, EntityManagerInterface $em): JsonResponse
-    {
+    public function add(
+        Request $request,
+        Template $template,
+    ): JsonResponse {
+
         $data = json_decode($request->getContent(), true);
         $content = trim($data['content'] ?? '');
 
@@ -23,28 +35,21 @@ class CommentController extends AbstractController
             return new JsonResponse(['error' => 'Empty comment'], 400);
         }
 
-        $comment = new Comment();
-        $comment->setContent($content);
-        $comment->setUser($this->getUser());
-        $comment->setTemplate($template);
-
-        $em->persist($comment);
-        $em->flush();
+        $user = $this->userRepo->findOneBy(['id' => $this->getUser()->getId()]);
+        $comment = $this->commentService->addComment($user, $template, $content);
 
         return new JsonResponse([
             'id' => $comment->getId(),
             'author' => $comment->getUser()->getUserIdentifier(),
             'content' => $comment->getContent(),
-            'createdAt' => $comment->getCreatedAt()->format('Y-m-d H:i:s')
+            'createdAt' => $comment->getCreatedAt()->format('Y-m-d H:i:s'),
         ]);
     }
 
     #[Route('/template/{id}/comments', name: 'get_comments', methods: ['GET'])]
-    public function list(Template $template, EntityManagerInterface $em): JsonResponse
+    public function list(Template $template, CommentService $commentService): JsonResponse
     {
-        $comments = $em->getRepository(Comment::class)->findBy([
-            'template' => $template
-        ], ['createdAt' => 'ASC']);
+        $comments = $commentService->getCommentsForTemplate($template);
 
         $data = array_map(fn($comment) => [
             'id' => $comment->getId(),

@@ -7,6 +7,7 @@ use App\Repository\FormRepository;
 use App\Repository\QuestionRepository;
 use App\Repository\TemplateRepository;
 use App\Repository\User\UserRepository;
+use App\Security\Voter\TemplateVoter;
 use App\Service\Template\TemplateService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -154,8 +155,11 @@ class TemplateController extends AbstractController
             throw $this->createNotFoundException('Template not found.');
         }
 
+        $this->denyAccessUnlessGranted(TemplateVoter::FILL, $template);
+
         if ($request->isMethod('POST')) {
             $this->denyAccessUnlessGranted('ACTIVE_USER');
+            $this->denyAccessUnlessGranted(TemplateVoter::FILL, $template);
             $user = $this->userRepo->find($this->security->getUser()->getId());
             $this->templateService->submitForm($request, $template, $user);
             $this->addFlash('success', 'Form successfully submitted!');
