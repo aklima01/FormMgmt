@@ -9,42 +9,32 @@
         <link rel="stylesheet" href="{{ asset('bootstrap/css/bootstrap.min.css') }}">
         <link rel="stylesheet" href="{{ asset('bootstrap/bootstrap-icons/bootstrap-icons.css') }}">
         <link rel="stylesheet" href="{{ asset('DataTables/datatables.min.css') }}">
-
+        <link rel="stylesheet" href="https://cdn.datatables.net/1.13.5/css/dataTables.dark.min.css">
         <style>
             a {
                 text-decoration: none;
             }
-
         </style>
-
-
-
     {% endblock %}
 
     <script src="{{ asset('jquery/jquery-3.7.1.min.js') }}"></script>
-    <script src="{{ asset('bootstrap/js/bootstrap.bundle.min.js') }}"> </script>
+    <script src="{{ asset('bootstrap/js/bootstrap.bundle.min.js') }}"></script>
     <script src="{{ asset('DataTables/datatables.min.js') }}"></script>
 
-
 </head>
-<body>
+<body class="bg-light text-dark">
 
 <!-- Navbar -->
-<nav class="navbar navbar-expand-lg fixed-top bg-primary">
+<nav class="navbar navbar-expand-lg navbar-light bg-primary fixed-top" id="main-navbar">
     <div class="container-fluid">
         <a class="navbar-brand text-white" href="{{ path('app_home') }}">
             <i class="bi-journal-text"></i> FormMgmt
         </a>
-
-        <!-- Mobile Toggler -->
-        <button class="navbar-toggler text-white" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain" aria-controls="navbarMain" aria-expanded="false" aria-label="Toggle navigation">
+        <button class="navbar-toggler text-white" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain">
             <span class="navbar-toggler-icon"></span>
         </button>
 
-        <!-- Collapsible Navbar -->
         <div class="collapse navbar-collapse" id="navbarMain">
-
-            <!-- Left Menu -->
             <ul class="navbar-nav me-auto mb-2 mb-lg-0 flex-row flex-wrap align-items-center">
                 <li class="nav-item px-2 border-start border-white d-none d-lg-block"></li>
                 <li class="nav-item px-2">
@@ -52,11 +42,8 @@
                 </li>
             </ul>
 
-            <!-- Right Menu -->
             <div class="d-flex align-items-center ms-auto">
-
                 {% if app.user %}
-
                     {% if is_granted('ROLE_ADMIN') %}
                         <a class="nav-link text-white me-3" href="{{ path('admin_users_list') }}">
                             <i class="bi bi-person-circle me-1"></i>Dashboard
@@ -66,15 +53,12 @@
                             <i class="bi bi-person-circle me-1"></i>Profile
                         </a>
                     {% endif %}
-
                     <form method="post" action="{{ path('app_logout') }}" class="m-0">
                         <button class="btn btn-link nav-link text-white p-0" type="submit">
                             <i class="bi bi-box-arrow-right"></i> Logout
                         </button>
                     </form>
-
                 {% else %}
-                    <!-- Login & Register Links -->
                     <ul class="navbar-nav flex-row flex-wrap align-items-center m-0 p-0">
                         <li class="nav-item px-2 border-start border-white d-none d-lg-block"></li>
                         <li class="nav-item px-2">
@@ -91,36 +75,27 @@
                     </ul>
                 {% endif %}
 
-                <!-- Search + Language + Theme -->
-                {#                <form class="d-flex ms-3 me-lg-3 my-2 my-lg-0" role="search">#}
-                {#                    <input class="form-control me-2" type="search" placeholder="search any keywords" aria-label="Search">#}
-                {#                    <button class="btn btn-outline-light" type="submit">#}
-                {#                        <i class="bi bi-search"></i>#}
-                {#                    </button>#}
-                {#                </form>#}
-
                 <form class="d-flex ms-3 me-lg-3 my-2 my-lg-0" role="search" action="{{ path('template_search') }}" method="get">
-                    <input
-                        class="form-control me-2"
-                        type="search"
-                        name="q"
-                        placeholder="Search any keywords"
-                        aria-label="Search"
-                        value="{{ query|default('') }}"
-                    >
+                    <input class="form-control me-2" type="search" name="q" placeholder="Search any keywords" aria-label="Search" value="{{ query|default('') }}">
                     <button class="btn btn-outline-light" type="submit">
                         <i class="bi bi-search"></i>
                     </button>
                 </form>
 
 
-                <div class="d-flex align-items-center text-white">
-                    <div class="d-flex align-items-center text-white" style="cursor: pointer;">
-                        <span id="lang-toggle">EN</span>
-                    </div>
-                    <div class="border-start border-white mx-2 d-none d-lg-block" style="height: 1.5rem;"></div>
-                    <i class="bi bi-moon" style="cursor: pointer;"></i>
+                <!-- Language and Theme Toggle -->
+                <div class="d-flex align-items-center ms-2 gap-2">
+                    <button class="btn btn-outline-light px-3 py-1 fw-semibold" id="lang-toggle" title="Toggle language">
+                        <i class="bi bi-translate me-1"></i> <span id="lang-label">EN</span>
+                    </button>
+
+                    <button class="btn btn-outline-light" id="theme-toggle" title="Toggle dark mode">
+                        <i class="bi bi-moon" id="theme-icon"></i>
+                    </button>
                 </div>
+
+
+
             </div>
         </div>
     </div>
@@ -128,19 +103,9 @@
 
 <br>
 
-<!-- Main Content -->
-{#<div class="container pt-5 mt-5" style="border: 1px solid black;">#}
 <div class="container pt-5 mt-1">
     {% block body %}{% endblock %}
 </div>
-
-{#{% for label, messages in app.flashes %}#}
-{#    {% for message in messages %}#}
-{#        <div class="alert alert-{{ label }}">#}
-{#            {{ message }}#}
-{#        </div>#}
-{#    {% endfor %}#}
-{#{% endfor %}#}
 
 <div aria-live="polite" aria-atomic="true" class="position-relative">
     <div class="toast-container position-fixed bottom-0 end-0 p-3">
@@ -159,31 +124,23 @@
     </div>
 </div>
 
-
-
-<!-- Footer -->
 <footer class="text-muted mt-5 text-center small">
     <p>© {{ "now"|date("Y") }} – FormMgmt</p>
 </footer>
 
-
 {% block javascripts %}
     <script src="https://unpkg.com/i18next@23.4.6/i18next.min.js"></script>
+    <script src="{{ asset('js/base/translations.js') }}"></script>
+    <script src="{{ asset('js/base/theme-toggle.js') }}"></script>
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            const toastElList = [].slice.call(document.querySelectorAll('.toast'));
-            toastElList.forEach(function (toastEl) {
-                const toast = new bootstrap.Toast(toastEl);
-                toast.show();
+            // Show bootstrap toasts
+            document.querySelectorAll('.toast').forEach(function (toastEl) {
+                new bootstrap.Toast(toastEl).show();
             });
         });
     </script>
-
-    <script src="{{ asset('js/base/translations.js') }}"></script>
-
 {% endblock %}
-
-
 </body>
 </html>
