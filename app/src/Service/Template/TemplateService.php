@@ -23,6 +23,7 @@ use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
+use Symfony\Component\HttpFoundation\Response;
 
 class TemplateService
 {
@@ -85,10 +86,10 @@ class TemplateService
     }
 
 
-    public function bulkDeleteTemplates(array $ids): void
+    public function bulkDeleteTemplates(array $ids) : Response
     {
         if (!is_array($ids) || empty($ids)) {
-            return ;
+            return new JsonResponse(['error' => 'Invalid input'], Response::HTTP_BAD_REQUEST);
         }
 
         $templates = $this->templateRepository->findBy(['id' => $ids]);
@@ -111,6 +112,7 @@ class TemplateService
         }
 
         $this->em->flush();
+        return new JsonResponse(['success' => 'Templates deleted successfully'], Response::HTTP_OK);
     }
 
     public function getResultsData(Template $template): array

@@ -188,23 +188,6 @@ class TemplateController extends AbstractController
     }
 
     #[IsGranted('ACTIVE_USER')]
-    #[Route('/bulk-delete', name: 'bulk_delete', methods: ['POST'])]
-    public function bulkDelete(Request $request): JsonResponse
-    {
-        $data = json_decode($request->getContent(), true);
-        $ids = $data['ids'] ?? [];
-
-        $templates = $this->getAuthorizedTemplates($ids);
-
-        if (count($templates) !== count($ids)) {
-            return new JsonResponse(['error' => 'One or more templates not found or unauthorized'], 404);
-        }
-
-        $this->templateService->bulkDeleteTemplates($ids);
-        return new JsonResponse(['status' => 'success']);
-    }
-
-    #[IsGranted('ACTIVE_USER')]
     #[Route('/{id}/aggregate', name: 'template_aggregate', methods: ['GET'])]
     public function aggregate
     (
@@ -225,29 +208,29 @@ class TemplateController extends AbstractController
         return new JsonResponse($aggregates);
     }
 
+    #[IsGranted('ACTIVE_USER')]
+    #[Route('/bulk-delete', name: 'bulk_delete', methods: ['POST'])]
+    public function bulkDelete(Request $request): Response
+    {
+        $data = json_decode($request->getContent(), true);
+        $ids = $data['ids'] ?? [];
+        $templtes= $this->templateRepository->findBy(['id' => $ids]);
+        $this->checkTemplatesAuthorization($templtes);
+
+        return $this->templateService->bulkDeleteTemplates($ids);
+    }
+
     private function isAuthorized($templateId) : void
     {
         $template = $this->em->getRepository(Template::class)->find($templateId);
         $this->denyAccessUnlessGranted('TEMPLATE_MANAGE', $template);
     }
 
-    private function getAuthorizedTemplates(array $ids): array
+    private function checkTemplatesAuthorization(array $templtes) : void
     {
-        $templates = $this->em->getRepository(Template::class)->findBy(['id' => $ids]);
-        $templatesById = [];
-        foreach ($templates as $template) {
-            $templatesById[$template->getId()] = $template;
+        foreach ($templtes as $template) {
+            $this->denyAccessUnlessGranted('TEMPLATE_MANAGE', $template);
         }
-
-        foreach ($ids as $id) {
-            if (!isset($templatesById[$id])) {
-                continue;
-            }
-            $this->denyAccessUnlessGranted('TEMPLATE_MANAGE', $templatesById[$id]);
-        }
-
-        return $templates;
     }
-
 
 }

@@ -19,6 +19,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Csrf\CsrfToken;
 use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/form', name: 'form_')]
 class FormController extends AbstractController
@@ -36,10 +37,10 @@ class FormController extends AbstractController
     public function view(int $id): Response
     {
         $form = $this->formRepository->find($id);
-
         if (!$form) {
             throw $this->createNotFoundException('Form not found');
         }
+        $this->denyAccessUnlessGranted('FORM_MANAGE', $form);
 
         $answers = $this->answerRepository->findBy(['form' => $form]);
         $templateId = $form->getTemplate()?->getId();
@@ -54,7 +55,7 @@ class FormController extends AbstractController
         ]);
     }
 
-
+    #[IsGranted('ACTIVE_USER')]
     #[Route('/ajax/forms', name: 'ajax_forms', methods: ['GET'])]
     public function getForms(
         Request $request,
@@ -129,6 +130,7 @@ class FormController extends AbstractController
         ]);
     }
 
+    #[IsGranted('ROLE_ADMIN')]
     #[Route('/ajax/forms/{userId}', name: 'ajax_user', methods: ['GET'])]
     public function getUserForms(
         int $userId,
@@ -208,10 +210,10 @@ class FormController extends AbstractController
     public function edit(int $id, Request $request): Response
     {
         $form = $this->formRepository->find($id);
-
         if (!$form) {
             throw $this->createNotFoundException('Form not found');
         }
+        $this->denyAccessUnlessGranted('FORM_MANAGE', $form);
 
         $template = $form->getTemplate();
         $questions = $this->questionRepository->findBy(['template' => $template], ['position' => 'ASC']);
@@ -278,6 +280,7 @@ class FormController extends AbstractController
         }
 
         $forms = $formRepository->findBy(['id' => $ids]);
+        $this->checkFormsAuthorization($forms);
 
         foreach ($forms as $form) {
             $em->remove($form);
@@ -286,6 +289,13 @@ class FormController extends AbstractController
         $em->flush();
 
         return new JsonResponse(['status' => 'success']);
+    }
+
+    private function checkFormsAuthorization(array $forms): void
+    {
+        foreach ($forms as $form) {
+            $this->denyAccessUnlessGranted('FORM_MANAGE', $form);
+        }
     }
 
 

@@ -87,4 +87,9 @@ class Form
         $this->answers = $answers;
     }
 
+    public function getCreatedBy()
+    {
+        return $this->user;
+    }
+
 }
