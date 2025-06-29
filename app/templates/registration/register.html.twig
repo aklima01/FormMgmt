@@ -1,7 +1,9 @@
 {# templates/registration/register.html.twig #}
 {% extends 'base.html.twig' %}
 
-{% block title %}Register{% endblock %}
+{% block title %}
+    <span data-i18n="title.register">Register</span>
+{% endblock %}
 
 {% block body %}
     <div class="container-fluid min-vh-100 d-flex justify-content-center align-items-center px-3">
@@ -9,37 +11,37 @@
             <div class="border rounded-3 p-4 shadow-sm bg-white">
                 <h3 class="text-center mb-4">
                     <i class="bi bi-person-badge-fill me-2"></i>
-                    User Registration
+                    <span data-i18n="title.register">User Registration</span>
                 </h3>
 
                 {{ form_start(registrationForm) }}
 
                 <div class="mb-3">
-                    {{ form_label(registrationForm.name, null, {'label_attr': {'class': 'form-label fw-semibold'}}) }}
-                    {{ form_widget(registrationForm.name, {'attr': {'class': 'form-control', 'placeholder': 'Full name'}}) }}
+                    {{ form_label(registrationForm.name, null, {'label_attr': {'class': 'form-label fw-semibold', 'data-i18n': 'register.name'}}) }}
+                    {{ form_widget(registrationForm.name, {'attr': {'class': 'form-control', 'placeholder': 'Full name', 'data-i18n-placeholder': 'register.name'}}) }}
                     {{ form_errors(registrationForm.name) }}
                 </div>
 
                 <div class="mb-3">
-                    {{ form_label(registrationForm.email, null, {'label_attr': {'class': 'form-label fw-semibold'}}) }}
-                    {{ form_widget(registrationForm.email, {'attr': {'class': 'form-control', 'placeholder': 'Email'}}) }}
+                    {{ form_label(registrationForm.email, null, {'label_attr': {'class': 'form-label fw-semibold', 'data-i18n': 'register.email'}}) }}
+                    {{ form_widget(registrationForm.email, {'attr': {'class': 'form-control', 'placeholder': 'Email', 'data-i18n-placeholder': 'register.email'}}) }}
                     {{ form_errors(registrationForm.email) }}
                 </div>
 
                 <div class="mb-3">
-                    {{ form_label(registrationForm.Password, null, {'label_attr': {'class': 'form-label fw-semibold'}}) }}
-                    {{ form_widget(registrationForm.Password, {'attr': {'class': 'form-control', 'placeholder': 'Password'}}) }}
+                    {{ form_label(registrationForm.Password, null, {'label_attr': {'class': 'form-label fw-semibold', 'data-i18n': 'register.password'}}) }}
+                    {{ form_widget(registrationForm.Password, {'attr': {'class': 'form-control', 'placeholder': 'Password', 'data-i18n-placeholder': 'register.password'}}) }}
                     {{ form_errors(registrationForm.Password) }}
                 </div>
 
                 <div class="d-grid mb-2">
-                    <button type="submit" class="btn btn-primary text-white fw-bold">Signup</button>
+                    <button type="submit" class="btn btn-primary text-white fw-bold" data-i18n="register.submit">Signup</button>
                 </div>
 
                 <div class="text-center">
                     <small class="text-muted">
-                        Already registered?
-                        <a href="{{ path('app_login') }}" class="text-decoration-none">Login</a>
+                        <span data-i18n="register.have_account">Already registered?</span>
+                        <a href="{{ path('app_login') }}" class="text-decoration-none" data-i18n="register.login">Login</a>
                     </small>
                 </div>
 

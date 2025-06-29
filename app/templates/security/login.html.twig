@@ -1,6 +1,8 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Login{% endblock %}
+{% block title %}
+    <span data-i18n="title.login">Login</span>
+{% endblock %}
 
 {% block body %}
     <div class="container min-vh-100 d-flex justify-content-center align-items-center px-3">
@@ -8,7 +10,7 @@
             <div class="border rounded-4 p-4 shadow-sm bg-white">
                 <h3 class="text-center mb-4">
                     <i class="bi bi-box-arrow-in-right me-2"></i>
-                    User Login
+                    <span data-i18n="title.login">User Login</span>
                 </h3>
 
                 {% if error %}
@@ -26,27 +28,29 @@
 
                 <form method="post" novalidate>
                     <div class="mb-3">
-                        <label for="username" class="form-label fw-semibold">Email</label>
+                        <label for="username" class="form-label fw-semibold" data-i18n="login.email">Email</label>
                         <input type="email" value="{{ last_username }}" name="_username" id="username"
-                               class="form-control" autocomplete="email" required autofocus placeholder="Enter your email">
+                               class="form-control" autocomplete="email" required autofocus
+                               data-i18n-placeholder="login.email" placeholder="Enter your email">
                     </div>
 
                     <div class="mb-3">
-                        <label for="password" class="form-label fw-semibold">Password</label>
+                        <label for="password" class="form-label fw-semibold" data-i18n="login.password">Password</label>
                         <input type="password" name="_password" id="password"
-                               class="form-control" autocomplete="current-password" required placeholder="Enter your password">
+                               class="form-control" autocomplete="current-password" required
+                               data-i18n-placeholder="login.password" placeholder="Enter your password">
                     </div>
 
                     <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
 
                     <div class="d-grid mb-3">
-                        <button class="btn btn-primary text-white fw-bold" type="submit">Sign in</button>
+                        <button class="btn btn-primary text-white fw-bold" type="submit" data-i18n="login.submit">Sign in</button>
                     </div>
 
                     <div class="text-center">
                         <small class="text-muted">
-                            Don't have an account?
-                            <a href="{{ path('app_register') }}" class="text-decoration-none">Register</a>
+                            <span data-i18n="login.no_account">Don't have an account?</span>
+                            <a href="{{ path('app_register') }}" class="text-decoration-none" data-i18n="login.register">Register</a>
                         </small>
                     </div>
                 </form>

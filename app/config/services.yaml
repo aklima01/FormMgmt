@@ -39,6 +39,7 @@ services:
                     key: '%env(R2_ACCESS_KEY)%'
                     secret: '%env(R2_SECRET_KEY)%'
 
+
     App\Service\User\UserRegistrationServiceInterface: '@App\Service\User\UserRegistrationService'
     App\Repository\UserRepositoryInterface: '@App\Repository\UserRepository'
     App\Service\User\UserManagementServiceInterface: '@App\Service\User\UserManagementService'
