@@ -125,6 +125,7 @@
                     {data: 'image', orderable: false, searchable: false},
                     {
                         data: 'description',
+                        orderable: false,
                         render: function (data, type) {
                             if (type === 'display') {
                                 const html = marked.parse(data || '');
@@ -149,9 +150,9 @@
                                     <i class="bi bi-three-dots"></i>
                                 </button>
                                 <ul class="dropdown-menu">
-                                    <li><a class="dropdown-item" href="${data.editUrl}">Edit</a></li>
-                                    <li><a class="dropdown-item" href="${data.fillUrl}">Fill</a></li>
-                                    <li><a class="dropdown-item text-danger" href="${data.deleteUrl}">Delete</a></li>
+                                    <li><a class="dropdown-item" href="#">Edit</a></li>
+                                    <li><a class="dropdown-item" href="#">Fill</a></li>
+                                    <li><a class="dropdown-item text-danger" href="#">Delete</a></li>
                                 </ul>
                             </div>`;
                         }
@@ -159,7 +160,9 @@
 
                 ],
                 createdRow: function (row, data) {
-                    $(row).attr('data-href', data.actions.editUrl);
+                    const editUrlTemplate = "{{ path('template_edit', { id: '__ID__' }) }}";
+                    const editUrl = editUrlTemplate.replace('__ID__', data.id);
+                    $(row).attr('data-href', editUrl);
                     $(row).css('cursor', 'pointer');
                 }
             });
@@ -181,31 +184,6 @@
             let deleteIds = [];
             let deleteMode = ''; // 'template' or 'form'
 
-            // Bulk delete action
-            {#$('#bulkDeleteBtn').on('click', function () {#}
-            {#    const ids = $('.row-checkbox:checked').map(function () {#}
-            {#        return $(this).val();#}
-            {#    }).get();#}
-
-            {#    if (ids.length === 0) return;#}
-
-            {#    // if (!confirm(`Are you sure you want to delete ${ids.length} item(s)?`)) return;#}
-
-            {#    $.ajax({#}
-            {#        url: "{{ path('template_bulk_delete') }}",#}
-            {#        type: 'POST',#}
-            {#        data: JSON.stringify({ ids: ids }),#}
-            {#        contentType: 'application/json',#}
-            {#        success: function () {#}
-            {#            table.ajax.reload(null, false);#}
-            {#            $('#selectAll').prop('checked', false);#}
-            {#            $('#bulkDeleteBtn').prop('disabled', true);#}
-            {#        },#}
-            {#        error: function () {#}
-            {#            alert('Error deleting templates.');#}
-            {#        }#}
-            {#    });#}
-            {#});#}
 
             $('#bulkDeleteBtn, #bulkFormDeleteBtn').on('click', function () {
                 if (this.id === 'bulkDeleteBtn') {
@@ -293,7 +271,7 @@
                 serverSide: true,
                 order: [[3, 'desc']],
                 ajax: {
-                    url: "{{ path('form_ajax_user', { userId: user.id }) }}",
+                    url: "{{ path('form_list', { userId: user.id }) }}",
                     type: 'GET',
                 },
                 columns: [

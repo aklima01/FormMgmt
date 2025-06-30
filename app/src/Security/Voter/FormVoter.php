@@ -10,7 +10,7 @@ use Symfony\Component\Security\Core\User\UserInterface;
 
 final class FormVoter extends Voter
 {
-    public const MANAGE = 'FORM_MANAGE'; // e.g., delete, edit answers
+    public const MANAGE = 'FORM_MANAGE';
     public const VIEW = 'FORM_VIEW';
 
     public function __construct(private Security $security) {}
@@ -31,7 +31,6 @@ final class FormVoter extends Voter
         /** @var Form $form */
         $form = $subject;
 
-        // Admins can do everything
         if ($this->security->isGranted('ROLE_ADMIN')) {
             return true;
         }
@@ -41,12 +40,11 @@ final class FormVoter extends Voter
                 return $form->getCreatedBy() === $user;
 
             case self::VIEW:
-                // Check if user is the form owner
+
                 if ($form->getCreatedBy() === $user) {
                     return true;
                 }
 
-                // Check if user is the creator of the form's template
                 $template = $form->getTemplate();
                 if ($template && $template->getCreatedBy() === $user) {
                     return true;

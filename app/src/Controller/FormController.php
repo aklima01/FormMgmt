@@ -12,7 +12,8 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
-#[Route('/form', name: 'form_')]
+#[IsGranted('ACTIVE_USER')]
+#[Route('/forms')]
 class FormController extends AbstractController
 {
     public function __construct(
@@ -22,8 +23,7 @@ class FormController extends AbstractController
     )
     {}
 
-    #[IsGranted('ACTIVE_USER')]
-    #[Route('/{id}/view', name: '_view')]
+    #[Route('/{id}/view', name: 'form_view' , methods: ['GET'])]
     public function view(int $id): Response
     {
         $data = $this->formService->getFormViewData($id);
@@ -31,17 +31,17 @@ class FormController extends AbstractController
         return $this->render('form/view.html.twig', $data);
     }
 
-    #[Route('/ajax/forms/{userId}', name: 'ajax_user', methods: ['GET'])]
-    public function getUserForms(int $userId, Request $request): JsonResponse
+    #[Route('/list/{userId}', name: 'form_list', methods: ['GET'])]
+    public function getForms(int $userId, Request $request): JsonResponse
     {
         $user = $this->userRepository->find($userId);
         if (!$user) return new JsonResponse(['error' => 'Unauthorized'], 401);
 
-        $data = $this->formService->getAjaxUserFormsData($request, $user);
+        $data = $this->formService->getForms($request, $user);
         return new JsonResponse($data);
     }
 
-    #[Route('/{id}/edit', name: 'edit', methods: ['GET', 'POST'])]
+    #[Route('/{id}/edit', name: 'form_edit', methods: ['GET', 'POST'])]
     public function edit(int $id, Request $request): Response
     {
         $form = $this->formRepository->find($id);
@@ -61,7 +61,7 @@ class FormController extends AbstractController
         ], $result));
     }
 
-    #[Route('/bulk-delete', name: 'bulk_delete', methods: ['POST'])]
+    #[Route('/bulk-delete', name: 'form_bulk_delete', methods: ['POST'])]
     public function bulkDeleteForms(Request $request): JsonResponse
     {
         $data = json_decode($request->getContent(), true);

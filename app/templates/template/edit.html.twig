@@ -630,8 +630,8 @@
                     const rowData = table.row(this).data();
                     if (rowData && rowData.id) {
                         const url = isAdmin
-                            ? `/form/${rowData.id}/edit`
-                            : `/form/${rowData.id}/view`;
+                            ? `/forms/${rowData.id}/edit`
+                            : `/forms/${rowData.id}/view`;
                         window.location.href = url;
                     }
                 }

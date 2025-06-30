@@ -97,7 +97,7 @@ class FormService
         ];
     }
 
-    public function getAjaxUserFormsData(Request $request, User $user): array
+    public function getForms(Request $request, User $user): array
     {
         $dtRequest = new DataTablesAjaxRequestService($request);
 

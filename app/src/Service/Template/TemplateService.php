@@ -664,18 +664,11 @@ class TemplateService
             return [
                 'id' => $t->getId(),
                 'title' => $t->getTitle(),
-                'image' => $t->getImageUrl() ? sprintf('<img src="%s" class="img-fluid" width="50" height="50"/>', $t->getImageUrl()) : '<em>No image</em>',
+                'image' => $t->getImageUrl()
+                    ? sprintf('<img src="%s" class="img-fluid" width="50" height="50"/>', $t->getImageUrl())
+                    : '<em>No image</em>',
                 'description' => $t->getDescription() ?: '<em>No description</em>',
                 'author' => $t->getAuthor()?->getName() ?? '',
-                'actions' => [
-                    'editUrl'   => '/template/' . $t->getId() . '/edit',
-                    'fillUrl'   => '/template/' . $t->getId() . '/fill',
-                    'deleteUrl' => '/template/' . $t->getId() . '/delete',
-                    'id' => $t->getId(),
-                    'csrfToken' => $this->csrfTokenManager->getToken('delete' . $t->getId())->getValue(),
-                ],
-
-
             ];
         }, $templates);
 
@@ -686,6 +679,7 @@ class TemplateService
             'data' => $data,
         ];
     }
+
 
 
 
