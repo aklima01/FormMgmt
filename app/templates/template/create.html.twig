@@ -32,7 +32,7 @@
             <div class="col-md-8">
                 <h1 class="text-center mb-4">Create Template</h1>
 
-                <form action="{{ path('template_create') }}" method="post" enctype="multipart/form-data">
+                <form action="{{ path('template_create', {'id': userId }) }}" method="post" enctype="multipart/form-data">
                     <input type="hidden" name="_csrf_token" value="{{ csrf_token('form') }}">
 
                     <!-- Nav Tabs -->

@@ -45,7 +45,7 @@ class FormController extends AbstractController
         return new JsonResponse($data);
     }
 
-    #[IsGranted('ROLE_ADMIN')]
+
     #[Route('/ajax/forms/{userId}', name: 'ajax_user', methods: ['GET'])]
     public function getUserForms(int $userId, Request $request): JsonResponse
     {
@@ -64,10 +64,11 @@ class FormController extends AbstractController
 
         $this->denyAccessUnlessGranted('FORM_MANAGE', $form);
         $result = $this->formService->handleFormEdit($request, $form);
+        $userId = $form->getUser()->getId();
 
         if (isset($result['success']) && $result['success'] === true) {
             $this->addFlash('success', 'Form updated successfully.');
-            return $this->redirectToRoute('form_edit', ['id' => $id]);
+            return $this->redirectToRoute('app_profile', ['id' => $userId]);
         }
 
         return $this->render('form/edit.html.twig', array_merge([

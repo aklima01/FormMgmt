@@ -49,7 +49,7 @@ class TemplateController extends AbstractController
         return new JsonResponse($data);
     }
 
-    #[IsGranted('ROLE_ADMIN')]
+
     #[Route('/ajax/templates/{userId}', name: 'ajax_user', methods: ['GET'])]
     public function getTemplatesByUserId(int $userId, Request $request): JsonResponse
     {
@@ -58,20 +58,23 @@ class TemplateController extends AbstractController
     }
 
     #[IsGranted('ACTIVE_USER')]
-    #[Route('/create', name: 'create', methods: ['GET', 'POST'])]
-    public function create(Request $request): Response
+    #[Route('/create/{id}', name: 'create', methods: ['GET', 'POST'])]
+    public function create(int $id, Request $request): Response
     {
         if ($request->isMethod('POST')) {
             try {
-                $this->templateService->createTemplateFromRequest($request);
+                $this->templateService->createTemplateFromRequest( $id,$request);
                 $this->addFlash('success', 'Template created successfully!');
-                return $this->redirectToRoute('template_list');
+                return $this->redirectToRoute('app_profile', ['id' => $id]);
             } catch (\Exception $e) {
                 $this->addFlash('error', 'Error creating template: ' . $e->getMessage());
             }
         }
 
-        return $this->render('template/create.html.twig');
+        return $this->render('template/create.html.twig', [
+            'userId' => $id,
+        ]);
+
     }
 
     #[IsGranted('ACTIVE_USER')]
@@ -83,12 +86,14 @@ class TemplateController extends AbstractController
     ): Response {
 
         $this->isAuthorized($id);
+        $template = $this->templateRepository->find($id);
+        $userId = $template->getAuthor()->getId();
 
         if ($request->isMethod('POST')) {
             try {
                 $this->templateService->updateTemplateFromRequest($template, $request);
                 $this->addFlash('success', 'Template updated successfully.');
-                return $this->redirectToRoute('template_list');
+                return $this->redirectToRoute('app_profile', ['id' => $userId]);
             } catch (\Exception $e) {
                 $this->addFlash('error', 'Update failed: ' . $e->getMessage());
             }
@@ -100,6 +105,7 @@ class TemplateController extends AbstractController
         return $this->render('template/edit.html.twig', array_merge($editData, [
             'template' => $template,
             'forms' => $forms,
+
         ]));
     }
 

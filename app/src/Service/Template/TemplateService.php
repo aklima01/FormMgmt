@@ -388,7 +388,7 @@ class TemplateService
     }
 
 
-    public function createTemplateFromRequest(Request $request): Template
+    public function createTemplateFromRequest(int $userId,Request $request): Template
     {
         $template = new Template();
 
@@ -468,7 +468,7 @@ class TemplateService
             throw new \LogicException('User must be logged in to create a template.');
         }
 
-        $user = $this->userRepo->find($currentUser->getId());
+        $user = $this->userRepo->find($userId);
         $template->setAuthor($user);
 
         $this->em->persist($template);

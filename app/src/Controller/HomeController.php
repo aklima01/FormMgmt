@@ -21,12 +21,8 @@ class HomeController extends AbstractController
     public function __construct
     (
         private readonly TemplateRepository $templateRepository,
-        private readonly EntityManagerInterface $entityManager,
-
     )
-    {
-
-    }
+    {}
 
     #[Route(path: '/', name: 'app_home')]
     public function index() : Response

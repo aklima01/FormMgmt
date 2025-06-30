@@ -4,6 +4,9 @@
 
 {% block body %}
 
+    {{ dump(template) }}
+
+
     <div class="container-fluid">
         <div class="row mt-4">
             <div class="col-md-8 offset-md-2">
@@ -66,7 +69,7 @@
 
                     <div class="d-flex gap-2">
                         <button type="submit" class="btn btn-success">Update Form</button>
-                        <a href="{{ path('template_list') }}" class="btn btn-outline-secondary">Cancel</a>
+                        <a href="{{ path('app_profile', {'id' : form.user.id} ) }}" class="btn btn-outline-secondary">Cancel</a>
                     </div>
                 </form>
 
