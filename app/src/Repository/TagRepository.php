@@ -40,4 +40,27 @@ class TagRepository extends ServiceEntityRepository
     //            ->getOneOrNullResult()
     //        ;
     //    }
+
+    public function deleteUnusedTags(): void
+    {
+        $em = $this->getEntityManager();
+
+        $qb = $em->createQueryBuilder();
+
+        $qb->delete(Tag::class, 't')
+            ->where(
+                $qb->expr()->not(
+                    $qb->expr()->exists(
+                        $em->createQueryBuilder()
+                            ->select('1')
+                            ->from('App\Entity\Template', 'tpl')
+                            ->innerJoin('tpl.tags', 'tt')
+                            ->where('tt.id = t.id')
+                            ->getDQL()
+                    )
+                )
+            );
+
+        $qb->getQuery()->execute();
+    }
 }

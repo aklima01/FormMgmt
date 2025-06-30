@@ -14,12 +14,11 @@ use Symfony\Component\Routing\Attribute\Route;
 
 class RegistrationController extends AbstractController
 {
-    private UserRegistrationServiceInterface $registrationService;
-
-    public function __construct(UserRegistrationServiceInterface $registrationService)
-    {
-        $this->registrationService = $registrationService;
-    }
+    public function __construct
+    (
+        private readonly UserRegistrationServiceInterface $registrationService
+    )
+    {}
 
     #[Route('/register', name: 'app_register')]
     public function register(Request $request): Response

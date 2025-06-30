@@ -29,8 +29,7 @@
         </ul>
 
         <div class="tab-content pt-4" id="dashboardTabsContent">
-            {# My Templates Tab #}
-            {# Add Delete Button + Table #}
+            {# Templates Tab #}
             <div class="tab-pane fade show active" id="templates" role="tabpanel" aria-labelledby="templates-tab">
                 <div class="mb-2">
                     <button id="bulkDeleteBtn" class="btn btn-danger btn-sm" disabled>
@@ -47,7 +46,6 @@
                             <th>Image</th>
                             <th>Description</th>
                             <th>Actions</th>
-
                         </tr>
                         </thead>
                         <tbody></tbody>
@@ -77,11 +75,29 @@
                     </table>
                 </div>
             </div>
-
-
         </div>
     </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title" id="confirmDeleteModalLabel">Confirm Deletion</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Are you sure you want to delete <span id="deleteCount"></span> selected <span id="deleteType"></span>?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button id="confirmDeleteBtn" type="button" class="btn btn-danger">Yes, Delete</button>
+                </div>
+            </div>
+        </div>
     </div>
+
+
 {% endblock %}
 
 {% block javascripts %}
@@ -162,35 +178,112 @@
                 $('#bulkDeleteBtn').prop('disabled', $('.row-checkbox:checked').length === 0);
             });
 
+            let deleteIds = [];
+            let deleteMode = ''; // 'template' or 'form'
+
             // Bulk delete action
-            $('#bulkDeleteBtn').on('click', function () {
-                const ids = $('.row-checkbox:checked').map(function () {
-                    return $(this).val();
-                }).get();
+            {#$('#bulkDeleteBtn').on('click', function () {#}
+            {#    const ids = $('.row-checkbox:checked').map(function () {#}
+            {#        return $(this).val();#}
+            {#    }).get();#}
 
-                if (ids.length === 0) return;
+            {#    if (ids.length === 0) return;#}
 
-                // if (!confirm(`Are you sure you want to delete ${ids.length} item(s)?`)) return;
+            {#    // if (!confirm(`Are you sure you want to delete ${ids.length} item(s)?`)) return;#}
+
+            {#    $.ajax({#}
+            {#        url: "{{ path('template_bulk_delete') }}",#}
+            {#        type: 'POST',#}
+            {#        data: JSON.stringify({ ids: ids }),#}
+            {#        contentType: 'application/json',#}
+            {#        success: function () {#}
+            {#            table.ajax.reload(null, false);#}
+            {#            $('#selectAll').prop('checked', false);#}
+            {#            $('#bulkDeleteBtn').prop('disabled', true);#}
+            {#        },#}
+            {#        error: function () {#}
+            {#            alert('Error deleting templates.');#}
+            {#        }#}
+            {#    });#}
+            {#});#}
+
+            $('#bulkDeleteBtn, #bulkFormDeleteBtn').on('click', function () {
+                if (this.id === 'bulkDeleteBtn') {
+                    deleteIds = $('.row-checkbox:checked').map(function () {
+                        return $(this).val();
+                    }).get();
+                    deleteMode = 'template';
+                } else {
+                    deleteIds = $('.form-checkbox:checked').map(function () {
+                        return $(this).val();
+                    }).get();
+                    deleteMode = 'form';
+                }
+
+                if (deleteIds.length === 0) return;
+
+                $('#deleteCount').text(deleteIds.length);
+                $('#deleteType').text(deleteMode === 'template' ? 'template(s)' : 'form(s)');
+                new bootstrap.Modal(document.getElementById('confirmDeleteModal')).show();
+            });
+
+            $('#confirmDeleteBtn').on('click', function () {
+                const url = deleteMode === 'template'
+                    ? "{{ path('template_bulk_delete') }}"
+                    : "/form/bulk-delete";
 
                 $.ajax({
-                    url: "{{ path('template_bulk_delete') }}",
+                    url: url,
                     type: 'POST',
-                    data: JSON.stringify({ ids: ids }),
+                    data: JSON.stringify({ ids: deleteIds }),
                     contentType: 'application/json',
                     success: function () {
-                        table.ajax.reload(null, false);
-                        $('#selectAll').prop('checked', false);
-                        $('#bulkDeleteBtn').prop('disabled', true);
+                        if (deleteMode === 'template') {
+                            $('#templateTable').DataTable().ajax.reload(null, false);
+                            $('#selectAll').prop('checked', false);
+                            $('#bulkDeleteBtn').prop('disabled', true);
+                        } else {
+                            $('#formTable').DataTable().ajax.reload(null, false);
+                            $('#formSelectAll').prop('checked', false);
+                            $('#bulkFormDeleteBtn').prop('disabled', true);
+                        }
+
+                        bootstrap.Modal.getInstance(document.getElementById('confirmDeleteModal')).hide();
+
+                        // Show toast after successful delete
+                        const toastHTML = `
+        <div class="toast align-items-center text-bg-success border-0 mb-2" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body">
+                    Selected ${deleteMode === 'template' ? 'templates' : 'forms'} deleted successfully.
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    `;
+
+                        const container = document.querySelector('.toast-container');
+                        container.insertAdjacentHTML('beforeend', toastHTML);
+
+                        const newToast = container.lastElementChild;
+                        new bootstrap.Toast(newToast).show();
+
+                        // Hide modal
+                        const modalEl = document.getElementById('confirmDeleteModal');
+                        const modalInstance = bootstrap.Modal.getInstance(modalEl);
+                        if (modalInstance) {
+                            modalInstance.hide();
+                        }
                     },
                     error: function () {
-                        alert('Error deleting templates.');
+                        console.log('Error deleting selected items.');
                     }
                 });
             });
+
+
         });
     </script>
-
-
 
     {# myfiledforms script#}
     <script>
@@ -261,31 +354,63 @@
                 $('#bulkFormDeleteBtn').prop('disabled', $('.form-checkbox:checked').length === 0);
             });
 
-            // Bulk Delete
-            $('#bulkFormDeleteBtn').on('click', function () {
-                const ids = $('.form-checkbox:checked').map(function () {
-                    return $(this).val();
-                }).get();
+            let deleteIds = [];
+            let deleteMode = ''; // 'template' or 'form'
 
-                if (ids.length === 0) return;
-
-                // if (!confirm(`Are you sure you want to delete ${ids.length} form(s)?`)) return;
+            $('#confirmDeleteBtn').on('click', function () {
+                const url = deleteMode === 'template'
+                    ? "{{ path('template_bulk_delete') }}"
+                    : "/form/bulk-delete";
 
                 $.ajax({
-                    url: "/form/bulk-delete",
+                    url: url,
                     type: 'POST',
-                    data: JSON.stringify({ ids: ids }),
+                    data: JSON.stringify({ ids: deleteIds }),
                     contentType: 'application/json',
                     success: function () {
-                        formTable.ajax.reload(null, false);
-                        $('#formSelectAll').prop('checked', false);
-                        $('#bulkFormDeleteBtn').prop('disabled', true);
+                        if (deleteMode === 'template') {
+                            $('#templateTable').DataTable().ajax.reload(null, false);
+                            $('#selectAll').prop('checked', false);
+                            $('#bulkDeleteBtn').prop('disabled', true);
+                        } else {
+                            $('#formTable').DataTable().ajax.reload(null, false);
+                            $('#formSelectAll').prop('checked', false);
+                            $('#bulkFormDeleteBtn').prop('disabled', true);
+                        }
+
+                        // Show toast after successful delete
+                        const toastHTML = `
+        <div class="toast align-items-center text-bg-success border-0 mb-2" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body">
+                    Selected ${deleteMode === 'template' ? 'templates' : 'forms'} deleted successfully.
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    `;
+
+                        const container = document.querySelector('.toast-container');
+                        container.insertAdjacentHTML('beforeend', toastHTML);
+
+                        const newToast = container.lastElementChild;
+                        new bootstrap.Toast(newToast).show();
+
+                        // Hide modal
+                        const modalEl = document.getElementById('confirmDeleteModal');
+                        const modalInstance = bootstrap.Modal.getInstance(modalEl);
+                        if (modalInstance) {
+                            modalInstance.hide();
+                        }
                     },
                     error: function () {
-                        alert('Error deleting forms.');
+                        console.log('Error deleting selected items.');
                     }
                 });
             });
+
+
+
         });
     </script>
 
@@ -305,8 +430,6 @@
                 window.location.href = href;
             }
         });
-
     </script>
-
 
 {% endblock %}

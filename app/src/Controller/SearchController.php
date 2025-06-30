@@ -14,19 +14,22 @@ class SearchController extends AbstractController
     public function __construct
     (
         private readonly EntityManagerInterface $em,
+        private readonly TemplateRepository $templateRepository,
     )
     {}
+
     #[Route('/search', name: 'template_search')]
-    public function search(Request $request, TemplateRepository $repo): Response
+    public function search(Request $request): Response
     {
         $term = $request->query->get('q');
-        $templates = $term ? $repo->fullTextSearch($term) : [];
+        $templates = $term ? $this->templateRepository->fullTextSearch($term) : [];
 
         return $this->render('search/results.html.twig', [
             'templates' => $templates,
             'query' => $term,
         ]);
     }
+
 
     #[Route('/refresh-materialized-view', name: 'refresh-materialized-view')]
     public function refreshMaterializedView(): Response

@@ -24,7 +24,7 @@
         <div class="tab-content mt-3" id="adminTabsContent">
             <!-- User Management Tab -->
             <div class="tab-pane fade show active" id="users" role="tabpanel" aria-labelledby="users-tab">
-                <form method="post" action="{{ path('admin_users_bulk_action') }}" id="bulk-action-form">
+                <form method="post" action="{{ path('user_bulk_action') }}" id="bulk-action-form">
                     <input type="hidden" name="action" id="bulk_action_type">
                     <input type="hidden" name="user_ids" id="user_ids_input">
 
@@ -125,7 +125,7 @@
             const table = $('#users-table').DataTable({
                 serverSide: true,
                 processing: true,
-                ajax: "{{ path('admin_users_ajax') }}",
+                ajax: "{{ path('user_list') }}",
                 columns: [
                     {
                         data: 'id',

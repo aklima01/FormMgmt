@@ -163,13 +163,11 @@ class TemplateService
             $tags  = $template->getTags();
             foreach ($tags as $tag) {
                 $template->removeTag($tag);
-                // If the tag is not used by any other template, remove it
-                if ($tag->getTemplates()->isEmpty()) {
-                    $this->em->remove($tag);
-                }
             }
-
             $this->em->remove($template);
+
+            $tagRepository = $this->em->getRepository(Tag::class);
+            $tagRepository->deleteUnusedTags();
         }
 
         $this->em->flush();
