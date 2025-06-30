@@ -18,6 +18,7 @@ use App\Repository\User\UserRepository;
 use App\Service\Common\DataTablesAjaxRequestService;
 use Aws\S3\S3Client;
 use Doctrine\ORM\EntityManagerInterface;
+use Psr\Log\LoggerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -31,7 +32,6 @@ class TemplateService
         private EntityManagerInterface $em,
         private TemplateRepository $templateRepository,
         private Security $security,
-        private CsrfTokenManagerInterface $csrfTokenManager,
         private ParameterBagInterface $params,
         private UserRepository $userRepo,
         private readonly S3Client $s3,
@@ -39,6 +39,7 @@ class TemplateService
         private readonly QuestionRepository $questionRepository,
         private readonly FormRepository $formRepository,
         private readonly AnswerRepository $answerRepository,
+        private readonly LoggerInterface $logger,
 
     ) {}
 
@@ -163,6 +164,24 @@ class TemplateService
             foreach ($tags as $tag) {
                 $template->removeTag($tag);
             }
+
+            $imageUrl = $template->getImageUrl();
+            if ($imageUrl) {
+                $publicUrl = rtrim($this->params->get('r2_public_url'), '/');
+                if (str_starts_with($imageUrl, $publicUrl)) {
+                    $key = ltrim(str_replace($publicUrl, '', $imageUrl), '/');
+
+                    try {
+                        $this->s3->deleteObject([
+                            'Bucket' => $this->params->get('r2_bucket'),
+                            'Key'    => $key,
+                        ]);
+                    } catch (\Exception $e) {
+                         $this->logger->error('Failed to delete image from S3: ' . $e->getMessage());
+                    }
+                }
+            }
+
             $this->em->remove($template);
 
             $tagRepository = $this->em->getRepository(Tag::class);
