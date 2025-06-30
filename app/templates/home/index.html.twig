@@ -87,7 +87,7 @@
                 paging: false,
                 ordering: false,
                 ajax: {
-                    url: '/templates/latest',
+                    url: '{{ path('template_latest_ajax') }}',
                     type: 'GET',
                     dataSrc: 'data',
                     data: function (d) {
@@ -123,7 +123,7 @@
 
             $('#popularTemplatesTable').DataTable({
                 ajax: {
-                    url: '/templates/popular',
+                    url: '{{ path('template_popular_ajax') }}',
                     dataSrc: 'data'
                 },
                 columns: [
@@ -157,7 +157,7 @@
             });
 
             $.ajax({
-                url: '/tags/popular',
+                url: '{{ path('tags_popular_ajax') }}',
                 method: 'GET',
                 success: function (response) {
                     const tags = response.data;

@@ -6,7 +6,6 @@ use App\Repository\FormRepository;
 use App\Repository\User\UserRepository;
 use App\Service\Form\FormService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -31,18 +30,6 @@ class FormController extends AbstractController
 
         return $this->render('form/view.html.twig', $data);
     }
-
-//    #[IsGranted('ACTIVE_USER')]
-//    #[Route('/ajax/forms', name: 'ajax_forms', methods: ['GET'])]
-//    public function getForms(Request $request, Security $security): JsonResponse
-//    {
-//        $user = $security->getUser();
-//        if (!$user) return new JsonResponse(['error' => 'Unauthorized'], 401);
-//
-//        $data = $this->formService->getAjaxFormsData($request, $user);
-//        return new JsonResponse($data);
-//    }
-
 
     #[Route('/ajax/forms/{userId}', name: 'ajax_user', methods: ['GET'])]
     public function getUserForms(int $userId, Request $request): JsonResponse

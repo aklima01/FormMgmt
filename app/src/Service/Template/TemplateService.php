@@ -41,6 +41,58 @@ class TemplateService
         private readonly AnswerRepository $answerRepository
     ) {}
 
+    /**
+     * Get most popular templates by number of filled forms.
+     *
+     * @param int $limit
+     * @return array
+     */
+    public function getMostPopularTemplates(int $limit = 10): array
+    {
+        $qb = $this->em->createQueryBuilder();
+
+        $qb->select('t.id', 't.title', 't.description', 'a.name AS author', 'COUNT(f.id) AS filledForms')
+            ->from(Template::class, 't')
+            ->leftJoin('t.author', 'a')
+            ->leftJoin(Form::class, 'f', 'WITH', 'f.template = t')
+            ->groupBy('t.id, t.title, t.description, a.name')
+            ->orderBy('filledForms', 'DESC')
+            ->setMaxResults($limit);
+
+        return $qb->getQuery()->getArrayResult();
+    }
+
+
+
+    /**
+     * Get latest templates data formatted for JSON response.
+     *
+     * @param int $limit
+     * @return array
+     */
+    public function getLatestTemplatesData(int $limit = 10): array
+    {
+        $queryBuilder = $this->templateRepository->createQueryBuilder('t')
+            ->leftJoin('t.author', 'a')
+            ->addSelect('a')
+            ->orderBy('t.id', 'DESC')
+            ->setMaxResults($limit);
+
+        $templates = $queryBuilder->getQuery()->getResult();
+
+        $data = [];
+        foreach ($templates as $template) {
+            $data[] = [
+                'id' => $template->getId(),
+                'title' => $template->getTitle(),
+                'description' => $template->getDescription(),
+                'author' => $template->getAuthor()->getName(),
+            ];
+        }
+
+        return $data;
+    }
+
     public function getTemplateAggregates(Template $template): array
     {
         $questions = $this->questionRepository->findBy(['template' => $template], ['position' => 'ASC']);

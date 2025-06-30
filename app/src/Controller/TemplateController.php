@@ -246,4 +246,29 @@ class TemplateController extends AbstractController
         }
     }
 
+    #[Route('/latest', name: 'latest_ajax', methods: ['GET'])]
+    public function latestTemplatesAjax(Request $request, TemplateService $templateService): JsonResponse
+    {
+        $limit = 10;
+        $data = $templateService->getLatestTemplatesData($limit);
+
+        return new JsonResponse([
+            'draw' => (int) $request->query->get('draw', 0),
+            'recordsTotal' => $limit,
+            'recordsFiltered' => $limit,
+            'data' => $data,
+        ]);
+    }
+
+    #[Route('/popular', name: 'popular_ajax', methods: ['GET'])]
+    public function mostPopularTemplates(Request $request, TemplateService $templateService): JsonResponse
+    {
+        $limit = 10;
+        $results = $templateService->getMostPopularTemplates($limit);
+
+        return new JsonResponse([
+            'data' => $results,
+        ]);
+    }
+
 }
