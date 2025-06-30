@@ -34,12 +34,12 @@ class TemplateController extends AbstractController
     )
     {}
 
-    #[IsGranted('ACTIVE_USER')]
-    #[Route('/', name: 'list', methods: ['GET'])]
-    public function list(): Response
-    {
-        return $this->render('template/list.html.twig', []);
-    }
+//    #[IsGranted('ACTIVE_USER')]
+//    #[Route('/', name: 'list', methods: ['GET'])]
+//    public function list(): Response
+//    {
+//        return $this->render('template/list.html.twig', []);
+//    }
 
     #[IsGranted('ACTIVE_USER')]
     #[Route('/ajax/templates', name: 'ajax', methods: ['GET'])]

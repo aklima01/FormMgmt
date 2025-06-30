@@ -248,7 +248,7 @@
                 if ($(e.target).is('input[type="checkbox"]')) return;
                 const data = table.row(this).data();
                 if (data && data.id) {
-                    window.location.href = '/admin/user/' + data.id;
+                    window.location.href = '/profile/' + data.id;
                 }
             });
 
