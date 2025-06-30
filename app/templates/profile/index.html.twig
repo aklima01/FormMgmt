@@ -93,11 +93,11 @@
                 processing: true,
                 serverSide: true,
                 ajax: "{{ path('template_ajax_user', { userId: user.id }) }}",
-                order: [[0, 'desc']],
+                order: [[1, 'ASC']],
                 columns: [
                     {
                         data: 'id',
-                        orderable: true,
+                        orderable: false,
                         searchable: false,
                         render: function (data) {
                             return `<input type="checkbox" class="row-checkbox" value="${data}">`;
@@ -106,10 +106,24 @@
                     {data: 'id'},
                     {data: 'title'},
                     {data: 'image', orderable: false, searchable: false},
+                    // {
+                    //     data: 'description',
+                    //     render: function (data, type) {
+                    //         return type === 'display' ? marked.parse(data || '') : data;
+                    //     }
+                    // },
                     {
                         data: 'description',
                         render: function (data, type) {
-                            return type === 'display' ? marked.parse(data || '') : data;
+                            if (type === 'display') {
+                                const html = marked.parse(data || '');
+                                const div = document.createElement('div');
+                                div.innerHTML = html;
+                                const text = div.textContent || div.innerText || '';
+                                const shortText = text.length > 100 ? text.substring(0, 50) + '…' : text;
+                                return shortText;
+                            }
+                            return data;
                         }
                     },
                     {

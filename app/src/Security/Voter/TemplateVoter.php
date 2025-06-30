@@ -43,6 +43,10 @@ final class TemplateVoter extends Voter
 
             case self::FILL:
 
+                if ($template->getAccess() === 'public') {
+                    return true;
+                }
+
                 if ($template->getCreatedBy() === $user) {
                     return true;
                 }

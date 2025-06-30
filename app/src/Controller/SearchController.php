@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Repository\TemplateRepository;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -10,6 +11,11 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 class SearchController extends AbstractController
 {
+    public function __construct
+    (
+        private readonly EntityManagerInterface $em,
+    )
+    {}
     #[Route('/search', name: 'template_search')]
     public function search(Request $request, TemplateRepository $repo): Response
     {
@@ -20,6 +26,17 @@ class SearchController extends AbstractController
             'templates' => $templates,
             'query' => $term,
         ]);
+    }
+
+    #[Route('/refresh-materialized-view', name: 'refresh-materialized-view')]
+    public function refreshMaterializedView(): Response
+    {
+        $conn = $this->em->getConnection();
+
+        $sql = 'REFRESH MATERIALIZED VIEW template_search_view;';
+        $conn->executeStatement($sql);
+
+        return new Response('Materialized view refreshed successfully.');
     }
 
 }

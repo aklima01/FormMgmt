@@ -161,8 +161,6 @@ class TemplateController extends AbstractController
             throw $this->createNotFoundException('Template not found.');
         }
 
-        $this->denyAccessUnlessGranted(TemplateVoter::FILL, $template);
-
         if ($request->isMethod('POST')) {
             $this->denyAccessUnlessGranted('ACTIVE_USER');
             $this->denyAccessUnlessGranted(TemplateVoter::FILL, $template);

@@ -10,7 +10,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
-#[Route('/admin')]
+#[Route('/users')]
 #[IsGranted('ACTIVE_USER')]
 class UserController extends AbstractController
 {
@@ -25,8 +25,8 @@ class UserController extends AbstractController
         $this->userManagementService = $userManagementService;
     }
 
-    #[Route('/', name: 'admin_users_list', methods: ['GET'])]
-    public function list()
+    #[Route('', name: 'user_index', methods: ['GET'])]
+    public function index()
     {
         return $this->render('admin/dashboard.html.twig');
     }

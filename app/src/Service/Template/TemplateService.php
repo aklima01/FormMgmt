@@ -108,6 +108,15 @@ class TemplateService
                 $this->em->remove($form);
             }
 
+            $tags  = $template->getTags();
+            foreach ($tags as $tag) {
+                $template->removeTag($tag);
+                // If the tag is not used by any other template, remove it
+                if ($tag->getTemplates()->isEmpty()) {
+                    $this->em->remove($tag);
+                }
+            }
+
             $this->em->remove($template);
         }
 

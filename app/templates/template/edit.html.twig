@@ -150,6 +150,8 @@
                         <div id="selected-users" class="mt-2"></div>
                         <input type="hidden" name="user_ids" id="user-ids">
                     </div>
+
+
                 </div>
 
                 <!-- Questions Tab -->
@@ -386,6 +388,96 @@
 
 
 
+{#    #}{# User Search and Selection #}
+{#    <script>#}
+{#        $(function () {#}
+{#            const userSearch = $('#user-search');#}
+{#            const selectedUsersDiv = $('#selected-users');#}
+{#            const userIdsInput = $('#user-ids');#}
+{#            const sortSelect = $('#sort-select');#}
+
+{#            let selectedUsers = {{ selectedUsersJson|raw }};#}
+{#            let currentSort = 'name';#}
+
+{#            function renderUsers() {#}
+{#                selectedUsers.sort((a, b) => {#}
+{#                    return a[currentSort].toLowerCase().localeCompare(b[currentSort].toLowerCase());#}
+{#                });#}
+
+{#                selectedUsersDiv.empty();#}
+{#                selectedUsers.forEach(user => {#}
+{#                    const pill = $('<span class="user-pill badge bg-primary me-1 mb-1 p-2 rounded-pill"></span>').text(`${user.name} (${user.email})`);#}
+{#                    const removeBtn = $('<span class="ms-2 text-white" style="cursor:pointer;">&times;</span>');#}
+{#                    removeBtn.on('click', () => {#}
+{#                        selectedUsers = selectedUsers.filter(u => u.id !== user.id);#}
+{#                        updateHiddenInput();#}
+{#                        renderUsers();#}
+{#                    });#}
+{#                    pill.append(removeBtn);#}
+{#                    selectedUsersDiv.append(pill);#}
+{#                });#}
+
+{#                updateHiddenInput();#}
+{#            }#}
+
+{#            function updateHiddenInput() {#}
+{#                userIdsInput.val(selectedUsers.map(u => u.id).join(','));#}
+{#            }#}
+
+{#            userSearch.autocomplete({#}
+{#                source: function (request, response) {#}
+{#                    $.ajax({#}
+{#                        url: '{{ path("template_user_search") }}',#}
+{#                        data: {#}
+{#                            term: request.term,#}
+{#                            sort: sortSelect.val()#}
+{#                        },#}
+{#                        success: function (data) {#}
+{#                            response(data.map(user => ({#}
+{#                                label: `${user.name} (${user.email})`,#}
+{#                                value: user.label,#}
+{#                                userData: user#}
+{#                            })));#}
+{#                        }#}
+{#                    });#}
+{#                },#}
+{#                select: function (event, ui) {#}
+{#                    const user = ui.item.userData;#}
+{#                    if (!selectedUsers.some(u => u.id === user.id)) {#}
+{#                        selectedUsers.push(user);#}
+{#                        renderUsers();#}
+{#                    }#}
+{#                    userSearch.val('');#}
+{#                    return false;#}
+{#                },#}
+{#                minLength: 1#}
+{#            });#}
+
+{#            sortSelect.on('change', function () {#}
+{#                currentSort = $(this).val();#}
+{#                renderUsers();#}
+{#            });#}
+
+{#            $('input[name="access"]').on('change', function () {#}
+{#                if ($(this).val() === 'private') {#}
+{#                    $('#user-select-area').show();#}
+{#                    renderUsers(); // redraw pills#}
+{#                } else {#}
+{#                    $('#user-select-area').hide();#}
+{#                    selectedUsers = [];#}
+{#                    renderUsers();#}
+{#                }#}
+{#            });#}
+
+{#            // Initial show if template is private#}
+{#            {% if template.access == 'private' %}#}
+{#            $('#access_private').prop('checked', true);#}
+{#            $('#user-select-area').show();#}
+{#            renderUsers();#}
+{#            {% endif %}#}
+{#        });#}
+{#    </script>#}
+
     {# User Search and Selection #}
     <script>
         $(function () {
@@ -404,13 +496,16 @@
 
                 selectedUsersDiv.empty();
                 selectedUsers.forEach(user => {
-                    const pill = $('<span class="user-pill badge bg-primary me-1 mb-1 p-2 rounded-pill"></span>').text(`${user.name} (${user.email})`);
+                    const pill = $('<span class="user-pill badge bg-primary me-1 mb-1 p-2 rounded-pill"></span>')
+                        .text(`${user.name} (${user.email})`);
+
                     const removeBtn = $('<span class="ms-2 text-white" style="cursor:pointer;">&times;</span>');
                     removeBtn.on('click', () => {
                         selectedUsers = selectedUsers.filter(u => u.id !== user.id);
                         updateHiddenInput();
                         renderUsers();
                     });
+
                     pill.append(removeBtn);
                     selectedUsersDiv.append(pill);
                 });
@@ -422,13 +517,14 @@
                 userIdsInput.val(selectedUsers.map(u => u.id).join(','));
             }
 
+            // Enable jQuery UI Autocomplete
             userSearch.autocomplete({
                 source: function (request, response) {
                     $.ajax({
                         url: '{{ path("template_user_search") }}',
                         data: {
                             term: request.term,
-                            sort: sortSelect.val()
+                            sort: currentSort // use selected sort criteria in search
                         },
                         success: function (data) {
                             response(data.map(user => ({
@@ -451,15 +547,17 @@
                 minLength: 1
             });
 
+            // Sorting dropdown change
             sortSelect.on('change', function () {
                 currentSort = $(this).val();
-                renderUsers();
+                renderUsers(); // Re-render pills sorted by selected field
             });
 
+            // Show/hide user area based on access level
             $('input[name="access"]').on('change', function () {
                 if ($(this).val() === 'private') {
                     $('#user-select-area').show();
-                    renderUsers(); // redraw pills
+                    renderUsers();
                 } else {
                     $('#user-select-area').hide();
                     selectedUsers = [];
@@ -467,7 +565,7 @@
                 }
             });
 
-            // Initial show if template is private
+            // Initial condition based on access
             {% if template.access == 'private' %}
             $('#access_private').prop('checked', true);
             $('#user-select-area').show();
@@ -475,6 +573,7 @@
             {% endif %}
         });
     </script>
+
 
     {# Sortable.js for Questions #}
     <script>
@@ -489,7 +588,7 @@
 
         // Add Question Button
         document.getElementById('add-question').addEventListener('click', () => {
-            addQuestionRow('', '', '', 'Single_line_text', true);
+            addQuestionRow('', '', '', 'Single_line_text', false);
         });
 
         // Function to Add a Question Row

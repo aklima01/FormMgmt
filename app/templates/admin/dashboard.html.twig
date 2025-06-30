@@ -5,8 +5,7 @@
 
 {% block body %}
     <div class="container-fluid mt-4">
-        <h1>Admin Dashboard</h1>
-
+{#        <h1>Admin Dashboard</h1>#}
         <!-- Tabs Navigation -->
         <ul class="nav nav-tabs" id="adminTabs" role="tablist">
             <li class="nav-item" role="presentation">
@@ -14,11 +13,11 @@
                     User Management
                 </button>
             </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="templates-tab" data-bs-toggle="tab" data-bs-target="#templates" type="button" role="tab" aria-controls="templates" aria-selected="false">
-                    All Templates
-                </button>
-            </li>
+{#            <li class="nav-item" role="presentation">#}
+{#                <button class="nav-link" id="templates-tab" data-bs-toggle="tab" data-bs-target="#templates" type="button" role="tab" aria-controls="templates" aria-selected="false">#}
+{#                    All Templates#}
+{#                </button>#}
+{#            </li>#}
         </ul>
 
         <!-- Tabs Content -->
@@ -58,37 +57,37 @@
                             <th>Email</th>
                             <th>Status</th>
                             <th>Roles</th>
-                            <th>Created At</th>
+                            <th>Signup Date</th>
                         </tr>
                         </thead>
                     </table>
                 </form>
             </div>
 
-            <!-- My Templates Tab -->
-            <div class="tab-pane fade" id="templates" role="tabpanel" aria-labelledby="templates-tab">
-                <div class="mb-2">
-                    <button id="bulkDeleteBtn" class="btn btn-danger btn-sm" disabled>
-                        <i class="bi bi-trash"></i> Delete
-                    </button>
-                </div>
-                <div class="table-responsive">
-                    <table id="templateTable" class="table table-hover align-middle">
-                        <thead class="table-light">
-                        <tr>
-                            <th><input type="checkbox" id="selectAll"></th>
-                            <th>Template ID</th>
-                            <th>Title</th>
-                            <th>Image</th>
-                            <th>Description</th>
-                            <th>Actions</th>
-                        </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
+{#            <!-- My Templates Tab -->#}
+{#            <div class="tab-pane fade" id="templates" role="tabpanel" aria-labelledby="templates-tab">#}
+{#                <div class="mb-2">#}
+{#                    <button id="bulkDeleteBtn" class="btn btn-danger btn-sm" disabled>#}
+{#                        <i class="bi bi-trash"></i> Delete#}
+{#                    </button>#}
+{#                </div>#}
+{#                <div class="table-responsive">#}
+{#                    <table id="templateTable" class="table table-hover align-middle">#}
+{#                        <thead class="table-light">#}
+{#                        <tr>#}
+{#                            <th><input type="checkbox" id="selectAll"></th>#}
+{#                            <th>Template ID</th>#}
+{#                            <th>Title</th>#}
+{#                            <th>Image</th>#}
+{#                            <th>Description</th>#}
+{#                            <th>Actions</th>#}
+{#                        </tr>#}
+{#                        </thead>#}
+{#                        <tbody></tbody>#}
+{#                    </table>#}
+{#                </div>#}
+{#            </div>#}
+{#        </div>#}
 
         <!-- Delete Confirmation Modal -->
         <div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteConfirmModalLabel" aria-hidden="true">

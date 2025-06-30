@@ -21,6 +21,7 @@ class HomeController extends AbstractController
     public function __construct
     (
         private readonly TemplateRepository $templateRepository,
+
     )
     {}
 
@@ -104,5 +105,7 @@ class HomeController extends AbstractController
     {
         return $this->render('home/access_denied.html.twig');
     }
+
+
 
 }
