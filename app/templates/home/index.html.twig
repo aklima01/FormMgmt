@@ -126,7 +126,7 @@
                 }
             });
 
-            $('#popularTemplatesTable').DataTable({
+            const popularTable = $('#popularTemplatesTable').DataTable({
                 ajax: {
                     url: '{{ path('template_popular_ajax') }}',
                     dataSrc: 'data'
@@ -153,14 +153,17 @@
                 info: false
             });
 
+
             // Make rows clickable
             $('#popularTemplatesTable tbody').on('click', 'tr', function () {
-                const data = table.row(this).data();
+                const data = popularTable.row(this).data();
                 if (data && data.id) {
                     const url = templateFillUrlTemplate.replace('__ID__', data.id);
                     window.location.href = url;
                 }
             });
+
+
 
             $.ajax({
                 url: '{{ path('tags_popular_ajax') }}',
