@@ -47,6 +47,7 @@
                             <th>Image</th>
                             <th>Description</th>
                             <th>Actions</th>
+
                         </tr>
                         </thead>
                         <tbody></tbody>
@@ -93,7 +94,7 @@
                 processing: true,
                 serverSide: true,
                 ajax: "{{ path('template_ajax_user', { userId: user.id }) }}",
-                order: [[1, 'ASC']],
+                order: [[1, 'asc']],
                 columns: [
                     {
                         data: 'id',
@@ -103,15 +104,9 @@
                             return `<input type="checkbox" class="row-checkbox" value="${data}">`;
                         }
                     },
-                    {data: 'id'},
+                    {data: 'id', orderable: true, searchable: false},
                     {data: 'title'},
                     {data: 'image', orderable: false, searchable: false},
-                    // {
-                    //     data: 'description',
-                    //     render: function (data, type) {
-                    //         return type === 'display' ? marked.parse(data || '') : data;
-                    //     }
-                    // },
                     {
                         data: 'description',
                         render: function (data, type) {
@@ -145,6 +140,7 @@
                             </div>`;
                         }
                     }
+
                 ],
                 createdRow: function (row, data) {
                     $(row).attr('data-href', data.actions.editUrl);

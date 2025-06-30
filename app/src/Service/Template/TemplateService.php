@@ -624,6 +624,8 @@ class TemplateService
                     'id' => $t->getId(),
                     'csrfToken' => $this->csrfTokenManager->getToken('delete' . $t->getId())->getValue(),
                 ],
+
+
             ];
         }, $templates);
 
@@ -634,6 +636,8 @@ class TemplateService
             'data' => $data,
         ];
     }
+
+
 
 
 

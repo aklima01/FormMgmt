@@ -2,12 +2,9 @@
 
 namespace App\Controller;
 
-use App\Repository\AnswerRepository;
 use App\Repository\FormRepository;
-use App\Repository\QuestionRepository;
 use App\Repository\User\UserRepository;
 use App\Service\Form\FormService;
-use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -26,6 +23,7 @@ class FormController extends AbstractController
     )
     {}
 
+    #[IsGranted('ACTIVE_USER')]
     #[Route('/{id}/view', name: '_view')]
     public function view(int $id): Response
     {
@@ -34,16 +32,16 @@ class FormController extends AbstractController
         return $this->render('form/view.html.twig', $data);
     }
 
-    #[IsGranted('ACTIVE_USER')]
-    #[Route('/ajax/forms', name: 'ajax_forms', methods: ['GET'])]
-    public function getForms(Request $request, Security $security): JsonResponse
-    {
-        $user = $security->getUser();
-        if (!$user) return new JsonResponse(['error' => 'Unauthorized'], 401);
-
-        $data = $this->formService->getAjaxFormsData($request, $user);
-        return new JsonResponse($data);
-    }
+//    #[IsGranted('ACTIVE_USER')]
+//    #[Route('/ajax/forms', name: 'ajax_forms', methods: ['GET'])]
+//    public function getForms(Request $request, Security $security): JsonResponse
+//    {
+//        $user = $security->getUser();
+//        if (!$user) return new JsonResponse(['error' => 'Unauthorized'], 401);
+//
+//        $data = $this->formService->getAjaxFormsData($request, $user);
+//        return new JsonResponse($data);
+//    }
 
 
     #[Route('/ajax/forms/{userId}', name: 'ajax_user', methods: ['GET'])]

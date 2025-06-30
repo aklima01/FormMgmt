@@ -8,6 +8,7 @@ use App\Repository\QuestionRepository;
 use App\Repository\TemplateRepository;
 use App\Repository\User\UserRepository;
 use App\Security\Voter\TemplateVoter;
+use App\Service\Common\DataTablesAjaxRequestService;
 use App\Service\Template\TemplateService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -161,6 +162,8 @@ class TemplateController extends AbstractController
             throw $this->createNotFoundException('Template not found.');
         }
 
+        $this->denyAccessUnlessGranted('TEMPLATE_FILL', $template);
+
         if ($request->isMethod('POST')) {
             $this->denyAccessUnlessGranted('ACTIVE_USER');
             $this->denyAccessUnlessGranted(TemplateVoter::FILL, $template);
@@ -168,7 +171,7 @@ class TemplateController extends AbstractController
             $this->templateService->submitForm($request, $template, $user);
             $this->addFlash('success', 'Form successfully submitted!');
 
-            return $this->redirectToRoute('template_list');
+            return $this->redirectToRoute('app_home');
         }
 
         $template_questions = $this->questionRepository->findBy(['template' => $template], ['position' => 'ASC']);
@@ -179,6 +182,7 @@ class TemplateController extends AbstractController
             'request' => $request->request->all(),
         ]);
     }
+
 
     #[IsGranted('ACTIVE_USER')]
     #[Route('/{id}/results/data', name: 'template_results_data', methods: ['GET'])]
@@ -194,6 +198,7 @@ class TemplateController extends AbstractController
         $data = $this->templateService->getResultsData($template);
         return new JsonResponse(['data' => $data]);
     }
+
 
     #[IsGranted('ACTIVE_USER')]
     #[Route('/{id}/aggregate', name: 'template_aggregate', methods: ['GET'])]

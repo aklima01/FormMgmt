@@ -216,7 +216,7 @@
 
     <script src="https://unpkg.com/easymde/dist/easymde.min.js"></script>
 
-{#    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>#}
+    {#    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>#}
 
     <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.3/min/dropzone.min.js"></script>
@@ -385,98 +385,6 @@
             }
         });
     </script>
-
-
-
-{#    #}{# User Search and Selection #}
-{#    <script>#}
-{#        $(function () {#}
-{#            const userSearch = $('#user-search');#}
-{#            const selectedUsersDiv = $('#selected-users');#}
-{#            const userIdsInput = $('#user-ids');#}
-{#            const sortSelect = $('#sort-select');#}
-
-{#            let selectedUsers = {{ selectedUsersJson|raw }};#}
-{#            let currentSort = 'name';#}
-
-{#            function renderUsers() {#}
-{#                selectedUsers.sort((a, b) => {#}
-{#                    return a[currentSort].toLowerCase().localeCompare(b[currentSort].toLowerCase());#}
-{#                });#}
-
-{#                selectedUsersDiv.empty();#}
-{#                selectedUsers.forEach(user => {#}
-{#                    const pill = $('<span class="user-pill badge bg-primary me-1 mb-1 p-2 rounded-pill"></span>').text(`${user.name} (${user.email})`);#}
-{#                    const removeBtn = $('<span class="ms-2 text-white" style="cursor:pointer;">&times;</span>');#}
-{#                    removeBtn.on('click', () => {#}
-{#                        selectedUsers = selectedUsers.filter(u => u.id !== user.id);#}
-{#                        updateHiddenInput();#}
-{#                        renderUsers();#}
-{#                    });#}
-{#                    pill.append(removeBtn);#}
-{#                    selectedUsersDiv.append(pill);#}
-{#                });#}
-
-{#                updateHiddenInput();#}
-{#            }#}
-
-{#            function updateHiddenInput() {#}
-{#                userIdsInput.val(selectedUsers.map(u => u.id).join(','));#}
-{#            }#}
-
-{#            userSearch.autocomplete({#}
-{#                source: function (request, response) {#}
-{#                    $.ajax({#}
-{#                        url: '{{ path("template_user_search") }}',#}
-{#                        data: {#}
-{#                            term: request.term,#}
-{#                            sort: sortSelect.val()#}
-{#                        },#}
-{#                        success: function (data) {#}
-{#                            response(data.map(user => ({#}
-{#                                label: `${user.name} (${user.email})`,#}
-{#                                value: user.label,#}
-{#                                userData: user#}
-{#                            })));#}
-{#                        }#}
-{#                    });#}
-{#                },#}
-{#                select: function (event, ui) {#}
-{#                    const user = ui.item.userData;#}
-{#                    if (!selectedUsers.some(u => u.id === user.id)) {#}
-{#                        selectedUsers.push(user);#}
-{#                        renderUsers();#}
-{#                    }#}
-{#                    userSearch.val('');#}
-{#                    return false;#}
-{#                },#}
-{#                minLength: 1#}
-{#            });#}
-
-{#            sortSelect.on('change', function () {#}
-{#                currentSort = $(this).val();#}
-{#                renderUsers();#}
-{#            });#}
-
-{#            $('input[name="access"]').on('change', function () {#}
-{#                if ($(this).val() === 'private') {#}
-{#                    $('#user-select-area').show();#}
-{#                    renderUsers(); // redraw pills#}
-{#                } else {#}
-{#                    $('#user-select-area').hide();#}
-{#                    selectedUsers = [];#}
-{#                    renderUsers();#}
-{#                }#}
-{#            });#}
-
-{#            // Initial show if template is private#}
-{#            {% if template.access == 'private' %}#}
-{#            $('#access_private').prop('checked', true);#}
-{#            $('#user-select-area').show();#}
-{#            renderUsers();#}
-{#            {% endif %}#}
-{#        });#}
-{#    </script>#}
 
     {# User Search and Selection #}
     <script>
@@ -679,6 +587,7 @@
                     { data: 'date' },
                     {
                         data: 'keyAnswers',
+                        orderable: false,
                         render: function (data, type, row) {
                             return data;
                         }
@@ -710,7 +619,7 @@
                 }
             });
 
-        // Handle row click (excluding the dropdown column)
+            // Handle row click (excluding the dropdown column)
             // Handle row click (excluding the dropdown column)
             $('#resultsTable tbody').on('click', 'tr', function (e) {
                 if ($(e.target).closest('.dropdown').length === 0) {

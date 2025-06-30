@@ -11,7 +11,6 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
-
 class CommentController extends AbstractController
 {
     public function __construct
@@ -31,9 +30,7 @@ class CommentController extends AbstractController
         $data = json_decode($request->getContent(), true);
         $content = trim($data['content'] ?? '');
 
-        if (empty($content)) {
-            return new JsonResponse(['error' => 'Empty comment'], 400);
-        }
+        if (empty($content)) return new JsonResponse(['error' => 'Empty comment'], 400);
 
         $user = $this->userRepo->findOneBy(['id' => $this->getUser()->getId()]);
         $comment = $this->commentService->addComment($user, $template, $content);

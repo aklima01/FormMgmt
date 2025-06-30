@@ -416,6 +416,34 @@
         });
     </script>
 
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('.number-only').forEach(function(input) {
+                // Prevent typing negative signs
+                input.addEventListener('keydown', function(e) {
+                    if (e.key === '-' || e.key === 'e') {
+                        e.preventDefault();
+                    }
+                });
+
+                // Prevent pasting negative numbers
+                input.addEventListener('paste', function(e) {
+                    const paste = (e.clipboardData || window.clipboardData).getData('text');
+                    if (paste.includes('-') || paste.includes('e')) {
+                        e.preventDefault();
+                    }
+                });
+
+                // Forcefully fix value if entered with devtools or other trick
+                input.addEventListener('input', function () {
+                    if (parseFloat(input.value) < 0) {
+                        input.value = '';
+                    }
+                });
+            });
+        });
+    </script>
+
 
 
 {% endblock %}

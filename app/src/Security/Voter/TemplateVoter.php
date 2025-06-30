@@ -24,10 +24,6 @@ final class TemplateVoter extends Voter
     {
         $user = $token->getUser();
 
-        if (!$user instanceof UserInterface) {
-            return false;
-        }
-
         /** @var Template $template */
         $template = $subject;
 
@@ -43,22 +39,19 @@ final class TemplateVoter extends Voter
 
             case self::FILL:
 
-                if ($template->getAccess() === 'public') {
+                if ($template->getAccess() == 'public') {
                     return true;
                 }
+                else
+                {
+                    if ($template->getCreatedBy() === $user) {
+                        return true;
+                    }
 
-                if ($template->getCreatedBy() === $user) {
-                    return true;
+                    // Otherwise, check if user is in allowed users
+                    return $template->getUsers()->contains($user) ;
+
                 }
-
-                // Logic for fill (view) permission:
-                // If template is public, any authenticated user can fill
-                if ($template->getAccess() === 'public') {
-                    return true;
-                }
-
-                // Otherwise, check if user is in allowed users
-                return $template->getUsers()->contains($user) ;
 
             default:
                 return false;
