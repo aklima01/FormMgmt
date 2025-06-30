@@ -9,10 +9,15 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class TagController extends AbstractController
 {
+    public function __construct
+    (
+        private readonly TagService $tagService,
+    )
+    {}
     #[Route('/tags/popular', name: 'tags_popular_ajax', methods: ['GET'])]
-    public function popularTags(TagService $tagService): JsonResponse
+    public function popularTags(): JsonResponse
     {
-        $tags = $tagService->getPopularTags();
+        $tags = $this->tagService->getPopularTags();
 
         return new JsonResponse([
             'data' => $tags

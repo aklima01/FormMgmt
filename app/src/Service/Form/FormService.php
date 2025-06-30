@@ -49,6 +49,10 @@ class FormService
 
     public function handleFormEdit(Request $request, Form $form)
     {
+        if (!$this->authorizationChecker->isGranted('FORM_MANAGE', $form)) {
+            throw new AccessDeniedHttpException('Access denied');
+        }
+
         $template = $form->getTemplate();
         $questions = $this->questionRepository->findBy(['template' => $template], ['position' => 'ASC']);
         $answers = $this->answerRepository->findBy(['form' => $form]);

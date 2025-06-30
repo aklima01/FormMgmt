@@ -31,10 +31,4 @@ ENV R2_REGION=${R2_REGION}
 ARG R2_PUBLIC_URL
 ENV R2_PUBLIC_URL=${R2_PUBLIC_URL}
 
-# Disable opcache for CLI to prevent segfault during composer install
-RUN echo "opcache.enable_cli=0" > /opt/docker/etc/php/php.ini
-
-# Prevent memory exhaustion issues
-ENV COMPOSER_MEMORY_LIMIT=-1
-
 RUN composer install --no-interaction --no-progress --prefer-dist --no-scripts

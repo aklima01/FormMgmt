@@ -109,7 +109,7 @@
             const table = $('#templateTable').DataTable({
                 processing: true,
                 serverSide: true,
-                ajax: "{{ path('template_ajax_user', { userId: user.id }) }}",
+                ajax: "{{ path('template_list', { userId: user.id }) }}",
                 order: [[1, 'asc']],
                 columns: [
                     {
@@ -122,19 +122,34 @@
                     },
                     {data: 'id', orderable: true, searchable: false},
                     {data: 'title'},
-                    {data: 'image', orderable: false, searchable: false},
+                    {
+                        data: 'imageUrl',
+                        orderable: false,
+                        searchable: false,
+                        render: function (data, type, row) {
+                            if (data) {
+                                return `<img src="${data}" alt="Template Image" class="img-fluid" width="50" height="50"/>`;
+                            }
+                            return '<em>No image</em>';
+                        }
+                    },
                     {
                         data: 'description',
                         orderable: false,
                         render: function (data, type) {
                             if (type === 'display') {
-                                const html = marked.parse(data || '');
+                                const markdown = data || '';
+                                const html = marked.parse(markdown); // Convert Markdown to HTML
                                 const div = document.createElement('div');
                                 div.innerHTML = html;
-                                const text = div.textContent || div.innerText || '';
-                                const shortText = text.length > 100 ? text.substring(0, 50) + '…' : text;
-                                return shortText;
+                                const plainText = div.textContent || div.innerText || '';
+                                const trimmed = plainText.length > 100
+                                    ? plainText.substring(0, 50).trim() + '…'
+                                    : plainText.trim();
+
+                                return trimmed || '<em>No description</em>';
                             }
+
                             return data;
                         }
                     },

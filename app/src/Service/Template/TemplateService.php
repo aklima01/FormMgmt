@@ -38,7 +38,8 @@ class TemplateService
         private readonly TopicRepository $topicRepo,
         private readonly QuestionRepository $questionRepository,
         private readonly FormRepository $formRepository,
-        private readonly AnswerRepository $answerRepository
+        private readonly AnswerRepository $answerRepository,
+
     ) {}
 
     /**
@@ -47,7 +48,7 @@ class TemplateService
      * @param int $limit
      * @return array
      */
-    public function getMostPopularTemplates(int $limit = 10): array
+    public function getMostPopularTemplates(int $limit = 5): array
     {
         $qb = $this->em->createQueryBuilder();
 
@@ -61,8 +62,6 @@ class TemplateService
 
         return $qb->getQuery()->getArrayResult();
     }
-
-
 
     /**
      * Get latest templates data formatted for JSON response.
@@ -202,7 +201,7 @@ class TemplateService
         return $data;
     }
 
-    public function submitForm(Request $request, Template $template, User $user): void
+    public function handleFormSubmission(Request $request, Template $template, User $user)
     {
         $formEntity = new Form();
         $formEntity->setTemplate($template);
@@ -228,7 +227,7 @@ class TemplateService
                     $answer->setBoolValue($rawValue === '1' || $rawValue === 'on');
                     break;
                 default:
-                    $answer->setStringValue(trim($rawValue)); // fallback
+                    $answer->setStringValue(trim($rawValue));
             }
 
             $formEntity->getAnswers()->add($answer);
@@ -236,31 +235,8 @@ class TemplateService
 
         $this->em->persist($formEntity);
         $this->em->flush();
-    }
 
-    public function deleteTemplate(int $id): void
-    {
-        $template = $this->templateRepository->find($id);
-
-        if (!$template) {
-            throw new \Exception('Template not found.');
-        }
-
-        $questions = $this->questionRepository->findBy(['template' => $template]);
-        foreach ($questions as $question) {
-            $this->em->remove($question);
-        }
-
-        $forms = $this->formRepository->findBy(['template' => $template]);
-        foreach ($forms as $form) {
-            foreach ($form->getAnswers() as $answer) {
-                $this->em->remove($answer);
-            }
-            $this->em->remove($form);
-        }
-
-        $this->em->remove($template);
-        $this->em->flush();
+        return $formEntity;
     }
 
     public function searchUsers(string $term, string $sort = 'name'): array
@@ -340,7 +316,8 @@ class TemplateService
     public function updateTemplateFromRequest(
         Template $template,
         Request $request,
-    ): void {
+    ): void
+    {
         $template->setTitle($request->request->get('title'));
         $template->setDescription($request->request->get('description'));
 
@@ -536,84 +513,12 @@ class TemplateService
         return $template;
     }
 
-    public function getTemplates(Request $request): array
+    public function getTemplatesByUserId(Request $request, int $userId)
     {
-        $dtRequest = new DataTablesAjaxRequestService($request);
-
-        $start = $dtRequest->getStart();
-        $length = $dtRequest->getLength();
-        $search = $dtRequest->getSearchText();
-
-        $columnsMap = [
-            0 => 't.id',
-            1 => 't.title',
-            2 => 't.imageUrl',
-            3 => 't.description',
-            4 => 'author.name',
-        ];
-
-        $orderBy = $dtRequest->getSortText($columnsMap) ?: 't.id desc';
-        $orderParts = explode(' ', explode(',', $orderBy)[0]);
-        $orderColumn = $orderParts[0];
-        $orderDir = strtolower($orderParts[1] ?? 'asc');
-
-        $user = $this->security->getUser();
-        $isAdmin = $this->security->isGranted('ROLE_ADMIN');
-
-        $qb = $this->em->createQueryBuilder()
-            ->select('t', 'author')
-            ->from(Template::class, 't')
-            ->leftJoin('t.author', 'author');
-
-        if (!$isAdmin) {
-            $qb->where('author.id = :currentUserId')
-                ->setParameter('currentUserId', $user?->getId());
+        if ($this->security->getUser()?->getId() !== $userId) {
+            return new JsonResponse([], Response::HTTP_FORBIDDEN);
         }
 
-        if ($search) {
-            $qb->andWhere('t.title LIKE :search OR t.description LIKE :search OR author.name LIKE :search')
-                ->setParameter('search', '%' . $search . '%');
-        }
-
-        $filteredCount = (clone $qb)
-            ->select('COUNT(t.id)')
-            ->getQuery()
-            ->getSingleScalarResult();
-
-        $qb->orderBy($orderColumn, $orderDir)
-            ->setFirstResult($start)
-            ->setMaxResults($length);
-
-        $templates = $qb->getQuery()->getResult();
-        $total = $this->templateRepository->count([]);
-
-        $data = array_map(function (Template $t) {
-            return [
-                'id' => $t->getId(),
-                'title' => $t->getTitle(),
-                'image' => $t->getImageUrl() ? sprintf('<img src="%s" class="img-fluid" width="50" height="50"/>', $t->getImageUrl()) : '<em>No image</em>',
-                'description' => $t->getDescription() ?: '<em>No description</em>',
-                'author' => $t->getAuthor()?->getName() ?? '',
-                'actions' => [
-                    'editUrl'   => '/template/' . $t->getId() . '/edit',
-                    'fillUrl'   => '/template/' . $t->getId() . '/fill',
-                    'deleteUrl' => '/template/' . $t->getId() . '/delete',
-                    'id' => $t->getId(),
-                    'csrfToken' => $this->csrfTokenManager->getToken('delete' . $t->getId())->getValue(),
-                ],
-            ];
-        }, $templates);
-
-        return [
-            'draw' => $dtRequest->getRequestData()['draw'] ?? 0,
-            'recordsTotal' => $total,
-            'recordsFiltered' => $filteredCount,
-            'data' => $data,
-        ];
-    }
-
-    public function getTemplatesByUserId(Request $request, int $userId): array
-    {
         $dtRequest = new DataTablesAjaxRequestService($request);
 
         $start = $dtRequest->getStart();
@@ -634,7 +539,6 @@ class TemplateService
         $orderDir = strtolower($orderParts[1] ?? 'asc');
 
         $user = $this->userRepo->find($userId);
-        $isAdmin = $this->security->isGranted('ROLE_ADMIN');
 
         $qb = $this->em->createQueryBuilder()
             ->select('t', 'author')
@@ -664,10 +568,8 @@ class TemplateService
             return [
                 'id' => $t->getId(),
                 'title' => $t->getTitle(),
-                'image' => $t->getImageUrl()
-                    ? sprintf('<img src="%s" class="img-fluid" width="50" height="50"/>', $t->getImageUrl())
-                    : '<em>No image</em>',
-                'description' => $t->getDescription() ?: '<em>No description</em>',
+                'imageUrl' => $t->getImageUrl(),
+                'description' => $t->getDescription(),
                 'author' => $t->getAuthor()?->getName() ?? '',
             ];
         }, $templates);

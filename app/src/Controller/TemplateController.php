@@ -8,7 +8,6 @@ use App\Repository\QuestionRepository;
 use App\Repository\TemplateRepository;
 use App\Repository\User\UserRepository;
 use App\Security\Voter\TemplateVoter;
-use App\Service\Common\DataTablesAjaxRequestService;
 use App\Service\Template\TemplateService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -17,14 +16,14 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 
-#[Route('/template', name: 'template_')]
+#[Route('/templates')]
 class TemplateController extends AbstractController
 {
-    public function __construct(
+    public function __construct
+    (
         private readonly UserRepository $userRepo,
         private readonly TemplateRepository $templateRepository,
         private readonly FormRepository $formRepository,
@@ -35,23 +34,8 @@ class TemplateController extends AbstractController
     )
     {}
 
-//    #[IsGranted('ACTIVE_USER')]
-//    #[Route('/', name: 'list', methods: ['GET'])]
-//    public function list(): Response
-//    {
-//        return $this->render('template/list.html.twig', []);
-//    }
-
     #[IsGranted('ACTIVE_USER')]
-    #[Route('/ajax/templates', name: 'ajax', methods: ['GET'])]
-    public function getTemplates(Request $request): JsonResponse
-    {
-        $data = $this->templateService->getTemplates($request);
-        return new JsonResponse($data);
-    }
-
-
-    #[Route('/ajax/templates/{userId}', name: 'ajax_user', methods: ['GET'])]
+    #[Route('/user/{userId}', name: 'template_list', methods: ['GET'])]
     public function getTemplatesByUserId(int $userId, Request $request): JsonResponse
     {
         $data = $this->templateService->getTemplatesByUserId($request, $userId);
@@ -59,13 +43,14 @@ class TemplateController extends AbstractController
     }
 
     #[IsGranted('ACTIVE_USER')]
-    #[Route('/create/{id}', name: 'create', methods: ['GET', 'POST'])]
+    #[Route('/create/{id}', name: 'template_create', methods: ['GET', 'POST'])]
     public function create(int $id, Request $request): Response
     {
         if ($request->isMethod('POST')) {
             try {
                 $this->templateService->createTemplateFromRequest( $id,$request);
                 $this->addFlash('success', 'Template created successfully!');
+
                 return $this->redirectToRoute('app_profile', ['id' => $id]);
             } catch (\Exception $e) {
                 $this->addFlash('error', 'Error creating template: ' . $e->getMessage());
@@ -79,23 +64,23 @@ class TemplateController extends AbstractController
     }
 
     #[IsGranted('ACTIVE_USER')]
-    #[Route('/{id}/edit', name: 'edit', methods: ['GET', 'POST'])]
-    public function edit(
-        int $id,
-        Request $request,
-        Template $template,
-    ): Response {
-
-        $this->isAuthorized($id);
+    #[Route('/{id}/edit', name: 'template_edit', methods: ['GET', 'POST'])]
+    public function edit(int $id, Request $request,): Response
+    {
         $template = $this->templateRepository->find($id);
-        $userId = $template->getAuthor()->getId();
+        if( !$template) throw $this->createNotFoundException('Template not found.');
+
+        $this->denyAccessUnlessGranted(TemplateVoter::MANAGE, $template);
 
         if ($request->isMethod('POST')) {
+            $userId = $template->getAuthor()->getId();
             try {
                 $this->templateService->updateTemplateFromRequest($template, $request);
+
                 $this->addFlash('success', 'Template updated successfully.');
                 return $this->redirectToRoute('app_profile', ['id' => $userId]);
-            } catch (\Exception $e) {
+            } catch (\Exception $e)
+            {
                 $this->addFlash('error', 'Update failed: ' . $e->getMessage());
             }
         }
@@ -111,7 +96,7 @@ class TemplateController extends AbstractController
     }
 
     #[IsGranted('ACTIVE_USER')]
-    #[Route('/ajax/topics', name: 'ajax_topics')]
+    #[Route('/ajax/topics', name: 'template_ajax_topics')]
     public function fetchTopics(): JsonResponse
     {
         $data = $this->templateService->getAllTopics();
@@ -119,7 +104,7 @@ class TemplateController extends AbstractController
     }
 
     #[IsGranted('ACTIVE_USER')]
-    #[Route('/tag/search', name: 'tag_search')]
+    #[Route('/tag/search', name: 'template_tag_search')]
     public function tagSearch(Request $request): JsonResponse
     {
         $term = $request->query->get('term', '');
@@ -129,7 +114,7 @@ class TemplateController extends AbstractController
     }
 
     #[IsGranted('ACTIVE_USER')]
-    #[Route('/user-search', name: 'user_search', methods: ['GET'])]
+    #[Route('/user-search', name: 'template_user_search', methods: ['GET'])]
     public function userSearch(Request $request, TemplateService $templateService): JsonResponse
     {
         $term = $request->query->get('term', '');
@@ -138,37 +123,23 @@ class TemplateController extends AbstractController
         return new JsonResponse($results);
     }
 
-    #[IsGranted('ACTIVE_USER')]
-    #[Route('/{id}/delete', name: 'delete', methods: ['GET', 'POST'])]
-    public function delete(int $id): Response
-    {
-        $this->isAuthorized($id);
-        try {
-            $this->templateService->deleteTemplate($id);
-            $this->addFlash('success', 'Template deleted successfully.');
-        } catch (\Exception $e) {
-            $this->addFlash('error', $e->getMessage());
-        }
-
-        return $this->redirectToRoute('template_list');
-    }
-
-
-    #[Route('/{id}/fill', name: 'fill', methods: ['GET', 'POST'])]
+    #[Route('/{id}/fill', name: 'template_fill', methods: ['GET', 'POST'])]
     public function fill(int $id, Request $request): Response
     {
         $template = $this->templateRepository->find($id);
-        if (!$template) {
-            throw $this->createNotFoundException('Template not found.');
-        }
+        if (!$template) throw $this->createNotFoundException('Template not found.');
 
         $this->denyAccessUnlessGranted('TEMPLATE_FILL', $template);
 
         if ($request->isMethod('POST')) {
             $this->denyAccessUnlessGranted('ACTIVE_USER');
-            $this->denyAccessUnlessGranted(TemplateVoter::FILL, $template);
             $user = $this->userRepo->find($this->security->getUser()->getId());
-            $this->templateService->submitForm($request, $template, $user);
+            $formEntity =  $this->templateService->handleFormSubmission($request, $template, $user);
+
+            if( !$formEntity) {
+                $this->addFlash('error', 'Error submitting form. Please try again.');
+                return $this->redirectToRoute('template_fill', ['id' => $id]);
+            }
             $this->addFlash('success', 'Form successfully submitted!');
 
             return $this->redirectToRoute('app_home');
@@ -179,21 +150,16 @@ class TemplateController extends AbstractController
         return $this->render('template/fill.html.twig', [
             'template' => $template,
             'template_questions' => $template_questions,
-            'request' => $request->request->all(),
         ]);
     }
 
-
     #[IsGranted('ACTIVE_USER')]
-    #[Route('/{id}/results/data', name: 'template_results_data', methods: ['GET'])]
+    #[Route('/{id}/results/data', name: 'template_results', methods: ['GET'])]
     public function resultsData(int $id): JsonResponse
     {
-        $this->isAuthorized($id);
-
         $template = $this->templateRepository->find($id);
-        if (!$template) {
-            return new JsonResponse(['error' => 'Template not found'], 404);
-        }
+        if (!$template) return new JsonResponse(['error' => 'Template not found'], 404);
+        $this->denyAccessUnlessGranted(TemplateVoter::MANAGE, $template);
 
         $data = $this->templateService->getResultsData($template);
         return new JsonResponse(['data' => $data]);
@@ -202,51 +168,32 @@ class TemplateController extends AbstractController
 
     #[IsGranted('ACTIVE_USER')]
     #[Route('/{id}/aggregate', name: 'template_aggregate', methods: ['GET'])]
-    public function aggregate
-    (
-        int $id,
-        TemplateRepository $templateRepository,
-        TemplateService $templateService
-
-    ): JsonResponse
+    public function aggregate( int $id ): JsonResponse
     {
-        $this->isAuthorized($id);
-        $template = $templateRepository->find($id);
+        $template = $this->templateRepository->find($id);
+        if (!$template) return new JsonResponse(['error' => 'Template not found'], 404);
+        $this->denyAccessUnlessGranted(TemplateVoter::MANAGE, $template);
 
-        if (!$template) {
-            return new JsonResponse(['error' => 'Template not found'], 404);
-        }
-
-        $aggregates = $templateService->getTemplateAggregates($template);
+        $aggregates = $this->templateService->getTemplateAggregates($template);
         return new JsonResponse($aggregates);
     }
 
     #[IsGranted('ACTIVE_USER')]
-    #[Route('/bulk-delete', name: 'bulk_delete', methods: ['POST'])]
+    #[Route('/bulk-delete', name: 'template_bulk_delete', methods: ['POST'])]
     public function bulkDelete(Request $request): Response
     {
         $data = json_decode($request->getContent(), true);
         $ids = $data['ids'] ?? [];
         $templtes= $this->templateRepository->findBy(['id' => $ids]);
-        $this->checkTemplatesAuthorization($templtes);
+
+        foreach ($templtes as $template) {
+            $this->denyAccessUnlessGranted('TEMPLATE_MANAGE', $template);
+        }
 
         return $this->templateService->bulkDeleteTemplates($ids);
     }
 
-    private function isAuthorized($templateId) : void
-    {
-        $template = $this->em->getRepository(Template::class)->find($templateId);
-        $this->denyAccessUnlessGranted('TEMPLATE_MANAGE', $template);
-    }
-
-    private function checkTemplatesAuthorization(array $templtes) : void
-    {
-        foreach ($templtes as $template) {
-            $this->denyAccessUnlessGranted('TEMPLATE_MANAGE', $template);
-        }
-    }
-
-    #[Route('/latest', name: 'latest_ajax', methods: ['GET'])]
+    #[Route('/latest', name: 'template_latest_ajax', methods: ['GET'])]
     public function latestTemplatesAjax(Request $request, TemplateService $templateService): JsonResponse
     {
         $limit = 10;
@@ -260,10 +207,10 @@ class TemplateController extends AbstractController
         ]);
     }
 
-    #[Route('/popular', name: 'popular_ajax', methods: ['GET'])]
+    #[Route('/popular', name: 'template_popular_ajax', methods: ['GET'])]
     public function mostPopularTemplates(Request $request, TemplateService $templateService): JsonResponse
     {
-        $limit = 10;
+        $limit = 5;
         $results = $templateService->getMostPopularTemplates($limit);
 
         return new JsonResponse([

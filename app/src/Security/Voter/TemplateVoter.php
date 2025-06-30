@@ -3,6 +3,8 @@
 namespace App\Security\Voter;
 
 use App\Entity\Template;
+use App\Repository\TemplateRepository;
+use App\Repository\User\UserRepository;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Authorization\Voter\Voter;
@@ -13,7 +15,11 @@ final class TemplateVoter extends Voter
     public const MANAGE = 'TEMPLATE_MANAGE'; // for managing (edit/delete)
     public const FILL = 'TEMPLATE_FILL';     // for viewing/filling the template
 
-    public function __construct(private Security $security) {}
+    public function __construct
+    (
+        private Security $security,
+    )
+    {}
 
     protected function supports(string $attribute, mixed $subject): bool
     {
@@ -34,27 +40,24 @@ final class TemplateVoter extends Voter
 
         switch ($attribute) {
             case self::MANAGE:
-                // Only creator can manage
-                return $template->getCreatedBy() === $user;
-
-            case self::FILL:
-
-                if ($template->getAccess() == 'public') {
+                if ($template->getAuthor()?->getId() == $user->getId()) {
                     return true;
                 }
-                else
-                {
-                    if ($template->getCreatedBy() === $user) {
-                        return true;
-                    }
+                return false;
 
-                    // Otherwise, check if user is in allowed users
-                    return $template->getUsers()->contains($user) ;
-
+            case self::FILL:
+                if ($template->getAccess() === 'public') {
+                    return true;
                 }
 
-            default:
-                return false;
+                if ($template->getAuthor()?->getId() === $user?->getId()) {
+                    return true;
+                }
+
+                return $template->getUsers()->contains($user);
         }
+
+        return false;
     }
+
 }

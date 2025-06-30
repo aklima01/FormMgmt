@@ -47,7 +47,6 @@ class FormController extends AbstractController
         $form = $this->formRepository->find($id);
         if (!$form) throw $this->createNotFoundException('Form not found');
 
-        $this->denyAccessUnlessGranted('FORM_MANAGE', $form);
         $result = $this->formService->handleFormEdit($request, $form);
         $userId = $form->getUser()->getId();
 
@@ -66,12 +65,9 @@ class FormController extends AbstractController
     {
         $data = json_decode($request->getContent(), true);
         $ids = $data['ids'] ?? [];
-
         $result = $this->formService->bulkDelete($ids, $this->formRepository);
 
-        if (isset($result['error'])) {
-            return new JsonResponse($result, 400);
-        }
+        if (isset($result['error'])) return new JsonResponse($result, 400);
 
         return new JsonResponse($result);
     }

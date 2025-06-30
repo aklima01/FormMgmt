@@ -75,6 +75,10 @@
     {{ parent() }}
 
     <script>
+        const templateFillUrlTemplate = '{{ path('template_fill', {'id': '__ID__'}) }}';
+    </script>
+
+    <script>
         document.addEventListener('DOMContentLoaded', function () {
             console.log('Home page scripts loaded.');
             const table = $('#latest-templates').DataTable({
@@ -117,7 +121,8 @@
             $('#latest-templates tbody').on('click', 'tr', function () {
                 const data = table.row(this).data();
                 if (data && data.id) {
-                    window.location.href = `/template/${data.id}/fill`;
+                    const url = templateFillUrlTemplate.replace('__ID__', data.id);
+                    window.location.href = url;
                 }
             });
 
@@ -152,7 +157,8 @@
             $('#popularTemplatesTable tbody').on('click', 'tr', function () {
                 const data = table.row(this).data();
                 if (data && data.id) {
-                    window.location.href = `/template/${data.id}/fill`;
+                    const url = templateFillUrlTemplate.replace('__ID__', data.id);
+                    window.location.href = url;
                 }
             });
 

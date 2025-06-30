@@ -573,14 +573,17 @@
             const userRoles = {{ app.user.roles|json_encode|raw }};
             const isAdmin = userRoles.includes('ROLE_ADMIN');
 
+            const resultsUrl = "{{ path('template_results', {'id': template.id}) }}";
+
             const table = $('#resultsTable').DataTable({
                 order : [[0, 'desc']],
                 processing: true,
 
                 searching: true,
 
+
                 ajax: {
-                    url: `/template/${templateId}/results/data`,
+                    url: resultsUrl,
                     method: 'GET',
                     dataSrc: 'data'
                 },
