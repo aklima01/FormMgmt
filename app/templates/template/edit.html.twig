@@ -5,38 +5,8 @@
     <link rel="stylesheet" href="https://unpkg.com/easymde/dist/easymde.min.css">
     <link href="https://unpkg.com/dropzone@5/dist/min/dropzone.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+    <link rel="stylesheet" href="{{ asset('css/template/edit.css') }}">
 
-    <style>
-        .tag-list {
-            margin-top: 10px;
-        }
-        .tag-item {
-            display: inline-block;
-            background-color: #0d6efd;
-            color: white;
-            padding: 5px 10px;
-            border-radius: 20px;
-            margin: 3px;
-        }
-        .tag-item .remove-tag {
-            margin-left: 8px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-        .user-pill {
-            display: inline-block;
-            background-color: #0d6efd;
-            color: #fff;
-            padding: 5px 10px;
-            border-radius: 20px;
-            margin: 3px;
-        }
-        .user-pill .remove-user {
-            margin-left: 8px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-    </style>
 {% endblock %}
 
 {% block title %}Edit Template{% endblock %}
@@ -151,7 +121,6 @@
                         <input type="hidden" name="user_ids" id="user-ids">
                     </div>
 
-
                 </div>
 
                 <!-- Questions Tab -->
@@ -173,11 +142,9 @@
                                 <th>Email</th>
                                 <th>Date</th>
                                 <th>Key Answers</th>
-
                             </tr>
                             </thead>
                             <tbody>
-
                             </tbody>
                         </table>
                     </div>
@@ -216,8 +183,6 @@
 
     <script src="https://unpkg.com/easymde/dist/easymde.min.js"></script>
 
-    {#    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>#}
-
     <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.3/min/dropzone.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
@@ -232,12 +197,7 @@
                 placeholder: "Enter the description in markdown...",
                 status: false
             });
-
-
         });
-
-
-
     </script>
 
     {# Tag Input with Autocomplete #}
@@ -322,7 +282,7 @@
     </script>
 
 
-    {#Dropzone for Image Upload with resizing using pica#}
+    {#Dropzone for Image Upload#}
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const dropzone = document.getElementById('dropzone');
@@ -581,7 +541,6 @@
 
                 searching: true,
 
-
                 ajax: {
                     url: resultsUrl,
                     method: 'GET',
@@ -626,7 +585,7 @@
                 }
             });
 
-            // Handle row click (excluding the dropdown column)
+
             // Handle row click (excluding the dropdown column)
             $('#resultsTable tbody').on('click', 'tr', function (e) {
                 if ($(e.target).closest('.dropdown').length === 0) {
@@ -672,9 +631,5 @@
             });
         });
     </script>
-
-
-
-
 
 {% endblock %}

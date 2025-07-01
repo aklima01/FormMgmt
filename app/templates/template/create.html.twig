@@ -5,23 +5,9 @@
     <link rel="stylesheet" href="https://unpkg.com/easymde/dist/easymde.min.css">
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
     <link href="https://unpkg.com/dropzone@5/dist/min/dropzone.min.css" rel="stylesheet" />
+    <link href="https://unpkg.com/dropzone@5/dist/min/dropzone.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="{{ asset('css/template/create.css') }}">
 
-    <style>
-        .tag-list, .user-pill { margin-top: 10px; }
-        .tag-item, .user-pill {
-            display: inline-block;
-            background-color: #0d6efd;
-            color: white;
-            padding: 5px 10px;
-            border-radius: 20px;
-            margin: 3px;
-        }
-        .tag-item .remove-tag, .user-pill .remove-user {
-            margin-left: 8px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-    </style>
 {% endblock %}
 
 {% block title %}Create Template{% endblock %}
@@ -247,34 +233,7 @@
         });
     </script>
 
-    {#  Dropzone config #}
-{#    <script>#}
-{#        Dropzone.autoDiscover = false;#}
-{#        const dropzone = new Dropzone("#dropzone", {#}
-{#            url: "#",#}
-{#            autoProcessQueue: false,#}
-{#            maxFiles: 1,#}
-{#            clickable: true,#}
-{#            acceptedFiles: "image/*",#}
-{#            addRemoveLinks: true,#}
-{#            init: function () {#}
-{#                this.on("addedfile", file => {#}
-{#                    const dt = new DataTransfer();#}
-{#                    dt.items.add(file);#}
-{#                    document.querySelector("#image-input").files = dt.files;#}
-
-{#                    if (this.files.length > 1) {#}
-{#                        this.removeFile(this.files[0]);#}
-{#                    }#}
-{#                });#}
-{#                this.on("removedfile", () => {#}
-{#                    document.querySelector("#image-input").value = "";#}
-{#                });#}
-{#            }#}
-{#        });#}
-{#    </script>#}
-
-    {# Image Resizing with Pica (Fixed Loop Issue) #}
+    {# Image Resizing with Pica #}
     <script>
         Dropzone.autoDiscover = false;
         const dz = new Dropzone("#dropzone", {
@@ -472,15 +431,6 @@
             });
         }
 
-        {#// Load Questions from Server#}
-        {#const templateQuestions = {{ template_questions_json|raw }};#}
-        {#templateQuestions.forEach(q => {#}
-        {#    addQuestionRow(q.id, q.title, q.description, q.type, q.showInTable);#}
-        {#});#}
-
     </script>
-
-
-
 
 {% endblock %}

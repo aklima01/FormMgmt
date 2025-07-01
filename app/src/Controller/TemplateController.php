@@ -2,14 +2,12 @@
 
 namespace App\Controller;
 
-use App\Entity\Template;
 use App\Repository\FormRepository;
 use App\Repository\QuestionRepository;
 use App\Repository\TemplateRepository;
 use App\Repository\User\UserRepository;
 use App\Security\Voter\TemplateVoter;
 use App\Service\Template\TemplateService;
-use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\JsonResponse;
