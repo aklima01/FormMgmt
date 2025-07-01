@@ -126,11 +126,6 @@ class UserManagementService implements UserManagementServiceInterface
 
         $action = $request->request->get('action');
 
-//        if (empty($userIds) || !$action) {
-//            $this->session->getFlashBag()->add('success', 'Bulk action performed successfully.');
-//            return new RedirectResponse($this->router->generate('admin_users_list'));
-//        }
-
         $users = $this->userRepository->findBy(['id' => $userIds]);
 
         foreach ($users as $user) {

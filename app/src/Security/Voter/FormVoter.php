@@ -37,7 +37,10 @@ final class FormVoter extends Voter
 
         switch ($attribute) {
             case self::MANAGE:
-                return $form->getCreatedBy() === $user;
+
+                if ($form->getCreatedBy() === $user) {
+                    return true;
+                }
 
             case self::VIEW:
 

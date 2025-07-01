@@ -30,7 +30,6 @@ class Form
     private Collection $answers;
 
 
-
     public function __construct()
     {
         $this->answers = new ArrayCollection();

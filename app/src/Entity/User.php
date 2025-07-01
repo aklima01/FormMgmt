@@ -45,6 +45,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: 'datetime')]
     private \DateTimeInterface $createdAt;
 
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: Template::class, orphanRemoval: true, cascade: ['remove'])]
+    private Collection $templates;
+
     public function getStatus(): string
     {
         return $this->status;
@@ -149,9 +152,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->name = $name;
     }
 
-    #[ORM\OneToMany(mappedBy: 'user', targetEntity: Template::class, orphanRemoval: true, cascade: ['remove'])]
-    private Collection $templates;
-
     public function __construct()
     {
         $this->templates = new ArrayCollection();
@@ -161,6 +161,5 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         return $this->templates;
     }
-
 
 }

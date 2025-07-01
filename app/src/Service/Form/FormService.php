@@ -19,13 +19,15 @@ use App\Entity\Form;
 
 class FormService
 {
-    public function __construct(
+    public function __construct
+    (
         private readonly FormRepository $formRepository,
         private readonly QuestionRepository $questionRepository,
         private readonly AnswerRepository $answerRepository,
         private readonly AuthorizationCheckerInterface $authorizationChecker,
         private readonly EntityManagerInterface $em,
-    ) {}
+    )
+    {}
 
     public function bulkDelete(array $ids, FormRepository $formRepository): array
     {

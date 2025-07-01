@@ -25,11 +25,4 @@ class UserRepository  extends ServiceEntityRepository implements UserRepositoryI
         }
     }
 
-    public function findAll(): array
-    {
-        return $this->createQueryBuilder('u')
-            ->orderBy('u.id', 'ASC')
-            ->getQuery()
-            ->getResult();
-    }
 }

@@ -5,7 +5,7 @@
 
 {% block body %}
     <div class="container-fluid mt-4">
-{#        <h1>Admin Dashboard</h1>#}
+        <h1>Admin Dashboard</h1>
         <!-- Tabs Navigation -->
         <ul class="nav nav-tabs" id="adminTabs" role="tablist">
             <li class="nav-item" role="presentation">
@@ -13,11 +13,6 @@
                     User Management
                 </button>
             </li>
-{#            <li class="nav-item" role="presentation">#}
-{#                <button class="nav-link" id="templates-tab" data-bs-toggle="tab" data-bs-target="#templates" type="button" role="tab" aria-controls="templates" aria-selected="false">#}
-{#                    All Templates#}
-{#                </button>#}
-{#            </li>#}
         </ul>
 
         <!-- Tabs Content -->
@@ -63,31 +58,7 @@
                     </table>
                 </form>
             </div>
-
-{#            <!-- My Templates Tab -->#}
-{#            <div class="tab-pane fade" id="templates" role="tabpanel" aria-labelledby="templates-tab">#}
-{#                <div class="mb-2">#}
-{#                    <button id="bulkDeleteBtn" class="btn btn-danger btn-sm" disabled>#}
-{#                        <i class="bi bi-trash"></i> Delete#}
-{#                    </button>#}
-{#                </div>#}
-{#                <div class="table-responsive">#}
-{#                    <table id="templateTable" class="table table-hover align-middle">#}
-{#                        <thead class="table-light">#}
-{#                        <tr>#}
-{#                            <th><input type="checkbox" id="selectAll"></th>#}
-{#                            <th>Template ID</th>#}
-{#                            <th>Title</th>#}
-{#                            <th>Image</th>#}
-{#                            <th>Description</th>#}
-{#                            <th>Actions</th>#}
-{#                        </tr>#}
-{#                        </thead>#}
-{#                        <tbody></tbody>#}
-{#                    </table>#}
-{#                </div>#}
-{#            </div>#}
-{#        </div>#}
+        </div>
 
         <!-- Delete Confirmation Modal -->
         <div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteConfirmModalLabel" aria-hidden="true">
@@ -106,6 +77,7 @@
             </div>
         </div>
     </div>
+
 {% endblock %}
 
 
@@ -116,7 +88,6 @@
 {% block javascripts %}
     {{ parent() }}
 
-    {# Load marked.js FIRST #}
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js"></script>
 
@@ -151,7 +122,6 @@
                             }
                         }
                     },
-                    // { data: 'roles', orderable: false },
                     {
                         data: 'roles',
                         orderable: false,
@@ -166,7 +136,6 @@
                             }
                         }
                     },
-                    // { data: 'createdAt' }
                     {
                         data: 'createdAt',
                         render: function (data) {
@@ -221,7 +190,6 @@
 
             $('#trigger-delete-modal').on('click', function () {
                 if (selectedUsers.size === 0) {
-                    // const toastEl = document.getElementById('noUsersToast');
                     const toast = new bootstrap.Toast(toastEl);
                     toast.show();
                     return;
@@ -251,112 +219,12 @@
                 }
             });
 
-            // Optional: cursor pointer on hover
             $('#users-table tbody').on('mouseenter', 'tr', function () {
                 $(this).css('cursor', 'pointer');
             });
 
         });
     </script>
-
-
-    {# template table script#}
-    <script>
-        $(document).ready(function () {
-            const templateTable = $('#templateTable').DataTable({
-                processing: true,
-                serverSide: true,
-                ajax: "{{ path('template_ajax') }}",
-                order: [[1, 'desc']],
-                columns: [
-                    {
-                        data: 'id',
-                        orderable: false,
-                        searchable: false,
-                        render: data => `<input type="checkbox" class="row-checkbox" value="${data}">`
-                    },
-                    { data: 'id' },
-                    { data: 'title' },
-                    { data: 'image', orderable: false, searchable: false },
-                    {
-                        data: 'description',
-                        render: (data, type) => type === 'display' ? marked.parse(data || '') : data
-                    },
-                    {
-                        data: 'actions',
-                        orderable: false,
-                        visible: false,
-                        searchable: false,
-
-                        render: data => `
-                            <div class="dropdown">
-                                <button class="btn btn-sm btn-light" data-bs-toggle="dropdown">
-                                    <i class="bi bi-three-dots"></i>
-                                </button>
-                                <ul class="dropdown-menu">
-                                    <li><a class="dropdown-item" href="${data.editUrl}">Edit</a></li>
-                                    <li><a class="dropdown-item" href="${data.fillUrl}">Fill</a></li>
-                                    <li><a class="dropdown-item text-danger" href="${data.deleteUrl}">Delete</a></li>
-                                </ul>
-                            </div>`
-                    }
-                ],
-                createdRow: (row, data) => {
-                    $(row).attr('data-href', data.actions.editUrl);
-                    $(row).css('cursor', 'pointer');
-                }
-            });
-
-            $('#selectAll').on('click', function () {
-                const checked = this.checked;
-                $('.row-checkbox').prop('checked', checked);
-                $('#bulkDeleteBtn').prop('disabled', $('.row-checkbox:checked').length === 0);
-            });
-
-            $(document).on('change', '.row-checkbox', function () {
-                const allChecked = $('.row-checkbox').length === $('.row-checkbox:checked').length;
-                $('#selectAll').prop('checked', allChecked);
-                $('#bulkDeleteBtn').prop('disabled', $('.row-checkbox:checked').length === 0);
-            });
-
-            $('#bulkDeleteBtn').on('click', function () {
-                const ids = $('.row-checkbox:checked').map(function () {
-                    return $(this).val();
-                }).get();
-
-                if (ids.length === 0) return;
-
-                $.ajax({
-                    url: "{{ path('template_bulk_delete') }}",
-                    type: 'POST',
-                    data: JSON.stringify({ ids: ids }),
-                    contentType: 'application/json',
-                    success: function () {
-                        templateTable.ajax.reload(null, false);
-                        $('#selectAll').prop('checked', false);
-                        $('#bulkDeleteBtn').prop('disabled', true);
-                    },
-                    error: function () {
-                        alert('Error deleting templates.');
-                    }
-                });
-            });
-
-            $(document).on('click', '#templateTable tbody tr', function (e) {
-                if (
-                    $(e.target).is('a, button, i, input[type="checkbox"], .row-checkbox') ||
-                    $(e.target).closest('.dropdown').length
-                ) return;
-
-                const href = $(this).attr('data-href');
-                if (href) {
-                    window.location.href = href;
-                }
-            });
-        });
-    </script>
-
-
 
 
 {% endblock %}

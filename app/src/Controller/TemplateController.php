@@ -30,7 +30,6 @@ class TemplateController extends AbstractController
         private readonly Security $security,
         private readonly QuestionRepository $questionRepository,
         private readonly TemplateService $templateService,
-        private readonly EntityManagerInterface $em,
     )
     {}
 

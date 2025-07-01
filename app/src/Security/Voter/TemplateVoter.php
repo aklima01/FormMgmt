@@ -3,17 +3,15 @@
 namespace App\Security\Voter;
 
 use App\Entity\Template;
-use App\Repository\TemplateRepository;
-use App\Repository\User\UserRepository;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Authorization\Voter\Voter;
-use Symfony\Component\Security\Core\User\UserInterface;
+
 
 final class TemplateVoter extends Voter
 {
-    public const MANAGE = 'TEMPLATE_MANAGE'; // for managing (edit/delete)
-    public const FILL = 'TEMPLATE_FILL';     // for viewing/filling the template
+    public const MANAGE = 'TEMPLATE_MANAGE';
+    public const FILL = 'TEMPLATE_FILL';
 
     public function __construct
     (
@@ -33,14 +31,13 @@ final class TemplateVoter extends Voter
         /** @var Template $template */
         $template = $subject;
 
-        // Admins can always manage or fill
         if ($this->security->isGranted('ROLE_ADMIN')) {
             return true;
         }
 
         switch ($attribute) {
             case self::MANAGE:
-                if ($template->getAuthor()?->getId() == $user->getId()) {
+                if ($template->getAuthor()?->getId() === $user->getId()) {
                     return true;
                 }
                 return false;

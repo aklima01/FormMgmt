@@ -148,7 +148,6 @@ class Template
     }
 
 
-
     public function getImageUrl(): ?string
     {
         return $this->imageUrl;
@@ -158,7 +157,6 @@ class Template
     {
         $this->imageUrl = $imageUrl;
     }
-
 
 
     public function getTags(): Collection
@@ -179,7 +177,6 @@ class Template
     }
 
 
-
     public function getDescription(): ?string
     {
         return $this->description;
@@ -189,7 +186,6 @@ class Template
     {
         $this->description = $description;
     }
-
 
 
     public function getTitle(): ?string
@@ -214,7 +210,6 @@ class Template
         return $this;
     }
 
-
     public function addUser(User $user): self
     {
         if (!$this->users->contains($user)) {
@@ -230,7 +225,6 @@ class Template
 
         return $this;
     }
-
 
     public function clearTags(): void
     {

@@ -38,7 +38,6 @@ class UserRegistrationService implements UserRegistrationServiceInterface
         $user->setEmail($form->get('email')->getData());
         $plainPassword = $form->get('Password')->getData();
 
-        // Call your existing register method which handles password encoding and saving
         $this->register($user, $plainPassword);
     }
 

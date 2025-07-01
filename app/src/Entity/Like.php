@@ -71,8 +71,4 @@ class Like
         $this->createdAt = $createdAt;
     }
 
-
-
-
-
 }
