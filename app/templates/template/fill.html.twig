@@ -18,11 +18,16 @@
                     {% endif %}
                 </p>
 
-                <div class="mb-2">
-                    <span class="badge bg-primary">Health</span>
-                    <span class="badge bg-secondary tag">food</span>
-                    <span class="badge bg-secondary tag">daily</span>
-                </div>
+                {# Tags section #}
+                {% if template.tags is not empty %}
+                    <div class="mb-2">
+                        {% for tag in template.tags %}
+                            <span class="badge bg-secondary tag">{{ tag.name }}</span>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-muted"><em>No tags available</em></p>
+                {% endif %}
 
                 <button
                     id="like-button"
