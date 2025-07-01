@@ -32,4 +32,13 @@ class HomeController extends AbstractController
         return $this->render('home/access_denied.html.twig');
     }
 
+    #[Route('/health-check', name: 'app_health_check', methods: ['GET'])]
+    public function healthCheck(): JsonResponse
+    {
+        return new JsonResponse([
+            'status' => 'ok',
+            'timestamp' => (new \DateTimeImmutable())->format(\DateTime::ATOM),
+        ]);
+    }
+
 }
