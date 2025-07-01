@@ -533,10 +533,6 @@ class TemplateService
 
     public function getTemplatesByUserId(Request $request, int $userId)
     {
-        if ($this->security->getUser()?->getId() !== $userId) {
-            return new JsonResponse([], Response::HTTP_FORBIDDEN);
-        }
-
         $dtRequest = new DataTablesAjaxRequestService($request);
 
         $start = $dtRequest->getStart();

@@ -65,7 +65,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function setCreatedAt(): void
     {
-        $this->createdAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
+       // $this->createdAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
+        $this->createdAt = new \DateTime('now', new \DateTimeZone('UTC'));
     }
 
 

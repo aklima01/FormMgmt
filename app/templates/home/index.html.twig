@@ -1,29 +1,27 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Home Page{% endblock %}
+{% block title %}Home FormMgmt{% endblock %}
 
 {% block stylesheets %}
     {{ parent() }}
+
     <style>
-        /* Show pointer cursor on row hover */
         #popularTemplatesTable tbody tr:hover {
             cursor: pointer;
         }
-    </style>
 
-    <style>
         #latest-templates tbody tr {
             cursor: pointer;
         }
     </style>
+
 {% endblock %}
 
 {% block body %}
     <div class="container mt-4">
         <div class="col-md-8 offset-md-2">
 
-
-        <!-- Latest Templates (in Table Format) -->
+        <!-- Latest Templates-->
         <section class="mb-5">
             <h2>Latest Templates</h2>
             <table class="table  table-hover" id="latest-templates">
@@ -36,7 +34,6 @@
                 </tr>
                 </thead>
                 <tbody>
-
                 </tbody>
             </table>
         </section>
@@ -60,7 +57,7 @@
             </table>
         </section>
 
-        <!-- Tag Cloud (Simple Badge List) -->
+        <!-- Tag Cloud -->
             <section id="popular-tags">
                 <h2>Tags</h2>
                 <div id="tag-badges"></div>
@@ -99,7 +96,7 @@
                     }
                 },
                 columns: [
-                    { data: 'id', title: 'ID', visible: false }, // hidden ID
+                    { data: 'id', title: 'ID', visible: false },
                     { data: 'title', title: 'Title' },
                     {
                         data: 'description',
@@ -153,7 +150,6 @@
                 info: false
             });
 
-
             // Make rows clickable
             $('#popularTemplatesTable tbody').on('click', 'tr', function () {
                 const data = popularTable.row(this).data();
@@ -162,8 +158,6 @@
                     window.location.href = url;
                 }
             });
-
-
 
             $.ajax({
                 url: '{{ path('tags_popular_ajax') }}',
@@ -200,7 +194,7 @@
             $('#latest-templates tbody').on('mouseenter', 'tr', function () {
                 $(this).css('cursor', 'pointer');
             });
-            //end
+
         });
     </script>
 

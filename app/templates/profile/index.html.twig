@@ -197,7 +197,7 @@
             });
 
             let deleteIds = [];
-            let deleteMode = ''; // 'template' or 'form'
+            let deleteMode = '';
 
 
             $('#bulkDeleteBtn, #bulkFormDeleteBtn').on('click', function () {
@@ -223,7 +223,7 @@
             $('#confirmDeleteBtn').on('click', function () {
                 const url = deleteMode === 'template'
                     ? "{{ path('template_bulk_delete') }}"
-                    : "/form/bulk-delete";
+                    : "{{ path('form_bulk_delete') }}";
 
                 $.ajax({
                     url: url,
@@ -278,7 +278,7 @@
         });
     </script>
 
-    {# myfiledforms script#}
+    {# filedforms script#}
     <script>
         $(document).ready(function () {
             const formTable = $('#formTable').DataTable({
@@ -308,8 +308,8 @@
                         visible: false,
                         render: function(data) {
                             return `
-                            <a href="/form/${data}/view" class="btn btn-sm btn-primary">View</a>
-                            <a href="/form/${data}/edit" class="btn btn-sm btn-secondary">Edit</a>
+                            <a href="#" class="btn btn-sm btn-primary">View</a>
+                            <a href="#" class="btn btn-sm btn-secondary">Edit</a>
                         `;
                         }
                     }
@@ -347,75 +347,17 @@
                 $('#bulkFormDeleteBtn').prop('disabled', $('.form-checkbox:checked').length === 0);
             });
 
-            let deleteIds = [];
-            let deleteMode = ''; // 'template' or 'form'
-
-            $('#confirmDeleteBtn').on('click', function () {
-                const url = deleteMode === 'template'
-                    ? "{{ path('template_bulk_delete') }}"
-                    : "/form/bulk-delete";
-
-                $.ajax({
-                    url: url,
-                    type: 'POST',
-                    data: JSON.stringify({ ids: deleteIds }),
-                    contentType: 'application/json',
-                    success: function () {
-                        if (deleteMode === 'template') {
-                            $('#templateTable').DataTable().ajax.reload(null, false);
-                            $('#selectAll').prop('checked', false);
-                            $('#bulkDeleteBtn').prop('disabled', true);
-                        } else {
-                            $('#formTable').DataTable().ajax.reload(null, false);
-                            $('#formSelectAll').prop('checked', false);
-                            $('#bulkFormDeleteBtn').prop('disabled', true);
-                        }
-
-                        // Show toast after successful delete
-                        const toastHTML = `
-        <div class="toast align-items-center text-bg-success border-0 mb-2" role="alert" aria-live="assertive" aria-atomic="true">
-            <div class="d-flex">
-                <div class="toast-body">
-                    Selected ${deleteMode === 'template' ? 'templates' : 'forms'} deleted successfully.
-                </div>
-                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
-            </div>
-        </div>
-    `;
-
-                        const container = document.querySelector('.toast-container');
-                        container.insertAdjacentHTML('beforeend', toastHTML);
-
-                        const newToast = container.lastElementChild;
-                        new bootstrap.Toast(newToast).show();
-
-                        // Hide modal
-                        const modalEl = document.getElementById('confirmDeleteModal');
-                        const modalInstance = bootstrap.Modal.getInstance(modalEl);
-                        if (modalInstance) {
-                            modalInstance.hide();
-                        }
-                    },
-                    error: function () {
-                        console.log('Error deleting selected items.');
-                    }
-                });
-            });
-
-
-
         });
     </script>
 
     <script>
-
         $(document).on('click', 'table tbody tr', function (e) {
             // Prevent row click if clicking inside interactive elements
             if (
                 $(e.target).is('a, button, i, input[type="checkbox"], .row-checkbox') ||
                 $(e.target).closest('.dropdown').length
             ) {
-                return; // Do nothing
+                return;
             }
 
             const href = $(this).attr('data-href');
