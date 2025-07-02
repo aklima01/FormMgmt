@@ -1,7 +1,6 @@
 FROM webdevops/php-nginx:8.2
 
 WORKDIR /app
-
 COPY ./app /app
 
 ENV WEB_DOCUMENT_ROOT=/app/public
