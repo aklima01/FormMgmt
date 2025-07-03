@@ -22,6 +22,7 @@ class ProfileController extends AbstractController
     {
         $user = $this->userRepository->find($id);
         if (!$user) throw $this->createNotFoundException('User not found');
+        $this->denyAccessUnlessGranted('view_profile', $user);
 
         return $this->render('profile/index.html.twig', [
             'user' => $user,
