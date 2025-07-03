@@ -110,7 +110,7 @@
                 processing: true,
                 serverSide: true,
                 ajax: "{{ path('template_list', { userId: user.id }) }}",
-                order: [[1, 'asc']],
+                order: [[0, 'desc']],
                 columns: [
                     {
                         data: 'id',
@@ -315,7 +315,7 @@
                     }
                 ],
                 createdRow: function (row, data) {
-                    $(row).attr('data-href', `/form/${data.id}/edit`);
+                    $(row).attr('data-href', `/forms/${data.id}/edit`);
                     $(row).css('cursor', 'pointer');
                 }
             });
