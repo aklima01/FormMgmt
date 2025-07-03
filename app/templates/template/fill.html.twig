@@ -38,6 +38,7 @@
                 </button>
 
                 <br>
+                <br>
 
                 <div class="card border-0 shadow-sm mb-4">
                     <div class="card-body">
@@ -222,7 +223,6 @@
             }
 
 
-
             $('#comment-submit').click(function () {
                 const content = $('#comment-input').val().trim();
                 if (!content) return;
@@ -248,10 +248,12 @@
         });
     </script>
 
+
+    {#Prevent typing negative signs#}
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             document.querySelectorAll('.number-only').forEach(function(input) {
-                // Prevent typing negative signs
+
                 input.addEventListener('keydown', function(e) {
                     if (e.key === '-' || e.key === 'e') {
                         e.preventDefault();
