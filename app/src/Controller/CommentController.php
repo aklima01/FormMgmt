@@ -11,7 +11,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
-#[IsGranted('ACTIVE_USER')]
+
 class CommentController extends AbstractController
 {
     public function __construct
@@ -21,6 +21,7 @@ class CommentController extends AbstractController
     )
     {}
 
+    #[IsGranted('ACTIVE_USER')]
     #[Route('/template/{id}/comment', name: 'add_comment', methods: ['POST'])]
     public function add(
         Request $request,
