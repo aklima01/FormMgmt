@@ -23,7 +23,7 @@ class UserRegistrationService implements UserRegistrationServiceInterface
         $hashedPassword = $this->passwordHasher->hashPassword($user, $plainPassword);
         $user->setPassword($hashedPassword);
         $user->setRoles(['ROLE_USER']);
-       // $user->setRoles(['ROLE_ADMIN']);
+        //$user->setRoles(['ROLE_ADMIN']);
         $user->setCreatedAt();
 
         $this->userRepository->save($user);

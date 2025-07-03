@@ -71,7 +71,7 @@ class UserManagementService implements UserManagementServiceInterface
         $orderBy = $dtRequest->getSortText($columnsMap);
 
         if (empty($orderBy)) {
-            $orderBy = 'u.name asc';
+            $orderBy = 'u.id desc';
         }
 
         $orderParts = explode(' ', explode(',', $orderBy)[0]);
@@ -127,19 +127,18 @@ class UserManagementService implements UserManagementServiceInterface
         $action = $request->request->get('action');
 
         $users = $this->userRepository->findBy(['id' => $userIds]);
+        $message = '';
 
         foreach ($users as $user) {
             switch ($action) {
                 case 'block':
                     $user->setStatus('blocked');
-                    $this->em->persist($user);
-                    $this->session->getFlashBag()->add('success', 'Users blocked successfully.');
+                    $message = 'Users blocked successfully.';
                     break;
 
                 case 'unblock':
                     $user->setStatus('active');
-                    $this->em->persist($user);
-                    $this->session->getFlashBag()->add('success', 'Users unblocked successfully.');
+                    $message = 'Users unblocked successfully.';
                     break;
 
                 case 'make_admin':
@@ -147,8 +146,7 @@ class UserManagementService implements UserManagementServiceInterface
                     if (!in_array('ROLE_ADMIN', $roles, true)) {
                         $roles[] = 'ROLE_ADMIN';
                         $user->setRoles($roles);
-                        $this->em->persist($user);
-                        $this->session->getFlashBag()->add('success', 'Users made admin successfully.');
+                        $message = 'Users made admin successfully.';
                     }
                     break;
 
@@ -157,21 +155,26 @@ class UserManagementService implements UserManagementServiceInterface
                     if (in_array('ROLE_ADMIN', $roles, true)) {
                         $roles = array_filter($roles, fn($role) => $role !== 'ROLE_ADMIN');
                         $user->setRoles(array_values($roles));
-                        $this->em->persist($user);
-                        $this->session->getFlashBag()->add('success', 'Admin role removed successfully.');
+                        $message = 'Admin role removed successfully.';
                     }
                     break;
 
                 case 'delete':
                     $user->setStatus('deleted');
-                    $this->em->persist($user);
-                    $this->session->getFlashBag()->add('success', 'Users deleted successfully.');
+                    $message = 'Users deleted successfully.';
                     break;
             }
+
+            $this->em->persist($user);
         }
 
         $this->em->flush();
 
+        if ($message) {
+            $this->session->getFlashBag()->add('success', $message);
+        }
+
         return new RedirectResponse($this->router->generate('user_index'));
     }
+
 }
