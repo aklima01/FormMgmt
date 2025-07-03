@@ -75,6 +75,9 @@
         const templateFillUrlTemplate = '{{ path('template_fill', {'id': '__ID__'}) }}';
     </script>
 
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             console.log('Home page scripts loaded.');
@@ -98,12 +101,15 @@
                 columns: [
                     { data: 'id', title: 'ID', visible: false },
                     { data: 'title', title: 'Title' },
+
                     {
                         data: 'description',
                         title: 'Description',
                         render: function (data, type, row, meta) {
-                            if (type === 'display' && data.length > 50) {
-                                return data.substr(0, 50) + '…';
+                            if (type === 'display') {
+                                // Optional: limit to 50 characters before rendering markdown
+                                let truncated = data.length > 50 ? data.substr(0, 50) + '…' : data;
+                                return marked.parse(truncated);
                             }
                             return data;
                         }
