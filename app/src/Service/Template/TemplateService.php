@@ -540,17 +540,24 @@ class TemplateService
         $search = $dtRequest->getSearchText();
 
         $columnsMap = [
-            0 => 't.id',
-            1 => 't.title',
-            2 => 't.imageUrl',
-            3 => 't.description',
-            4 => 'author.name',
+            0 => null,
+            1 => 't.id',
+            2 => 't.title',
+            3 => null,
+            4 => 't.description',
+            5 => 'author.name',
         ];
 
         $orderBy = $dtRequest->getSortText($columnsMap) ?: 't.id desc';
         $orderParts = explode(' ', explode(',', $orderBy)[0]);
         $orderColumn = $orderParts[0];
         $orderDir = strtolower($orderParts[1] ?? 'asc');
+
+        // Prevent invalid sorting
+        if ($orderColumn === 'null' || $orderColumn === null) {
+            $orderColumn = 't.id';
+            $orderDir = 'desc';
+        }
 
         $user = $this->userRepo->find($userId);
 

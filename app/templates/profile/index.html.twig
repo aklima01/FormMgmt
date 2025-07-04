@@ -45,7 +45,6 @@
                             <th>Title</th>
                             <th>Image</th>
                             <th>Description</th>
-                            <th>Actions</th>
                         </tr>
                         </thead>
                         <tbody></tbody>
@@ -110,7 +109,8 @@
                 processing: true,
                 serverSide: true,
                 ajax: "{{ path('template_list', { userId: user.id }) }}",
-                order: [[0, 'desc']],
+                order: [[1, 'desc']],
+
                 columns: [
                     {
                         data: 'id',
@@ -120,17 +120,16 @@
                             return `<input type="checkbox" class="row-checkbox" value="${data}">`;
                         }
                     },
-                    {data: 'id', orderable: true, searchable: false},
-                    {data: 'title'},
+                    { data: 'id', orderable: true, searchable: false },
+                    { data: 'title', orderable: true },
                     {
                         data: 'imageUrl',
                         orderable: false,
                         searchable: false,
-                        render: function (data, type, row) {
-                            if (data) {
-                                return `<img src="${data}" alt="Template Image" class="img-fluid" width="50" height="50"/>`;
-                            }
-                            return '<em>No image</em>';
+                        render: function (data) {
+                            return data
+                                ? `<img src="${data}" alt="Template Image" class="img-fluid" width="50" height="50"/>`
+                                : '<em>No image</em>';
                         }
                     },
                     {
@@ -138,41 +137,17 @@
                         orderable: false,
                         render: function (data, type) {
                             if (type === 'display') {
-                                const markdown = data || '';
-                                const html = marked.parse(markdown); // Convert Markdown to HTML
+                                const html = marked.parse(data || '');
                                 const div = document.createElement('div');
                                 div.innerHTML = html;
                                 const plainText = div.textContent || div.innerText || '';
-                                const trimmed = plainText.length > 100
+                                return plainText.length > 100
                                     ? plainText.substring(0, 50).trim() + '…'
                                     : plainText.trim();
-
-                                return trimmed || '<em>No description</em>';
                             }
-
                             return data;
                         }
-                    },
-                    {
-                        data: 'actions',
-                        orderable: false,
-                        searchable: false,
-                        visible: false,
-                        render: function (data) {
-                            return `
-                            <div class="dropdown">
-                                <button class="btn btn-sm btn-light" data-bs-toggle="dropdown">
-                                    <i class="bi bi-three-dots"></i>
-                                </button>
-                                <ul class="dropdown-menu">
-                                    <li><a class="dropdown-item" href="#">Edit</a></li>
-                                    <li><a class="dropdown-item" href="#">Fill</a></li>
-                                    <li><a class="dropdown-item text-danger" href="#">Delete</a></li>
-                                </ul>
-                            </div>`;
-                        }
                     }
-
                 ],
                 createdRow: function (row, data) {
                     const editUrlTemplate = "{{ path('template_edit', { id: '__ID__' }) }}";
