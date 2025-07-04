@@ -112,14 +112,21 @@ class FormService
         $search = $dtRequest->getSearchText();
 
         $columnsMap = [
-            0 => 'f.id',
-            1 => 'template.title',
-            2 => 'f.submittedAt',
+            0 => null,
+            1 => 'f.id',
+            2 => 'template.title',
+            3 => 'f.submittedAt',
         ];
 
         $orderBy = $dtRequest->getSortText($columnsMap) ?: 'f.id desc';
         [$orderColumn, $orderDir] = explode(' ', $orderBy) + [null, 'asc'];
         $orderDir = strtolower($orderDir);
+
+        // Fallback if ordering is invalid
+        if ($orderColumn === null || strtolower($orderColumn) === 'null') {
+            $orderColumn = 'f.id';
+            $orderDir = 'desc';
+        }
 
         $qb = $this->em->createQueryBuilder()
             ->select('f', 'template')

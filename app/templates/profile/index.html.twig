@@ -66,8 +66,8 @@
                             <th><input type="checkbox" id="formSelectAll"></th>
                             <th >Form ID</th>
                             <th>Form Title</th>
-                            <th>Submitted At</th>
-                            <th>Actions</th>
+                            <th>Submitted On</th>
+
                         </tr>
                         </thead>
                         <tbody></tbody>
@@ -259,7 +259,7 @@
             const formTable = $('#formTable').DataTable({
                 processing: true,
                 serverSide: true,
-                order: [[3, 'desc']],
+                order: [[1, 'desc']],
                 ajax: {
                     url: "{{ path('form_list', { userId: user.id }) }}",
                     type: 'GET',
@@ -273,21 +273,10 @@
                             return `<input type="checkbox" class="form-checkbox" value="${data}">`;
                         }
                     },
-                    { data: 'id' },
-                    { data: 'template' },
-                    { data: 'submittedAt' },
-                    {
-                        data: 'id',
-                        orderable: false,
-                        searchable: false,
-                        visible: false,
-                        render: function(data) {
-                            return `
-                            <a href="#" class="btn btn-sm btn-primary">View</a>
-                            <a href="#" class="btn btn-sm btn-secondary">Edit</a>
-                        `;
-                        }
-                    }
+                    { data: 'id', orderable: true },
+                    { data: 'template', orderable: true },
+                    { data: 'submittedAt', orderable: true }
+
                 ],
                 createdRow: function (row, data) {
                     $(row).attr('data-href', `/forms/${data.id}/edit`);
