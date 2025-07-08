@@ -37,20 +37,6 @@ class UserManagementService implements UserManagementServiceInterface
         $this->tokenStorage = $tokenStorage;
     }
 
-    public function getCurrentUserId()
-    {
-        $token = $this->tokenStorage->getToken();
-        if ($token && $token->getUser() instanceof User) {
-            return $token->getUser()->getId();
-        }
-        return null;
-
-    }
-
-    public function findUserById(int $id): ?User
-    {
-        return $this->userRepository->find($id);
-    }
 
     public function handleAjaxUsersRequest(Request $request): JsonResponse
     {

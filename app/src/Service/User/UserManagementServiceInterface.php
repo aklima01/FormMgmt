@@ -9,6 +9,5 @@ use Symfony\Component\HttpFoundation\Request;
 interface UserManagementServiceInterface
 {
     public function handleAjaxUsersRequest(Request $request): JsonResponse;
-
     public function handleBulkActionRequest(Request $request): RedirectResponse;
 }

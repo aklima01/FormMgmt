@@ -516,12 +516,6 @@ class TemplateService
             $this->em->persist($question);
         }
 
-        // Set author
-        $currentUser = $this->security->getUser();
-        if (!$currentUser) {
-            throw new \LogicException('User must be logged in to create a template.');
-        }
-
         $user = $this->userRepo->find($userId);
         $template->setAuthor($user);
 

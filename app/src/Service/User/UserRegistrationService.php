@@ -16,7 +16,8 @@ class UserRegistrationService implements UserRegistrationServiceInterface
     public function __construct(
         private readonly UserPasswordHasherInterface $passwordHasher,
         private readonly UserRepositoryInterface $userRepository
-    ) {}
+    )
+    {}
 
     public function register(User $user, string $plainPassword): void
     {

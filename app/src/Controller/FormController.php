@@ -65,7 +65,7 @@ class FormController extends AbstractController
     {
         $data = json_decode($request->getContent(), true);
         $ids = $data['ids'] ?? [];
-        $result = $this->formService->bulkDelete($ids, $this->formRepository);
+        $result = $this->formService->bulkDelete($ids);
 
         if (isset($result['error'])) return new JsonResponse($result, 400);
 

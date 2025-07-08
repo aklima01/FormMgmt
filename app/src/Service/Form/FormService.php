@@ -29,13 +29,13 @@ class FormService
     )
     {}
 
-    public function bulkDelete(array $ids, FormRepository $formRepository): array
+    public function bulkDelete(array $ids): array
     {
         if (empty($ids)) {
             return ['error' => 'No IDs provided'];
         }
 
-        $forms = $formRepository->findBy(['id' => $ids]);
+        $forms = $this->formRepository->findBy(['id' => $ids]);
 
         foreach ($forms as $form) {
             if (!$this->authorizationChecker->isGranted('FORM_MANAGE', $form)) {
@@ -127,65 +127,6 @@ class FormService
             $orderColumn = 'f.id';
             $orderDir = 'desc';
         }
-
-        $qb = $this->em->createQueryBuilder()
-            ->select('f', 'template')
-            ->from(Form::class, 'f')
-            ->leftJoin('f.template', 'template')
-            ->where('f.user = :user')
-            ->setParameter('user', $user);
-
-        if ($search) {
-            $qb->andWhere('LOWER(template.title) LIKE :search')
-                ->setParameter('search', '%' . strtolower($search) . '%');
-        }
-
-        $filteredCount = (clone $qb)
-            ->select('COUNT(f.id)')
-            ->getQuery()
-            ->getSingleScalarResult();
-
-        $qb->orderBy($orderColumn, $orderDir)
-            ->setFirstResult($start)
-            ->setMaxResults($length);
-
-        $forms = $qb->getQuery()->getResult();
-        $total = $this->formRepository->count(['user' => $user]);
-
-        $data = array_map(function (Form $f) {
-            return [
-                'id' => $f->getId(),
-                'template' => $f->getTemplate()?->getTitle() ?? '<em>Deleted</em>',
-                'submittedAt' => $f->getSubmittedAt()?->format('Y-m-d H:i:s') ?? '',
-            ];
-        }, $forms);
-
-        return [
-            'draw' => $dtRequest->getRequestData()['draw'] ?? 0,
-            'recordsTotal' => $total,
-            'recordsFiltered' => $filteredCount,
-            'data' => $data,
-        ];
-    }
-
-
-    public function getAjaxFormsData(Request $request, UserInterface $user): array
-    {
-        $dtRequest = new DataTablesAjaxRequestService($request);
-
-        $start = $dtRequest->getStart();
-        $length = $dtRequest->getLength();
-        $search = $dtRequest->getSearchText();
-
-        $columnsMap = [
-            0 => 'f.id',
-            1 => 'template.title',
-            2 => 'f.submittedAt',
-        ];
-
-        $orderBy = $dtRequest->getSortText($columnsMap) ?: 'f.id desc';
-        [$orderColumn, $orderDir] = explode(' ', $orderBy) + [null, 'asc'];
-        $orderDir = strtolower($orderDir);
 
         $qb = $this->em->createQueryBuilder()
             ->select('f', 'template')

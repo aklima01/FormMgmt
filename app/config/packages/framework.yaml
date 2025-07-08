@@ -11,6 +11,7 @@ framework:
         cookie_secure: auto
         cookie_samesite: lax
 
+    # Used to remove "Invalid CSRF token." error
     trusted_proxies: '127.0.0.1,REMOTE_ADDR'
     trusted_headers:
         - 'x-forwarded-for'
