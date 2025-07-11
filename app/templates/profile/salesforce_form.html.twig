@@ -1,0 +1,52 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <div class="container mt-5 d-flex justify-content-center">
+        <div class="card shadow-sm" style="max-width: 400px; width: 100%;">
+            <div class="card-body">
+                <h3 class="text-center mb-4">Add Account to Salesforce</h3>
+
+                <form method="post" action="{{ path('user_salesforce_submit', {id: user.id}) }}">
+                    <div class="mb-3">
+                        <label for="account_name" class="form-label fw-bold">Account Name</label>
+                        <input type="text" class="form-control form-control-sm" id="account_name" name="account_name" value="{{ user.name }}" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="email" class="form-label fw-bold">Email</label>
+                        <input type="email" class="form-control form-control-sm" id="email" name="email" value="{{ user.email }}" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="account_number" class="form-label fw-bold">Account Number</label>
+                        <input type="text" class="form-control form-control-sm" id="account_number" name="account_number" value="{{ user.id }}" placeholder="Account Number">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="phone" class="form-label fw-bold">Phone</label>
+                        <input type="tel" class="form-control form-control-sm" id="phone" name="phone" placeholder="Phone Number">
+                    </div>
+
+
+
+                    <div class="mb-3">
+                        <label for="website" class="form-label fw-bold">Website</label>
+                        <input type="url" class="form-control form-control-sm" id="website" name="website" placeholder="https://example.com">
+                    </div>
+
+                    <div class="text-center">
+                        <button type="submit" class="btn btn-success px-4">
+                            <i class="bi bi-send"></i> Add
+                        </button>
+                    </div>
+                </form>
+
+                {% for label, messages in app.flashes %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ label }} mt-3">{{ message }}</div>
+                    {% endfor %}
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+{% endblock %}

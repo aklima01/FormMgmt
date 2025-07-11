@@ -45,5 +45,13 @@ services:
     App\Service\User\UserManagementServiceInterface: '@App\Service\User\UserManagementService'
 
 
+    App\Service\SalesforceService:
+        arguments:
+            $tokenUrl: '%env(SALESFORCE_TOKEN_URL)%'
+            $clientId: '%env(SALESFORCE_CLIENT_ID)%'
+            $clientSecret: '%env(SALESFORCE_CLIENT_SECRET)%'
+            $instanceUrl: '%env(SALESFORCE_INSTANCE_URL)%'
+
+
 
 
