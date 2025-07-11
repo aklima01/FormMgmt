@@ -42,5 +42,10 @@ jobs:
             R2_REGION=${{ secrets.R2_REGION }}
             R2_PUBLIC_URL=${{ secrets.R2_PUBLIC_URL }}
 
+            SALESFORCE_TOKEN_URL=${{ secrets.SALESFORCE_TOKEN_URL }}
+            SALESFORCE_CLIENT_ID=${{ secrets.SALESFORCE_CLIENT_ID }}
+            SALESFORCE_CLIENT_SECRET=${{ secrets.SALESFORCE_CLIENT_SECRET }}
+            SALESFORCE_INSTANCE_URL=${{ secrets.SALESFORCE_INSTANCE_URL }}
+
       - name: Logout from DockerHub
         run: docker logout
