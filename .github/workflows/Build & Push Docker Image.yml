@@ -47,5 +47,9 @@ jobs:
             SALESFORCE_CLIENT_SECRET=${{ secrets.SALESFORCE_CLIENT_SECRET }}
             SALESFORCE_INSTANCE_URL=${{ secrets.SALESFORCE_INSTANCE_URL }}
 
+            DROPBOX_CLIENT_ID=${{ secrets.DROPBOX_CLIENT_ID }}
+            DROPBOX_CLIENT_SECRET=${{ secrets.DROPBOX_CLIENT_SECRET }}
+            DROPBOX_REFRESH_TOKEN=${{ secrets.DROPBOX_REFRESH_TOKEN }}
+
       - name: Logout from DockerHub
         run: docker logout
