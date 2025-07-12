@@ -1,0 +1,43 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Support Ticket{% endblock %}
+
+{% block body %}
+    <div class="container mt-5 pt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card shadow rounded-3">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">Create Support Ticket</h5>
+                    </div>
+                    <div class="card-body">
+                        <form method="POST" action="{{ path('app_support_ticket') }}">
+                            <div class="mb-3">
+                                <label for="summary" class="form-label">Summary</label>
+                                <textarea name="summary" id="summary" class="form-control" rows="4" required></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label for="priority" class="form-label">Priority</label>
+                                <select name="priority" id="priority" class="form-select">
+                                    <option value="Low">Low</option>
+                                    <option value="Average">Average</option>
+                                    <option value="High">High</option>
+                                </select>
+                            </div>
+                            <input type="hidden" name="refererUrl" value="{{ currentUrl }}">
+                            <div class="d-flex justify-content-center">
+                                <button class="btn btn-primary">
+                                    <i class="bi bi-send me-1"></i> Submit Ticket
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="text-center mt-3">
+                    <a href="{{ path('app_home') }}" class="btn btn-link">← Back to Home</a>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

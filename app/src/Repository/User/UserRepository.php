@@ -25,4 +25,26 @@ class UserRepository  extends ServiceEntityRepository implements UserRepositoryI
         }
     }
 
+    // src/Repository/UserRepository.php
+    public function findAdminEmails(): array
+    {
+        $users = $this->createQueryBuilder('u')
+            ->getQuery()
+            ->getResult();
+
+        $adminEmails = [];
+
+        foreach ($users as $user) {
+            if (in_array('ROLE_ADMIN', $user->getRoles(), true)) {
+                $adminEmails[] = $user->getEmail();
+            }
+        }
+
+        return $adminEmails;
+    }
+
+
+
+
+
 }

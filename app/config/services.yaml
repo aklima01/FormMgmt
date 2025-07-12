@@ -8,6 +8,10 @@ parameters:
     r2_bucket: '%env(R2_BUCKET)%'
     r2_public_url: '%env(R2_PUBLIC_URL)%'
 
+    dropbox_client_id: '%env(DROPBOX_CLIENT_ID)%'
+    dropbox_client_secret: '%env(DROPBOX_CLIENT_SECRET)%'
+    dropbox_refresh_token: '%env(DROPBOX_REFRESH_TOKEN)%'
+
 services:
     # default configuration for services in *this* file
     _defaults:
