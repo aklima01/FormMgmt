@@ -56,6 +56,6 @@ class SupportTicketService
     }
 
     private function generateUniqueId(): int {
-        return bin2hex(random_bytes(16));;
+        return bin2hex(random_bytes(16));
     }
 }

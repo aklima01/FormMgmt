@@ -49,7 +49,7 @@ services:
     App\Service\User\UserManagementServiceInterface: '@App\Service\User\UserManagementService'
 
 
-    App\Service\SalesforceService:
+    App\Service\Salesforce\SalesforceService:
         arguments:
             $tokenUrl: '%env(SALESFORCE_TOKEN_URL)%'
             $clientId: '%env(SALESFORCE_CLIENT_ID)%'
