@@ -55,7 +55,7 @@ class SupportTicketService
         $this->logger->info('Support ticket submitted.', ['ticket' => $json]);
     }
 
-    private function generateUniqueId(): int {
+    private function generateUniqueId() {
         return bin2hex(random_bytes(16));
     }
 }

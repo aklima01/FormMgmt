@@ -3,13 +3,15 @@
 namespace App\Service\Dropbox;
 
 use Psr\Log\LoggerInterface;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 
 class DropboxUploader
 {
     public function __construct(
         private readonly LoggerInterface $logger,
-        private readonly ParameterBagInterface $params
+        private readonly ParameterBagInterface $params,
+        private readonly HttpClientInterface $httpClient,
     ) {}
 
     public function uploadJson(string $data, string $filename): void
@@ -34,34 +36,25 @@ class DropboxUploader
         $clientSecret = $this->params->get('dropbox_client_secret');
         $refreshToken = $this->params->get('dropbox_refresh_token');
 
-        $ch = curl_init('https://api.dropboxapi.com/oauth2/token');
-        curl_setopt_array($ch, [
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_POST => true,
-            CURLOPT_HTTPHEADER => ['Content-Type: application/x-www-form-urlencoded'],
-            CURLOPT_POSTFIELDS => http_build_query([
-                'grant_type' => 'refresh_token',
-                'refresh_token' => $refreshToken,
-                'client_id' => $clientId,
-                'client_secret' => $clientSecret,
-            ]),
-        ]);
+        try {
+            $response = $this->httpClient->request('POST', 'https://api.dropboxapi.com/oauth2/token', [
+                'headers' => [
+                    'Content-Type' => 'application/x-www-form-urlencoded',
+                ],
+                'body' => [
+                    'grant_type'    => 'refresh_token',
+                    'refresh_token' => $refreshToken,
+                    'client_id'     => $clientId,
+                    'client_secret' => $clientSecret,
+                ],
+            ]);
 
-        $response = curl_exec($ch);
-        $statusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $data = $response->toArray(false);
 
-        if (curl_errno($ch)) {
-            throw new \RuntimeException('Curl error: ' . curl_error($ch));
+            return $data['access_token'] ?? throw new \RuntimeException('Access token not found in response.');
+        } catch (\Throwable $e) {
+            throw new \RuntimeException('Failed to get Dropbox access token: ' . $e->getMessage(), 0, $e);
         }
-
-        curl_close($ch);
-
-        if ($statusCode !== 200) {
-            throw new \RuntimeException("Failed to get access token. Status code: $statusCode. Response: $response");
-        }
-
-        $data = json_decode($response, true);
-        return $data['access_token'] ?? throw new \RuntimeException('Access token not found in response.');
     }
 
     private function uploadToDropbox(string $filepath, string $filename): void
@@ -74,41 +67,35 @@ class DropboxUploader
         $dropboxPath = "/support_tickets/{$filename}";
         $fileContents = file_get_contents($filepath);
 
-        $ch = curl_init('https://content.dropboxapi.com/2/files/upload');
-        curl_setopt_array($ch, [
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_POST => true,
-            CURLOPT_HTTPHEADER => [
-                'Authorization: Bearer ' . $accessToken,
-                'Content-Type: application/octet-stream',
-                'Dropbox-API-Arg: ' . json_encode([
-                    'path' => $dropboxPath,
-                    'mode' => 'add',
-                    'autorename' => true,
-                    'mute' => false,
-                    'strict_conflict' => false,
-                ]),
-            ],
-            CURLOPT_POSTFIELDS => $fileContents,
-        ]);
+        try {
+            $response = $this->httpClient->request('POST', 'https://content.dropboxapi.com/2/files/upload', [
+                'headers' => [
+                    'Authorization'     => 'Bearer ' . $accessToken,
+                    'Content-Type'      => 'application/octet-stream',
+                    'Dropbox-API-Arg'   => json_encode([
+                        'path' => $dropboxPath,
+                        'mode' => 'add',
+                        'autorename' => true,
+                        'mute' => false,
+                        'strict_conflict' => false,
+                    ]),
+                ],
+                'body' => $fileContents,
+            ]);
 
-        $response = curl_exec($ch);
-        $statusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $statusCode = $response->getStatusCode();
+            if ($statusCode !== 200) {
+                $content = $response->getContent(false); // keep error message
+                $this->logger->error('Dropbox upload failed.', ['response' => $content]);
+                throw new \RuntimeException("Dropbox upload failed. Status: $statusCode. Response: $content");
+            }
 
-        if (curl_errno($ch)) {
-            throw new \RuntimeException('Curl error during upload: ' . curl_error($ch));
+            $this->logger->info('Upload to Dropbox successful.', [
+                'filepath' => $filepath,
+                'dropboxPath' => $dropboxPath,
+            ]);
+        } catch (\Throwable $e) {
+            throw new \RuntimeException('Dropbox upload error: ' . $e->getMessage(), 0, $e);
         }
-
-        curl_close($ch);
-
-        if ($statusCode !== 200) {
-            $this->logger->error('Dropbox upload failed.', ['response' => $response]);
-            throw new \RuntimeException("Dropbox upload failed. Status: $statusCode. Response: $response");
-        }
-
-        $this->logger->info('Upload to Dropbox successful.', [
-            'filepath' => $filepath,
-            'dropboxPath' => $dropboxPath,
-        ]);
     }
 }
