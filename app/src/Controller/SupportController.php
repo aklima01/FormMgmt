@@ -3,13 +3,11 @@
 namespace App\Controller;
 
 use App\Repository\TemplateRepository;
-use App\Repository\User\UserRepositoryInterface;
-use App\Service\Dropbox\DropboxUploader;
+
 use App\Service\SupportTicket\SupportTicketService;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Bundle\SecurityBundle\Security;
-use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;

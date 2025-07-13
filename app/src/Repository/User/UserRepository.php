@@ -25,7 +25,7 @@ class UserRepository  extends ServiceEntityRepository implements UserRepositoryI
         }
     }
 
-    // src/Repository/UserRepository.php
+
     public function findAdminEmails(): array
     {
         $users = $this->createQueryBuilder('u')
@@ -42,9 +42,5 @@ class UserRepository  extends ServiceEntityRepository implements UserRepositoryI
 
         return $adminEmails;
     }
-
-
-
-
 
 }

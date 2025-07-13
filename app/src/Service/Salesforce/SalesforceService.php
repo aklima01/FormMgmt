@@ -1,8 +1,6 @@
 <?php
 
-namespace App\Service;
-
-use Psr\Log\LoggerInterface;
+namespace App\Service\Salesforce;
 
 class SalesforceService
 {
