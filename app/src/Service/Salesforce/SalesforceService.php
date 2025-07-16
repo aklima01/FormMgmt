@@ -91,7 +91,7 @@ class SalesforceService
                 'json'    => $data,
             ]);
 
-            return $response->toArray(false); // keep errors in array
+            return $response->toArray(false);
         } catch (\Throwable $e) {
             $this->logger->error('Salesforce API request failed: ' . $e->getMessage());
             return null;

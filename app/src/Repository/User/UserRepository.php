@@ -28,19 +28,12 @@ class UserRepository  extends ServiceEntityRepository implements UserRepositoryI
 
     public function findAdminEmails(): array
     {
-        $users = $this->createQueryBuilder('u')
+        return $this->createQueryBuilder('u')
+            ->select('u.email')
+            ->where('u.roles LIKE :role')
+            ->setParameter('role', '%"ROLE_ADMIN"%')
             ->getQuery()
-            ->getResult();
-
-        $adminEmails = [];
-
-        foreach ($users as $user) {
-            if (in_array('ROLE_ADMIN', $user->getRoles(), true)) {
-                $adminEmails[] = $user->getEmail();
-            }
-        }
-
-        return $adminEmails;
+            ->getSingleColumnResult();
     }
 
 }
