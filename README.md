@@ -74,7 +74,7 @@ A powerful and responsive web app to **build, manage, and analyze custom forms**
 - **Tools & Libs**:
   - Markdown parser
   - Dropzone (file uploads)
-  - Jquery Ui (tagging)
+  - jQuery UI Ui (tagging)
   - Custom components
 
 ---
